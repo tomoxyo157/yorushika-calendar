@@ -25,7 +25,7 @@
             padding: 12px;
         }
         
-        /* Master Container Grid Setup (Mobile Default: 1 Kolom) */
+        /* Master Container Mobile Default (Atas ke Bawah: Kalender -> Form -> Agenda/Boxes) */
         .container {
             max-width: 500px;
             margin: auto;
@@ -39,7 +39,7 @@
             gap: 16px;
         }
 
-        /* Desktop Layout: 3 Kolom Sejajar (Agenda | Kalender | Form) */
+        /* Desktop Layout: 3 Kolom Sejajar (Agenda/Boxes | Kalender | Form) menggunakan CSS Grid */
         @media (min-width: 1100px) {
             .container {
                 max-width: 1350px;
@@ -52,7 +52,7 @@
             .desktop-full-span {
                 grid-column: span 3;
             }
-            /* Kolom 1 (Kiri): Agenda / Archive */
+            /* Kolom 1 (Kiri): Agenda / Archive Boxes */
             .desktop-agenda-column {
                 grid-column: 1;
                 grid-row: 2 / span 2;
@@ -384,19 +384,19 @@
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
     
-    <!-- Kolom 1 (Desktop: Kiri) / Mobile: Urutan ke-3: Schedule Archive -->
-    <div class="desktop-agenda-column">
-        <div class="agenda-list">
-            <div class="agenda-header-row">
-                <h4>📋 Schedule Archive</h4>
-                <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
-            </div>
-            <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
-            <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load More Dates</button>
-        </div>
-    </div>
+    <!-- 
+      URUTAN ELEMEN HTML (PENTING):
+      - Di Mobile/Android (Default flex-direction: column): Elemen disusun berurutan dari atas ke bawah:
+        1. Kalender Grid (.desktop-calendar-column)
+        2. Form Input (.desktop-form-column)
+        3. Agenda / Boxes (.desktop-agenda-column)
+      - Di Desktop (CSS Grid min-width: 1100px): Urutan diatur ulang lewat Grid Area tanpa mengubah urutan HTML:
+        - Kolom 1: Agenda / Boxes (.desktop-agenda-column)
+        - Kolom 2: Kalender Grid (.desktop-calendar-column)
+        - Kolom 3: Form Input (.desktop-form-column)
+    -->
 
-    <!-- Kolom 2 (Desktop: Tengah) / Mobile: Urutan ke-1: Calendar Grid -->
+    <!-- 1. Kalender Grid -->
     <div class="desktop-calendar-column">
         <h2>Calendar</h2>
         <div class="calendar-nav">
@@ -411,7 +411,7 @@
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <!-- Kolom 3 (Desktop: Kanan) / Mobile: Urutan ke-2: Form Input -->
+    <!-- 2. Form Input -->
     <div class="form-section desktop-form-column">
         <h4>+ Create Entry</h4>
         <div class="form-group">
@@ -455,7 +455,19 @@
         </div>
     </div>
 
-    <!-- Status Supabase dipindah ke bagian bawah -->
+    <!-- 3. Schedule Archive / Boxes -->
+    <div class="desktop-agenda-column">
+        <div class="agenda-list">
+            <div class="agenda-header-row">
+                <h4>📋 Schedule Archive</h4>
+                <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+            </div>
+            <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
+            <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load More Dates</button>
+        </div>
+    </div>
+
+    <!-- Status Supabase -->
     <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
 
     <div class="footer-tag desktop-full-span">
