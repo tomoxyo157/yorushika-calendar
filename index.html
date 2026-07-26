@@ -25,7 +25,6 @@
             padding: 12px;
         }
         
-        /* Master Container Mobile Default (Atas ke Bawah: Kalender -> Form -> Agenda/Boxes) */
         .container {
             max-width: 500px;
             margin: auto;
@@ -39,7 +38,6 @@
             gap: 16px;
         }
 
-        /* Desktop Layout: 3 Kolom Sejajar (Agenda/Boxes | Kalender | Form) menggunakan CSS Grid */
         @media (min-width: 1100px) {
             .container {
                 max-width: 1350px;
@@ -52,17 +50,14 @@
             .desktop-full-span {
                 grid-column: span 3;
             }
-            /* Kolom 1 (Kiri): Agenda / Archive Boxes */
             .desktop-agenda-column {
                 grid-column: 1;
                 grid-row: 2 / span 2;
             }
-            /* Kolom 2 (Tengah): Kalender Grid */
             .desktop-calendar-column {
                 grid-column: 2;
                 grid-row: 2 / span 2;
             }
-            /* Kolom 3 (Kanan): Form Input */
             .desktop-form-column {
                 grid-column: 3;
                 grid-row: 2 / span 2;
@@ -202,7 +197,6 @@
             font-family: monospace;
             border: 1px solid rgba(255,255,255,0.2);
         }
-        /* Style untuk badge yang sudah dicoret/completed */
         .mini-badge.completed-badge {
             opacity: 0.25;
             text-decoration: line-through;
@@ -264,7 +258,6 @@
             font-size: 12px;
         }
 
-        /* Archive List Section */
         .agenda-list { 
             background: #000000;
             padding: 12px;
@@ -324,10 +317,15 @@
             border: 1px solid rgba(255,255,255,0.25);
         }
         .agenda-item.completed-item {
-            opacity: 0.25; 
+            opacity: 0.35; 
             border-style: dashed;
         }
-        .agenda-content h4.completed { text-decoration: line-through; }
+        /* Perbaikan selector agar strikethrough dan redup langsung diaplikasikan ke teks */
+        .agenda-item.completed-item .agenda-content h4,
+        .agenda-item.completed-item .agenda-content p {
+            text-decoration: line-through;
+        }
+        
         .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; }
         .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; }
         
@@ -377,7 +375,6 @@
 <body>
 
 <div class="container">
-    <!-- Header Yorushika -->
     <div class="yorushika-header desktop-full-span">
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
@@ -389,7 +386,6 @@
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
     
-    <!-- 1. Kalender Grid -->
     <div class="desktop-calendar-column">
         <h2>Calendar</h2>
         <div class="calendar-nav">
@@ -404,7 +400,6 @@
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <!-- 2. Form Input -->
     <div class="form-section desktop-form-column">
         <h4>+ Create Entry</h4>
         <div class="form-group">
@@ -448,7 +443,6 @@
         </div>
     </div>
 
-    <!-- 3. Schedule Archive / Boxes -->
     <div class="desktop-agenda-column">
         <div class="agenda-list">
             <div class="agenda-header-row">
@@ -460,7 +454,6 @@
         </div>
     </div>
 
-    <!-- Status Supabase -->
     <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
 
     <div class="footer-tag desktop-full-span">
@@ -494,7 +487,7 @@
         const { data, error } = await supabaseClient
             .from('schedules')
             .select('*')
-            .order('date', { ascending: true }); // Diubah ke ascending agar urutan database awal juga rapi
+            .order('date', { ascending: true });
 
         const statusEl = document.getElementById('dbStatus');
         if (error) {
@@ -653,7 +646,6 @@
             groupedMap[s.date].push(s);
         });
 
-        // Diurutkan secara Ascending (dari tanggal masa lampau/sekarang ke masa depan)
         const sortedDates = Object.keys(groupedMap).sort((a, b) => new Date(a) - new Date(b));
         const limitDates = (selectedFilterDate || showAllArchive) ? sortedDates : sortedDates.slice(0, 3);
 
@@ -673,13 +665,12 @@
                 const c2 = timeblockColors[s.timeblock] || '#333';
                 const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
                 const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
-                const textClass = s.completed ? 'completed' : '';
                 const descHTML = s.description ? `<p style="margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-style: italic;">💬 ${s.description}</p>` : '';
 
                 html += `
                     <div class="${itemClass}" style="background: ${gradient};">
                         <div class="agenda-content">
-                            <h4 class="${textClass}">[${s.type}] ${s.title}</h4>
+                            <h4>[${s.type}] ${s.title}</h4>
                             ${descHTML}
                             <p>🏷️ ${s.priority} / ${s.timeblock}</p>
                         </div>
