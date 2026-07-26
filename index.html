@@ -360,9 +360,9 @@
 </div>
 
 <script>
-    // Konfigurasi Supabase Anda (Ganti dengan URL & Anon Key Anda)
-    const SUPABASE_URL = 'PASTE_SUPABASE_URL_ANDA_DI_SINI';
-    const SUPABASE_KEY = 'PASTE_SUPABASE_ANON_KEY_ANDA_DI_SINI';
+    // Konfigurasi Supabase (Otomatis terpasang)
+    const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
@@ -392,7 +392,6 @@
         if (error) {
             statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline Mode)';
             statusEl.style.color = '#ff5555';
-            // Fallback ke localStorage jika offline/gagal
             schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
         } else {
             statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
@@ -540,7 +539,8 @@
         container.innerHTML = html;
     }
 
-    // Jalankan pertama kali saat load
+    // Render kalender awal agar langsung tampil, lalu sinkronisasi cloud
+    renderCalendar();
     fetchSchedules();
 </script>
 
