@@ -115,7 +115,7 @@
         }
         .calendar-nav button:hover { background: #ffffff; color: #000000; }
 
-        /* Calendar Grid */
+        /* Calendar Grid (Stable Grid Size - No Overflow Stretch) */
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -132,7 +132,7 @@
             gap: 3px;
         }
         .day-cell {
-            min-height: 65px;
+            height: 75px; /* Fixed height for grid stability */
             background: #050505;
             border: 1px solid var(--border-color);
             border-radius: 1px;
@@ -142,10 +142,11 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            overflow: hidden; /* Prevent stretching */
         }
         .day-cell:hover { border-color: #ffffff; background: #111111; }
         
-        /* Penanda Hari Ini (Today Highlight) */
+        /* Penanda Hari Ini */
         .day-cell.today {
             border: 1px solid #ffffff;
             background: #141414;
@@ -157,12 +158,18 @@
 
         .day-number { font-weight: bold; color: var(--muted-gray); font-family: 'VT323', monospace; font-size: 15px; }
         
+        .badges-container {
+            max-height: 45px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
         .mini-badge {
             font-size: 8px;
             color: #ffffff;
             padding: 1px 3px;
             border-radius: 1px;
-            margin-top: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -229,7 +236,7 @@
             font-size: 12px;
         }
 
-        /* Archive List */
+        /* Archive List (Collapsed / Filtered & High Transparency for Completed) */
         .agenda-list { margin-top: 16px; }
         .agenda-list h4 {
             font-family: 'VT323', monospace;
@@ -247,10 +254,20 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(255,255,255,0.25);
+            transition: opacity 0.3s ease;
         }
+        
+        /* Strikethrough & High Transparency for Completed items */
+        .agenda-item.completed-item {
+            opacity: 0.2; /* Hampir menghilang / transparan pekat */
+            border-style: dashed;
+        }
+        .agenda-content h4.completed { 
+            text-decoration: line-through; 
+        }
+
         .agenda-content h4 { margin: 0; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
         .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; }
-        .completed { text-decoration: line-through; opacity: 0.3; }
         
         .agenda-actions {
             display: flex;
@@ -274,6 +291,19 @@
         }
         .btn-delete:hover { background: #ff5555; color: white; }
         
+        .btn-load-more {
+            width: 100%;
+            background: #111;
+            color: var(--muted-gray);
+            border: 1px dashed var(--border-color);
+            padding: 6px;
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+        .btn-load-more:hover { color: #fff; border-color: #fff; }
+
         .footer-tag {
             text-align: center;
             font-family: 'VT323', monospace;
@@ -327,6 +357,10 @@
             <input type="text" id="title" placeholder="e.g., Spring Thief / Plagiarism">
         </div>
         <div class="form-group">
+            <label>Description / Note (Optional)</label>
+            <input type="text" id="description" placeholder="Short detail or sub-note...">
+        </div>
+        <div class="form-group">
             <label>Type</label>
             <select id="type">
                 <option value="Event">Event</option>
@@ -338,12 +372,15 @@
             <input type="date" id="date">
         </div>
         <div class="form-group">
-            <label>Priority Tagging</label>
-            <select id="priority">
-                <option value="personal">Personal (Midnight Monotone)</option>
-                <option value="professional">Professional (Deep Forest)</option>
-                <option value="daily">Daily (Shadow Slate)</option>
-            </select>
+            <label>Priority Tagging & Custom Color</label>
+            <div style="display: flex; gap: 6px;">
+                <select id="priority" style="flex: 2;">
+                    <option value="personal">Personal (Midnight Monotone)</option>
+                    <option value="professional">Professional (Deep Forest)</option>
+                    <option value="daily">Daily (Shadow Slate)</option>
+                </select>
+                <input type="color" id="customColor" value="#333333" style="flex: 1; padding: 2px; height: 32px; cursor: pointer;" title="Pilih custom warna tag">
+            </div>
         </div>
         <div class="form-group">
             <label>Timeblock Tagging</label>
@@ -361,8 +398,9 @@
 
     <!-- Archive List -->
     <div class="agenda-list">
-        <h4>📋 Schedule Archive</h4>
+        <h4>📋 Schedule Archive (Recent)</h4>
         <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
+        <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load All Archive</button>
     </div>
 
     <div class="footer-tag">
@@ -371,13 +409,13 @@
 </div>
 
 <script>
-    // Konfigurasi Supabase (Tetap utuh)
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let schedules = [];
+    let showAllArchive = false;
 
     const priorityColors = { 
         personal: '#1f2937',     
@@ -392,7 +430,6 @@
 
     let currentDate = new Date();
 
-    // Fungsi Ambil Data dari Supabase Cloud
     async function fetchSchedules() {
         const { data, error } = await supabaseClient
             .from('schedules')
@@ -423,7 +460,6 @@
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
 
-        // Ambil tanggal hari ini untuk perbandingan highlight
         const todayObj = new Date();
         const todayYear = todayObj.getFullYear();
         const todayMonth = todayObj.getMonth();
@@ -440,22 +476,22 @@
             const formattedDay = String(day).padStart(2, '0');
             const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
 
-            // Cek apakah hari ini
             const isToday = (day === todayDate && month === todayMonth && year === todayYear);
             const todayClass = isToday ? 'today' : '';
 
             let daySchedules = schedules.filter(s => s.date === dateStr);
             let badgesHTML = '';
             daySchedules.forEach(s => {
-                const c1 = priorityColors[s.priority] || '#333';
+                const c1 = s.customColor || priorityColors[s.priority] || '#333';
                 const c2 = timeblockColors[s.timeblock] || '#333';
-                badgesHTML += `<div class="mini-badge" style="background: linear-gradient(135deg, ${c1}, ${c2});">${s.title}</div>`;
+                const opacityStyle = s.completed ? 'opacity: 0.3; text-decoration: line-through;' : '';
+                badgesHTML += `<div class="mini-badge" style="background: linear-gradient(135deg, ${c1}, ${c2}); ${opacityStyle}">${s.title}</div>`;
             });
 
             gridHTML += `
                 <div class="day-cell ${todayClass}" onclick="selectDate('${dateStr}')">
                     <span class="day-number">${day}</span>
-                    <div>${badgesHTML}</div>
+                    <div class="badges-container">${badgesHTML}</div>
                 </div>
             `;
         }
@@ -475,14 +511,17 @@
 
     function resetForm() {
         document.getElementById('title').value = '';
+        document.getElementById('description').value = '';
         document.getElementById('date').value = '';
     }
 
     async function addSchedule() {
         const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
         const type = document.getElementById('type').value;
         const date = document.getElementById('date').value;
         const priority = document.getElementById('priority').value;
+        const customColor = document.getElementById('customColor').value;
         const timeblock = document.getElementById('timeblock').value;
 
         if (!title || !date) {
@@ -491,7 +530,9 @@
         }
 
         const newEntry = {
-            title, type, date, priority, timeblock,
+            title: description ? `${title} (${description})` : title,
+            type, date, priority, timeblock,
+            customColor,
             completed: false
         };
 
@@ -529,40 +570,14 @@
         }
     }
 
-    function renderAgendaList() {
-        const container = document.getElementById('agendaContainer');
-        if (schedules.length === 0) {
-            container.innerHTML = 'No entries recorded yet.';
-            return;
-        }
-
-        let html = '';
-        schedules.forEach(s => {
-            const c1 = priorityColors[s.priority] || '#333';
-            const c2 = timeblockColors[s.timeblock] || '#333';
-            const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
-
-            html += `
-                <div class="agenda-item" style="background: ${gradient};">
-                    <div class="agenda-content">
-                        <h4 class="${s.completed ? 'completed' : ''}">[${s.type}] ${s.title}</h4>
-                        <p>📅 ${s.date} | 🏷️ ${s.priority} / ${s.timeblock}</p>
-                    </div>
-                    <div class="agenda-actions">
-                        ${s.type === 'Task' ? `
-                            <input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id})" title="Mark complete">
-                        ` : ''}
-                        <button class="btn-delete" onclick="deleteSchedule(${s.id})">X</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
+    function toggleShowAllArchive() {
+        showAllArchive = !showAllArchive;
+        renderAgendaList();
     }
 
-    renderCalendar();
-    fetchSchedules();
-</script>
+    function renderAgendaList() {
+        const container = document.getElementById('agendaContainer');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-</body>
-</html>
+        if (schedules.length === 0) {
+     
