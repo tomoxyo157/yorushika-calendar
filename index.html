@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yorushika Calendar // ヨルシカ</title>
+    <!-- Favicon Yorushika -->
+    <link rel="icon" type="image/png" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
     <link href="https://fonts.googleapis.com/css2?family=VT323&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
-    
-    <!-- Supabase CDN Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
@@ -16,7 +16,6 @@
             --border-color: #262626;
             --text-main: #e6e6e6;
             --muted-gray: #737373;
-            --accent-glow: #ffffff;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -25,6 +24,8 @@
             margin: 0;
             padding: 12px;
         }
+        
+        /* Master Container Grid Setup (Mobile Default: 1 Kolom) */
         .container {
             max-width: 500px;
             margin: auto;
@@ -33,25 +34,55 @@
             border-radius: 2px;
             border: 2px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.95);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Desktop Layout: 3 Kolom Sejajar (Agenda | Kalender | Form) */
+        @media (min-width: 1100px) {
+            .container {
+                max-width: 1350px;
+                display: grid;
+                grid-template-columns: 320px 1fr 380px;
+                grid-template-rows: auto auto auto;
+                gap: 20px;
+                align-items: start;
+            }
+            .desktop-full-span {
+                grid-column: span 3;
+            }
+            /* Kolom 1 (Kiri): Agenda / Archive */
+            .desktop-agenda-column {
+                grid-column: 1;
+                grid-row: 2 / span 2;
+            }
+            /* Kolom 2 (Tengah): Kalender Grid */
+            .desktop-calendar-column {
+                grid-column: 2;
+                grid-row: 2 / span 2;
+            }
+            /* Kolom 3 (Kanan): Form Input */
+            .desktop-form-column {
+                grid-column: 3;
+                grid-row: 2 / span 2;
+                margin-top: 0 !important;
+            }
         }
         
-        /* Status Bar Supabase */
         #dbStatus {
             font-family: 'VT323', monospace;
             font-size: 13px;
             text-align: center;
             padding: 5px;
-            margin-bottom: 10px;
             border: 1px dashed var(--border-color);
             background: #000;
         }
         
-        /* Yorushika Official Eye Logo Header */
         .yorushika-header {
             text-align: center;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 12px;
-            margin-bottom: 14px;
         }
         .eye-logo-svg {
             width: 70px;
@@ -87,7 +118,6 @@
             padding-bottom: 6px;
         }
         
-        /* Navigation */
         .calendar-nav {
             display: flex;
             justify-content: space-between;
@@ -115,7 +145,6 @@
         }
         .calendar-nav button:hover { background: #ffffff; color: #000000; }
 
-        /* Calendar Grid */
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -145,7 +174,6 @@
             overflow: hidden;
         }
         .day-cell:hover { border-color: #ffffff; background: #111111; }
-        
         .day-cell.today {
             border: 1px solid #ffffff;
             background: #141414;
@@ -154,7 +182,6 @@
             color: #ffffff;
             text-decoration: underline;
         }
-
         .day-number { font-weight: bold; color: var(--muted-gray); font-family: 'VT323', monospace; font-size: 15px; }
         
         .badges-container {
@@ -176,9 +203,7 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* Form Input */
         .form-section {
-            margin-top: 16px;
             background: #000000;
             padding: 12px;
             border: 1px solid var(--border-color);
@@ -222,7 +247,6 @@
             cursor: pointer;
             font-size: 12px;
         }
-        .btn-submit:active { background: #cccccc; }
         .btn-reset {
             flex: 1;
             background: #1a1a1a;
@@ -235,56 +259,87 @@
             font-size: 12px;
         }
 
-        /* Archive List */
-        .agenda-list { margin-top: 16px; }
+        /* Archive List Section */
+        .agenda-list { 
+            background: #000000;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+        }
+        .agenda-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 4px;
+        }
         .agenda-list h4 {
             font-family: 'VT323', monospace;
             font-size: 18px;
             letter-spacing: 1px;
             color: #ffffff;
+            margin: 0;
+        }
+        .btn-clear-filter {
+            background: #1a1a1a;
+            color: #ff5555;
+            border: 1px solid var(--border-color);
+            font-family: 'VT323', monospace;
+            font-size: 11px;
+            padding: 2px 6px;
+            cursor: pointer;
+        }
+        .btn-clear-filter:hover { background: #ff5555; color: #fff; }
+
+        .date-group-card {
+            background: #050505;
+            border: 1px solid var(--border-color);
+            padding: 8px;
             margin-bottom: 8px;
         }
-        .agenda-item {
-            padding: 10px;
-            border-radius: 2px;
+        .date-group-header {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: #ffffff;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 4px;
             margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .agenda-item {
+            padding: 8px;
+            border-radius: 2px;
+            margin-bottom: 5px;
             color: white;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(255,255,255,0.25);
-            transition: opacity 0.3s ease;
         }
-        
         .agenda-item.completed-item {
             opacity: 0.25; 
             border-style: dashed;
         }
-        .agenda-content h4.completed { 
-            text-decoration: line-through; 
-        }
-
-        .agenda-content h4 { margin: 0; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; }
+        .agenda-content h4.completed { text-decoration: line-through; }
+        .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; }
         .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; }
         
         .agenda-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
-        .agenda-actions input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
-            cursor: pointer;
-        }
+        .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
         .btn-delete {
             background: rgba(0, 0, 0, 0.6);
             color: #ff5555;
             border: 1px solid #ff5555;
-            padding: 4px 6px;
+            padding: 3px 5px;
             border-radius: 2px;
             cursor: pointer;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: bold;
         }
         .btn-delete:hover { background: #ff5555; color: white; }
@@ -307,7 +362,7 @@
             font-family: 'VT323', monospace;
             font-size: 12px;
             color: var(--muted-gray);
-            margin-top: 16px;
+            margin-top: 10px;
             border-top: 1px dashed var(--border-color);
             padding-top: 8px;
             letter-spacing: 2px;
@@ -317,9 +372,8 @@
 <body>
 
 <div class="container">
-    <div id="dbStatus">Menghubungkan ke Supabase Cloud...</div>
-
-    <div class="yorushika-header">
+    <!-- Header Yorushika -->
+    <div class="yorushika-header desktop-full-span">
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
             <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
@@ -330,20 +384,35 @@
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
     
-    <h2>Calendar</h2>
-
-    <div class="calendar-nav">
-        <button onclick="changeMonth(-1)">◀</button>
-        <h3 id="monthYearDisplay"></h3>
-        <button onclick="changeMonth(1)">▶</button>
+    <!-- Kolom 1 (Desktop: Kiri) / Mobile: Urutan ke-3: Schedule Archive -->
+    <div class="desktop-agenda-column">
+        <div class="agenda-list">
+            <div class="agenda-header-row">
+                <h4>📋 Schedule Archive</h4>
+                <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+            </div>
+            <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
+            <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load More Dates</button>
+        </div>
     </div>
 
-    <div class="weekdays">
-        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-    </div>
-    <div class="days-grid" id="daysGrid"></div>
+    <!-- Kolom 2 (Desktop: Tengah) / Mobile: Urutan ke-1: Calendar Grid -->
+    <div class="desktop-calendar-column">
+        <h2>Calendar</h2>
+        <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">◀</button>
+            <h3 id="monthYearDisplay"></h3>
+            <button onclick="changeMonth(1)">▶</button>
+        </div>
 
-    <div class="form-section">
+        <div class="weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="days-grid" id="daysGrid"></div>
+    </div>
+
+    <!-- Kolom 3 (Desktop: Kanan) / Mobile: Urutan ke-2: Form Input -->
+    <div class="form-section desktop-form-column">
         <h4>+ Create Entry</h4>
         <div class="form-group">
             <label>Title</label>
@@ -386,13 +455,10 @@
         </div>
     </div>
 
-    <div class="agenda-list">
-        <h4>📋 Schedule Archive (Recent)</h4>
-        <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
-        <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load All Archive</button>
-    </div>
+    <!-- Status Supabase dipindah ke bagian bawah -->
+    <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
 
-    <div class="footer-tag">
+    <div class="footer-tag desktop-full-span">
         <span>― 夜を歩く者のための記録 ―</span>
     </div>
 </div>
@@ -400,22 +466,21 @@
 <script>
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
-    
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let schedules = [];
     let showAllArchive = false;
+    let selectedFilterDate = null;
 
     const priorityColors = { 
-        personal: '#7a9c72',     // Mint Green
-        professional: '#800020', // Maroon
-        daily: '#3b3b3b'         // Ink Charcoal
+        personal: '#7a9c72', 
+        professional: '#800020', 
+        daily: '#3b3b3b' 
     };
-    
     const timeblockColors = { 
-        morning: '#8c6d36',      // Golden Dawn
-        work: '#4f5d2f',         // Summer Canopy / Olive
-        night: '#1b263b'         // Japanese Indigo
+        morning: '#8c6d36', 
+        work: '#4f5d2f', 
+        night: '#1b263b' 
     };
 
     let currentDate = new Date();
@@ -424,7 +489,7 @@
         const { data, error } = await supabaseClient
             .from('schedules')
             .select('*')
-            .order('date', { ascending: true });
+            .order('date', { ascending: false });
 
         const statusEl = document.getElementById('dbStatus');
         if (error) {
@@ -451,7 +516,6 @@
         const totalDays = new Date(year, month + 1, 0).getDate();
 
         let gridHTML = '';
-
         for (let i = 0; i < firstDayIndex; i++) {
             gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
         }
@@ -472,9 +536,8 @@
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
-
             gridHTML += `
-                <div class="day-cell ${isToday}" onclick="selectDate('${dateStr}')">
+                <div class="day-cell ${isToday}" onclick="handleGridCellClick('${dateStr}')">
                     <span class="day-number">${day}</span>
                     <div class="badges-container">${badgesHTML}</div>
                 </div>
@@ -490,8 +553,17 @@
         renderCalendar();
     }
 
-    function selectDate(dateStr) {
+    function handleGridCellClick(dateStr) {
         document.getElementById('date').value = dateStr;
+        selectedFilterDate = dateStr;
+        document.getElementById('clearFilterBtn').style.display = 'inline-block';
+        renderAgendaList();
+    }
+
+    function clearDateFilter() {
+        selectedFilterDate = null;
+        document.getElementById('clearFilterBtn').style.display = 'none';
+        renderAgendaList();
     }
 
     function resetForm() {
@@ -513,11 +585,7 @@
             return;
         }
 
-        const newEntry = {
-            title, description, type, date, priority, timeblock,
-            completed: false
-        };
-
+        const newEntry = { title, description, type, date, priority, timeblock, completed: false };
         const { error } = await supabaseClient.from('schedules').insert([newEntry]);
         
         if (error) {
@@ -532,22 +600,14 @@
         const item = schedules.find(s => s.id === id);
         if (item) {
             const newStatus = !item.completed;
-            const { error } = await supabaseClient
-                .from('schedules')
-                .update({ completed: newStatus })
-                .eq('id', id);
-
+            const { error } = await supabaseClient.from('schedules').update({ completed: newStatus }).eq('id', id);
             if (!error) fetchSchedules();
         }
     }
 
     async function deleteSchedule(id) {
         if (confirm('Delete this entry?')) {
-            const { error } = await supabaseClient
-                .from('schedules')
-                .delete()
-                .eq('id', id);
-
+            const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
             if (!error) fetchSchedules();
         }
     }
@@ -567,46 +627,73 @@
             return;
         }
 
-        let displayList = [...schedules].reverse();
-        
-        if (!showAllArchive && displayList.length > 5) {
-            displayList = displayList.slice(0, 5);
+        let activeSchedules = schedules;
+        if (selectedFilterDate) {
+            activeSchedules = schedules.filter(s => s.date === selectedFilterDate);
+            document.getElementById('clearFilterBtn').style.display = 'inline-block';
+        } else {
+            document.getElementById('clearFilterBtn').style.display = 'none';
+        }
+
+        if (activeSchedules.length === 0) {
+            container.innerHTML = `<div style="text-align: center; padding: 10px; font-style: italic;">No schedules found for ${selectedFilterDate || 'this filter'}.</div>`;
+            loadMoreBtn.style.display = 'none';
+            return;
+        }
+
+        const groupedMap = {};
+        activeSchedules.forEach(s => {
+            if (!groupedMap[s.date]) groupedMap[s.date] = [];
+            groupedMap[s.date].push(s);
+        });
+
+        const sortedDates = Object.keys(groupedMap).sort((a, b) => new Date(b) - new Date(a));
+        const limitDates = (selectedFilterDate || showAllArchive) ? sortedDates : sortedDates.slice(0, 3);
+
+        let html = '';
+        limitDates.forEach(dateStr => {
+            const items = groupedMap[dateStr];
+            html += `
+                <div class="date-group-card">
+                    <div class="date-group-header">
+                        <span>📅 ${dateStr}</span>
+                        <span>[${items.length}]</span>
+                    </div>
+            `;
+
+            items.forEach(s => {
+                const c1 = priorityColors[s.priority] || '#333';
+                const c2 = timeblockColors[s.timeblock] || '#333';
+                const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
+                const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+                const textClass = s.completed ? 'completed' : '';
+                const descHTML = s.description ? `<p style="margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-style: italic;">💬 ${s.description}</p>` : '';
+
+                html += `
+                    <div class="${itemClass}" style="background: ${gradient};">
+                        <div class="agenda-content">
+                            <h4 class="${textClass}">[${s.type}] ${s.title}</h4>
+                            ${descHTML}
+                            <p>🏷️ ${s.priority} / ${s.timeblock}</p>
+                        </div>
+                        <div class="agenda-actions">
+                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id})" title="Mark complete">` : ''}
+                            <button class="btn-delete" onclick="deleteSchedule(${s.id})">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+        });
+
+        container.innerHTML = html;
+
+        if (!selectedFilterDate && sortedDates.length > 3) {
             loadMoreBtn.style.display = 'block';
-            loadMoreBtn.innerText = '▼ Load All Archive (' + schedules.length + ' items)';
-        } else if (showAllArchive) {
-            loadMoreBtn.style.display = 'block';
-            loadMoreBtn.innerText = '▲ Show Less';
+            loadMoreBtn.innerText = showAllArchive ? '▲ Show Less Dates' : '▼ Load More Dates (' + (sortedDates.length - 3) + ' more)';
         } else {
             loadMoreBtn.style.display = 'none';
         }
-
-        let html = '';
-        displayList.forEach(s => {
-            const c1 = priorityColors[s.priority] || '#333';
-            const c2 = timeblockColors[s.timeblock] || '#333';
-            const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
-
-            const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
-            const textClass = s.completed ? 'completed' : '';
-            const descHTML = s.description ? `<p style="margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-style: italic;">💬 ${s.description}</p>` : '';
-
-            html += `
-                <div class="${itemClass}" style="background: ${gradient};">
-                    <div class="agenda-content">
-                        <h4 class="${textClass}">[${s.type}] ${s.title}</h4>
-                        ${descHTML}
-                        <p>📅 ${s.date} | 🏷️ ${s.priority} / ${s.timeblock}</p>
-                    </div>
-                    <div class="agenda-actions">
-                        ${s.type === 'Task' ? `
-                            <input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id})" title="Mark complete">
-                        ` : ''}
-                        <button class="btn-delete" onclick="deleteSchedule(${s.id})">X</button>
-                    </div>
-                </div>
-            `;
-        });
-        container.innerHTML = html;
     }
 
     fetchSchedules();
