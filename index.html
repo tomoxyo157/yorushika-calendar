@@ -107,7 +107,7 @@
                 </div>
             </div>
 
-            <!-- Kolom Kanan: Grid Kalender (Dioptimasi untuk HP & PC) -->
+            <!-- Kolom Kanan: Grid Kalender -->
             <div class="bg-[#0d0d0d] border-2 border-neutral-800 p-4 md:p-6 shadow-2xl lg:col-span-2 flex flex-col">
                 <!-- Navigasi Bulan -->
                 <div class="flex justify-between items-center mb-4">
@@ -124,7 +124,7 @@
                     <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
                 </div>
 
-                <!-- Grid Kotak Tanggal Kalender (Min-height disesuaikan agar lega di HP) -->
+                <!-- Grid Kotak Tanggal Kalender -->
                 <div id="calendar-grid" class="grid grid-cols-7 gap-1 md:gap-2 flex-1">
                     <!-- Diisi lewat JavaScript -->
                 </div>
@@ -156,6 +156,9 @@
         };
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Langsung render kalender kosong dulu agar grid langsung tampil
+            renderCalendar();
+            // Baru ambil data dari Supabase di latar belakang
             fetchSchedules();
             document.getElementById('schedule-form').addEventListener('submit', handleFormSubmit);
         });
@@ -296,7 +299,7 @@
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const date = document.getElementById('date').value;
-            const type = document.getElementById('type'].value;
+            const type = document.getElementById('type').value;
             const priority = document.getElementById('priority').value;
             const timeblock = document.getElementById('timeblock').value;
 
