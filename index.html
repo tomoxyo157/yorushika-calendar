@@ -115,7 +115,7 @@
         }
         .calendar-nav button:hover { background: #ffffff; color: #000000; }
 
-        /* Calendar Grid (Stable Grid Size - No Overflow Stretch) */
+        /* Calendar Grid (Stable Grid Size) */
         .weekdays {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -132,7 +132,7 @@
             gap: 3px;
         }
         .day-cell {
-            height: 75px; /* Fixed height for grid stability */
+            height: 75px; 
             background: #050505;
             border: 1px solid var(--border-color);
             border-radius: 1px;
@@ -142,11 +142,10 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            overflow: hidden; /* Prevent stretching */
+            overflow: hidden;
         }
         .day-cell:hover { border-color: #ffffff; background: #111111; }
         
-        /* Penanda Hari Ini */
         .day-cell.today {
             border: 1px solid #ffffff;
             background: #141414;
@@ -236,7 +235,7 @@
             font-size: 12px;
         }
 
-        /* Archive List (Collapsed / Filtered & High Transparency for Completed) */
+        /* Archive List */
         .agenda-list { margin-top: 16px; }
         .agenda-list h4 {
             font-family: 'VT323', monospace;
@@ -257,9 +256,8 @@
             transition: opacity 0.3s ease;
         }
         
-        /* Strikethrough & High Transparency for Completed items */
         .agenda-item.completed-item {
-            opacity: 0.2; /* Hampir menghilang / transparan pekat */
+            opacity: 0.2; 
             border-style: dashed;
         }
         .agenda-content h4.completed { 
@@ -319,10 +317,8 @@
 <body>
 
 <div class="container">
-    <!-- Status Bar Supabase -->
     <div id="dbStatus">Menghubungkan ke Supabase Cloud...</div>
 
-    <!-- Yorushika Eye Logo & Typography Header -->
     <div class="yorushika-header">
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
@@ -336,20 +332,17 @@
     
     <h2>Calendar</h2>
 
-    <!-- Navigation -->
     <div class="calendar-nav">
         <button onclick="changeMonth(-1)">◀</button>
         <h3 id="monthYearDisplay"></h3>
         <button onclick="changeMonth(1)">▶</button>
     </div>
 
-    <!-- Calendar Grid -->
     <div class="weekdays">
         <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
     </div>
     <div class="days-grid" id="daysGrid"></div>
 
-    <!-- Form Section -->
     <div class="form-section">
         <h4>+ Create Entry</h4>
         <div class="form-group">
@@ -372,22 +365,19 @@
             <input type="date" id="date">
         </div>
         <div class="form-group">
-            <label>Priority Tagging & Custom Color</label>
-            <div style="display: flex; gap: 6px;">
-                <select id="priority" style="flex: 2;">
-                    <option value="personal">Personal (Midnight Monotone)</option>
-                    <option value="professional">Professional (Deep Forest)</option>
-                    <option value="daily">Daily (Shadow Slate)</option>
-                </select>
-                <input type="color" id="customColor" value="#333333" style="flex: 1; padding: 2px; height: 32px; cursor: pointer;" title="Pilih custom warna tag">
-            </div>
+            <label>Priority Tagging</label>
+            <select id="priority">
+                <option value="personal">Personal (Mint Green)</option>
+                <option value="professional">Professional (Maroon)</option>
+                <option value="daily">Daily (Ink Charcoal)</option>
+            </select>
         </div>
         <div class="form-group">
             <label>Timeblock Tagging</label>
             <select id="timeblock">
-                <option value="morning">3am - 9am (Dawn Void)</option>
-                <option value="work">9am - 5pm (Clear Gray)</option>
-                <option value="night">5pm - 10pm (Eclipse Red)</option>
+                <option value="morning">3am - 9am (Golden Dawn)</option>
+                <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                <option value="night">5pm - 10pm (Japanese Indigo)</option>
             </select>
         </div>
         <div class="form-buttons">
@@ -396,7 +386,6 @@
         </div>
     </div>
 
-    <!-- Archive List -->
     <div class="agenda-list">
         <h4>📋 Schedule Archive (Recent)</h4>
         <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
@@ -417,15 +406,16 @@
     let schedules = [];
     let showAllArchive = false;
 
+    // Palet warna konsisten Yorushika
     const priorityColors = { 
-        personal: '#1f2937',     
-        professional: '#113822', 
-        daily: '#333333'         
+        personal: '#7a9c72',     // Mint Green
+        professional: '#800020', // Maroon
+        daily: '#3b3b3b'         // Ink Charcoal
     };
     const timeblockColors = { 
-        morning: '#2d1b4e',      
-        work: '#1c3144',         
-        night: '#4a1515'         
+        morning: '#d4af37',      // Golden Dawn
+        work: '#4a5d3f',         // Summer Canopy (Olive)
+        night: '#2b3a4a'         // Japanese Indigo
     };
 
     let currentDate = new Date();
@@ -482,9 +472,9 @@
             let daySchedules = schedules.filter(s => s.date === dateStr);
             let badgesHTML = '';
             daySchedules.forEach(s => {
-                const c1 = s.customColor || priorityColors[s.priority] || '#333';
-                const c2 = timeblockColors[s.timeblock] || '#333';
-                const opacityStyle = s.completed ? 'opacity: 0.3; text-decoration: line-through;' : '';
+                const c1 = priorityColors[s.priority] || '#3b3b3b';
+                const c2 = timeblockColors[s.timeblock] || '#2b3a4a';
+                const opacityStyle = s.completed ? 'opacity: 0.2; text-decoration: line-through;' : '';
                 badgesHTML += `<div class="mini-badge" style="background: linear-gradient(135deg, ${c1}, ${c2}); ${opacityStyle}">${s.title}</div>`;
             });
 
@@ -521,7 +511,6 @@
         const type = document.getElementById('type').value;
         const date = document.getElementById('date').value;
         const priority = document.getElementById('priority').value;
-        const customColor = document.getElementById('customColor').value;
         const timeblock = document.getElementById('timeblock').value;
 
         if (!title || !date) {
@@ -532,7 +521,6 @@
         const newEntry = {
             title: description ? `${title} (${description})` : title,
             type, date, priority, timeblock,
-            customColor,
             completed: false
         };
 
@@ -553,7 +541,7 @@
             const { error } = await supabaseClient
                 .from('schedules')
                 .update({ completed: newStatus })
-                .eq('id', id);
+                .eq('id', id); // UUID aman ditangani string
 
             if (!error) fetchSchedules();
         }
@@ -564,7 +552,7 @@
             const { error } = await supabaseClient
                 .from('schedules')
                 .delete()
-                .eq('id', id);
+                .eq('id', id); // UUID aman ditangani string
 
             if (!error) fetchSchedules();
         }
@@ -580,4 +568,52 @@
         const loadMoreBtn = document.getElementById('loadMoreBtn');
 
         if (schedules.length === 0) {
-     
+            container.innerHTML = 'No entries recorded yet.';
+            loadMoreBtn.style.display = 'none';
+            return;
+        }
+
+        let displaySchedules = schedules;
+        if (!showAllArchive && schedules.length > 7) {
+            displaySchedules = schedules.slice(-7);
+            loadMoreBtn.style.display = 'block';
+            loadMoreBtn.innerText = `▼ Load All Archive (${schedules.length} entries)`;
+        } else if (showAllArchive && schedules.length > 7) {
+            loadMoreBtn.style.display = 'block';
+            loadMoreBtn.innerText = `▲ Collapse Archive`;
+        } else {
+            loadMoreBtn.style.display = 'none';
+        }
+
+        let html = '';
+        displaySchedules.forEach(s => {
+            const c1 = priorityColors[s.priority] || '#3b3b3b';
+            const c2 = timeblockColors[s.timeblock] || '#2b3a4a';
+            const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
+            const completedClass = s.completed ? 'completed' : '';
+            const itemCompletedClass = s.completed ? 'completed-item' : '';
+
+            html += `
+                <div class="agenda-item ${itemCompletedClass}" style="background: ${gradient};">
+                    <div class="agenda-content">
+                        <h4 class="${completedClass}">[${s.type}] ${s.title}</h4>
+                        <p>📅 ${s.date} | 🏷️ ${s.priority} / ${s.timeblock}</p>
+                    </div>
+                    <div class="agenda-actions">
+                        ${s.type === 'Task' ? `
+                            <input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}')" title="Mark complete">
+                        ` : ''}
+                        <button class="btn-delete" onclick="deleteSchedule('${s.id}')">X</button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    renderCalendar();
+    fetchSchedules();
+</script>
+
+</body>
+</html>
