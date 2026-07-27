@@ -16,6 +16,7 @@
             --border-color: #262626;
             --text-main: #e6e6e6;
             --muted-gray: #737373;
+            --birthday-strawberry: #ff4d6d;
         }
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
@@ -216,7 +217,7 @@
             font-size: 12px;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        textarea { resize: vertical; min-height: 50px; }
+        textarea { resize: vertical; min-height: 50px; white-space: pre-wrap; }
         input:focus, select:focus, textarea:focus { outline: 1px solid #ffffff; }
         
         .form-buttons {
@@ -252,6 +253,7 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
+            margin-bottom: 12px;
         }
         .agenda-header-row {
             display: flex;
@@ -268,6 +270,21 @@
             color: #ffffff;
             margin: 0;
         }
+        .agenda-controls {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .sort-select {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            font-family: 'VT323', monospace;
+            font-size: 12px;
+            padding: 2px 4px;
+            cursor: pointer;
+            width: auto;
+        }
         .btn-clear-filter {
             background: #1a1a1a;
             color: #ff5555;
@@ -278,6 +295,21 @@
             cursor: pointer;
         }
         .btn-clear-filter:hover { background: #ff5555; color: #fff; }
+
+        .dumplist-box {
+            background: #080808;
+            border: 1px dashed var(--border-color);
+            padding: 8px;
+            margin-bottom: 10px;
+        }
+        .dumplist-title {
+            font-family: 'VT323', monospace;
+            font-size: 14px;
+            color: var(--muted-gray);
+            margin-bottom: 6px;
+            border-bottom: 1px dotted var(--border-color);
+            padding-bottom: 2px;
+        }
 
         .date-group-card {
             background: #050505;
@@ -295,6 +327,7 @@
             display: flex;
             justify-content: space-between;
         }
+        
         .agenda-item {
             padding: 8px;
             border-radius: 2px;
@@ -308,7 +341,6 @@
         }
         .agenda-item:hover { border-color: #ffffff; }
         
-        /* Strikethrough & dimming yang diperkuat */
         .agenda-item.completed-item {
             opacity: 0.35 !important; 
             border-style: dashed;
@@ -318,13 +350,33 @@
             text-decoration: line-through !important;
         }
         
+        /* Text Overflow Control for Archive Cards */
         .agenda-content {
             flex-grow: 1;
             overflow: hidden;
             padding-right: 8px;
         }
-        .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .agenda-content h4 { 
+            margin: 0; 
+            font-size: 12px; 
+            font-weight: 600; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+        }
+        .agenda-content p { 
+            margin: 2px 0 0 0; 
+            font-size: 10px; 
+            opacity: 0.85; 
+            font-family: monospace; 
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            word-break: break-all;
+        }
         
         .agenda-actions {
             display: flex;
@@ -369,7 +421,6 @@
         }
         .btn-load-more:hover { color: #fff; border-color: #fff; }
 
-        /* Modal Pop-up Detail */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -413,6 +464,7 @@
         .modal-body p {
             margin: 6px 0;
             font-size: 12px;
+            white-space: pre-wrap;
         }
         .modal-body strong {
             color: var(--muted-gray);
@@ -475,16 +527,17 @@
         </div>
         <div class="form-group">
             <label>Type</label>
-            <select id="type">
+            <select id="type" onchange="handleTypeChange()">
                 <option value="Event">Event</option>
                 <option value="Task">Task (With checkmark)</option>
+                <option value="Birthday">Birthday (Recurring Yearly)</option>
             </select>
         </div>
         <div class="form-group">
-            <label>Date</label>
+            <label id="dateLabel">Date (Leave blank for Inbox)</label>
             <input type="date" id="date">
         </div>
-        <div class="form-group">
+        <div class="form-group" id="priorityGroup">
             <label>Priority Tagging</label>
             <select id="priority">
                 <option value="personal">Personal (Mint Green)</option>
@@ -492,7 +545,7 @@
                 <option value="daily">Daily (Ink Charcoal)</option>
             </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="timeblockGroup">
             <label>Timeblock Tagging</label>
             <select id="timeblock">
                 <option value="morning">3am - 9am (Golden Dawn)</option>
@@ -510,8 +563,16 @@
         <div class="agenda-list">
             <div class="agenda-header-row">
                 <h4>📋 Schedule Archive</h4>
-                <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+                <div class="agenda-controls">
+                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
+                        <option value="timeblock">Sort: Timeblock</option>
+                        <option value="priority">Sort: Priority</option>
+                        <option value="type">Sort: Type</option>
+                    </select>
+                    <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+                </div>
             </div>
+            <div id="dumplistContainer"></div>
             <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
             <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load More Dates</button>
         </div>
@@ -524,7 +585,6 @@
     </div>
 </div>
 
-<!-- Modal Pop-up Detail -->
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -546,14 +606,32 @@
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
+    const timeblockOrder = { morning: 1, work: 2, night: 3 };
 
     let currentDate = new Date();
+
+    function handleTypeChange() {
+        const typeVal = document.getElementById('type').value;
+        const priorityGrp = document.getElementById('priorityGroup');
+        const timeblockGrp = document.getElementById('timeblockGroup');
+        const dateLbl = document.getElementById('dateLabel');
+
+        if (typeVal === 'Birthday') {
+            priorityGrp.style.display = 'none';
+            timeblockGrp.style.display = 'none';
+            dateLbl.innerText = 'Date (Month & Day - Recurring Yearly)';
+        } else {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'block';
+            dateLbl.innerText = 'Date (Leave blank for Inbox)';
+        }
+    }
 
     async function fetchSchedules() {
         const { data, error } = await supabaseClient
             .from('schedules')
             .select('*')
-            .order('date', { ascending: true });
+            .order('date', { ascending: true, nullsFirst: false });
 
         const statusEl = document.getElementById('dbStatus');
         if (error) {
@@ -591,13 +669,28 @@
             const formattedDay = String(day).padStart(2, '0');
             const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
 
-            let daySchedules = schedules.filter(s => s.date === dateStr);
+            let daySchedules = schedules.filter(s => {
+                if (!s.date) return false;
+                if (s.date === dateStr) return true;
+                if (s.type === 'Birthday' || s.recurring === 'yearly') {
+                    const bMonth = s.date.split('-')[1];
+                    const bDay = s.date.split('-')[2];
+                    return bMonth === formattedMonth && bDay === formattedDay;
+                }
+                return false;
+            });
+
+            daySchedules.sort((a, b) => (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2));
+
             let badgesHTML = '';
             daySchedules.forEach(s => {
-                const c1 = priorityColors[s.priority] || '#333';
-                const c2 = timeblockColors[s.timeblock] || '#333';
-                const completedClass = s.completed ? 'completed-badge' : '';
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: linear-gradient(135deg, ${c1}, ${c2});">${s.title}</div>`;
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') {
+                    bgStyle = `var(--birthday-strawberry)`;
+                }
+                const isPast = s.date && s.date < todayStr;
+                const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${s.title}</div>`;
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
@@ -621,13 +714,11 @@
     function handleGridCellClick(dateStr) {
         document.getElementById('date').value = dateStr;
         selectedFilterDate = dateStr;
-        document.getElementById('clearFilterBtn').style.display = 'inline-block';
         renderAgendaList();
     }
 
     function clearDateFilter() {
         selectedFilterDate = null;
-        document.getElementById('clearFilterBtn').style.display = 'none';
         renderAgendaList();
     }
 
@@ -639,6 +730,7 @@
         document.getElementById('date').value = '';
         document.getElementById('priority').value = 'personal';
         document.getElementById('timeblock').value = 'morning';
+        handleTypeChange();
         document.getElementById('formTitleHeader').innerText = '+ Create Entry';
         document.getElementById('submitBtn').innerText = 'Save Entry';
     }
@@ -648,34 +740,39 @@
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const type = document.getElementById('type').value;
-        const date = document.getElementById('date').value;
-        const priority = document.getElementById('priority').value;
-        const timeblock = document.getElementById('timeblock').value;
+        let date = document.getElementById('date').value;
+        if (!date) date = null;
 
-        if (!title || !date) {
-            alert('Title and Date are required!');
+        let priority = document.getElementById('priority').value;
+        let timeblock = document.getElementById('timeblock').value;
+        let recurring = 'none';
+
+        if (type === 'Birthday') {
+            recurring = 'yearly';
+            priority = 'personal';
+            timeblock = 'morning';
+        }
+
+        if (!title) {
+            alert('Title is required!');
             return;
         }
 
         if (id) {
             const { error } = await supabaseClient
                 .from('schedules')
-                .update({ title, description, type, date, priority, timeblock })
+                .update({ title, description, type, date, priority, timeblock, recurring })
                 .eq('id', id);
 
-            if (error) {
-                alert('Gagal memperbarui ke cloud: ' + error.message);
-            } else {
+            if (!error) {
                 resetForm();
                 fetchSchedules();
             }
         } else {
-            const newEntry = { title, description, type, date, priority, timeblock, completed: false };
+            const newEntry = { title, description, type, date, priority, timeblock, recurring, completed: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
-            if (error) {
-                alert('Gagal menyimpan ke cloud: ' + error.message);
-            } else {
+            if (!error) {
                 resetForm();
                 fetchSchedules();
             }
@@ -689,13 +786,13 @@
             document.getElementById('title').value = item.title;
             document.getElementById('description').value = item.description || '';
             document.getElementById('type').value = item.type;
-            document.getElementById('date').value = item.date;
+            document.getElementById('date').value = item.date || '';
             document.getElementById('priority').value = item.priority;
             document.getElementById('timeblock').value = item.timeblock;
             
+            handleTypeChange();
             document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
             document.getElementById('submitBtn').innerText = 'Update Entry';
-            
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
@@ -723,16 +820,14 @@
         if (!item) return;
 
         document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
-        
         const modalBody = document.getElementById('modalBodyContent');
         modalBody.innerHTML = `
-            <p><strong>Date</strong> ${item.date}</p>
+            <p><strong>Date</strong> ${item.date ? item.date : 'Inbox (No Date)'}</p>
             <p><strong>Description / Note</strong> ${item.description ? item.description : '-'}</p>
-            <p><strong>Priority Tag</strong> ${item.priority}</p>
-            <p><strong>Timeblock</strong> ${item.timeblock}</p>
+            <p><strong>Priority Tag</strong> ${item.type === 'Birthday' ? 'Birthday (Strawberry)' : item.priority}</p>
+            <p><strong>Timeblock</strong> ${item.type === 'Birthday' ? 'All Day' : item.timeblock}</p>
             <p><strong>Status</strong> ${item.completed ? 'Completed' : 'Pending'}</p>
         `;
-        
         document.getElementById('detailModal').style.display = 'flex';
     }
 
@@ -741,9 +836,7 @@
     }
 
     function closeModal(event) {
-        if (event.target.id === 'detailModal') {
-            closeDetailModal();
-        }
+        if (event.target.id === 'detailModal') closeDetailModal();
     }
 
     function toggleShowAllArchive() {
@@ -753,24 +846,71 @@
 
     function renderAgendaList() {
         const container = document.getElementById('agendaContainer');
+        const dumplistContainer = document.getElementById('dumplistContainer');
         const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const sortMode = document.getElementById('sortBySelect').value;
+        const todayStr = new Date().toISOString().split('T')[0];
 
         if (schedules.length === 0) {
             container.innerHTML = 'No entries recorded yet.';
+            dumplistContainer.innerHTML = '';
             loadMoreBtn.style.display = 'none';
             return;
         }
 
-        let activeSchedules = schedules;
+        const inboxItems = schedules.filter(s => !s.date);
+        if (inboxItems.length > 0) {
+            let inboxHTML = `
+                <div class="dumplist-box">
+                    <div class="dumplist-title">📥 Inbox / Dumplist (${inboxItems.length})</div>
+            `;
+            inboxItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+                const descText = s.description ? s.description : 'No additional note';
+
+                inboxHTML += `
+                    <div class="${itemClass}" style="background: ${bgStyle};" onclick="openDetailModal('${s.id}')">
+                        <div class="agenda-content">
+                            <h4>[${s.type}] ${s.title}</h4>
+                            <p>💬 ${descText}</p>
+                        </div>
+                        <div class="agenda-actions">
+                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                            <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                            <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                        </div>
+                    </div>
+                `;
+            });
+            inboxHTML += `</div>`;
+            dumplistContainer.innerHTML = inboxHTML;
+        } else {
+            dumplistContainer.innerHTML = '';
+        }
+
+        let activeSchedules = schedules.filter(s => s.date);
         if (selectedFilterDate) {
-            activeSchedules = schedules.filter(s => s.date === selectedFilterDate);
+            activeSchedules = activeSchedules.filter(s => s.date === selectedFilterDate);
             document.getElementById('clearFilterBtn').style.display = 'inline-block';
         } else {
             document.getElementById('clearFilterBtn').style.display = 'none';
+            // Auto-hide Option B: Sembunyikan tugas masa lalu yang sudah selesai (completed)
+            activeSchedules = activeSchedules.filter(s => {
+                const isPast = s.date < todayStr;
+                const isCompleted = s.completed;
+                if (isPast && isCompleted) return false;
+                return true;
+            });
         }
 
-        if (activeSchedules.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 10px; font-style: italic;">No schedules found for ${selectedFilterDate || 'this filter'}.</div>`;
+        if (activeSchedules.length === 0 && inboxItems.length === 0) {
+            container.innerHTML = `<div style="text-align: center; padding: 10px; font-style: italic;">No active schedules found.</div>`;
+            loadMoreBtn.style.display = 'none';
+            return;
+        } else if (activeSchedules.length === 0) {
+            container.innerHTML = '';
             loadMoreBtn.style.display = 'none';
             return;
         }
@@ -786,7 +926,18 @@
 
         let html = '';
         limitDates.forEach(dateStr => {
-            const items = groupedMap[dateStr];
+            let items = groupedMap[dateStr];
+
+            items.sort((a, b) => {
+                if (sortMode === 'priority') {
+                    return a.priority.localeCompare(b.priority);
+                } else if (sortMode === 'type') {
+                    return a.type.localeCompare(b.type);
+                } else {
+                    return (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                }
+            });
+
             html += `
                 <div class="date-group-card">
                     <div class="date-group-header">
@@ -796,18 +947,20 @@
             `;
 
             items.forEach(s => {
-                const c1 = priorityColors[s.priority] || '#333';
-                const c2 = timeblockColors[s.timeblock] || '#333';
-                const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
-                const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                
+                const isPast = s.date < todayStr;
+                const itemClass = (s.completed && isPast) ? 'agenda-item completed-item' : (s.completed && s.type === 'Task' ? 'agenda-item completed-item' : 'agenda-item');
                 const descText = s.description ? s.description : 'No additional note';
+                const tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.priority} / ${s.timeblock}`;
 
                 html += `
-                    <div class="${itemClass}" style="background: ${gradient};" onclick="openDetailModal('${s.id}')">
+                    <div class="${itemClass}" style="background: ${bgStyle};" onclick="openDetailModal('${s.id}')">
                         <div class="agenda-content">
                             <h4>[${s.type}] ${s.title}</h4>
                             <p>💬 ${descText}</p>
-                            <p>🏷️ ${s.priority} / ${s.timeblock}</p>
+                            <p>🏷️ ${tagDisplay}</p>
                         </div>
                         <div class="agenda-actions">
                             ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)" title="Mark complete">` : ''}
