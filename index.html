@@ -47,22 +47,10 @@
                 gap: 20px;
                 align-items: start;
             }
-            .desktop-full-span {
-                grid-column: span 3;
-            }
-            .desktop-agenda-column {
-                grid-column: 1;
-                grid-row: 2 / span 2;
-            }
-            .desktop-calendar-column {
-                grid-column: 2;
-                grid-row: 2 / span 2;
-            }
-            .desktop-form-column {
-                grid-column: 3;
-                grid-row: 2 / span 2;
-                margin-top: 0 !important;
-            }
+            .desktop-full-span { grid-column: span 3; }
+            .desktop-agenda-column { grid-column: 1; grid-row: 2 / span 2; }
+            .desktop-calendar-column { grid-column: 2; grid-row: 2 / span 2; }
+            .desktop-form-column { grid-column: 3; grid-row: 2 / span 2; margin-top: 0 !important; }
         }
         
         #dbStatus {
@@ -318,18 +306,16 @@
             border: 1px solid rgba(255,255,255,0.25);
             cursor: pointer;
         }
-        .agenda-item:hover {
-            border-color: #ffffff;
-        }
+        .agenda-item:hover { border-color: #ffffff; }
         
-        /* Strikethrough dan dimming yang konsisten secara menyeluruh */
+        /* Strikethrough & dimming yang diperkuat */
         .agenda-item.completed-item {
-            opacity: 0.35; 
+            opacity: 0.35 !important; 
             border-style: dashed;
         }
         .agenda-item.completed-item .agenda-content h4,
         .agenda-item.completed-item .agenda-content p {
-            text-decoration: line-through;
+            text-decoration: line-through !important;
         }
         
         .agenda-content {
@@ -545,9 +531,7 @@
             <span id="modalTitleText">Entry Detail</span>
             <button class="modal-close" onclick="closeDetailModal()">×</button>
         </div>
-        <div class="modal-body" id="modalBodyContent">
-            <!-- Content injected via JS -->
-        </div>
+        <div class="modal-body" id="modalBodyContent"></div>
     </div>
 </div>
 
@@ -560,16 +544,8 @@
     let showAllArchive = false;
     let selectedFilterDate = null;
 
-    const priorityColors = { 
-        personal: '#7a9c72', 
-        professional: '#800020', 
-        daily: '#3b3b3b' 
-    };
-    const timeblockColors = { 
-        morning: '#8c6d36', 
-        work: '#4f5d2f', 
-        night: '#1b263b' 
-    };
+    const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
+    const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
 
     let currentDate = new Date();
 
@@ -682,7 +658,6 @@
         }
 
         if (id) {
-            // Mode Update / Reschedule
             const { error } = await supabaseClient
                 .from('schedules')
                 .update({ title, description, type, date, priority, timeblock })
@@ -695,7 +670,6 @@
                 fetchSchedules();
             }
         } else {
-            // Mode Create Baru
             const newEntry = { title, description, type, date, priority, timeblock, completed: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
@@ -709,7 +683,7 @@
     }
 
     function editSchedule(id) {
-        const item = schedules.find(s => s.id === id);
+        const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
             document.getElementById('editEntryId').value = item.id;
             document.getElementById('title').value = item.title;
@@ -722,14 +696,13 @@
             document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
             document.getElementById('submitBtn').innerText = 'Update Entry';
             
-            // Scroll ke form jika di mobile
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     }
 
     async function toggleComplete(id, event) {
         event.stopPropagation();
-        const item = schedules.find(s => s.id === id);
+        const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
             const newStatus = !item.completed;
             const { error } = await supabaseClient.from('schedules').update({ completed: newStatus }).eq('id', id);
@@ -746,7 +719,7 @@
     }
 
     function openDetailModal(id) {
-        const item = schedules.find(s => s.id === id);
+        const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
         document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
@@ -830,16 +803,16 @@
                 const descText = s.description ? s.description : 'No additional note';
 
                 html += `
-                    <div class="${itemClass}" style="background: ${gradient};" onclick="openDetailModal(${s.id})">
+                    <div class="${itemClass}" style="background: ${gradient};" onclick="openDetailModal('${s.id}')">
                         <div class="agenda-content">
                             <h4>[${s.type}] ${s.title}</h4>
                             <p>💬 ${descText}</p>
                             <p>🏷️ ${s.priority} / ${s.timeblock}</p>
                         </div>
                         <div class="agenda-actions">
-                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id}, event)" title="Mark complete">` : ''}
-                            <button class="btn-edit" onclick="editSchedule(${s.id}); event.stopPropagation();">Edit</button>
-                            <button class="btn-delete" onclick="deleteSchedule(${s.id}, event)">X</button>
+                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)" title="Mark complete">` : ''}
+                            <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                            <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                         </div>
                     </div>
                 `;
