@@ -217,7 +217,7 @@
         }
         .form-group { margin-bottom: 8px; }
         label { display: block; margin-bottom: 2px; font-weight: 600; font-size: 10px; color: var(--muted-gray); text-transform: uppercase; }
-        input, select {
+        input, select, textarea {
             width: 100%;
             padding: 7px;
             background: #0d0d0d;
@@ -228,7 +228,8 @@
             font-size: 12px;
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
-        input:focus, select:focus { outline: 1px solid #ffffff; }
+        textarea { resize: vertical; min-height: 50px; }
+        input:focus, select:focus, textarea:focus { outline: 1px solid #ffffff; }
         
         .form-buttons {
             display: flex;
@@ -315,26 +316,48 @@
             justify-content: space-between;
             align-items: center;
             border: 1px solid rgba(255,255,255,0.25);
+            cursor: pointer;
         }
+        .agenda-item:hover {
+            border-color: #ffffff;
+        }
+        
+        /* Strikethrough dan dimming yang konsisten secara menyeluruh */
         .agenda-item.completed-item {
             opacity: 0.35; 
             border-style: dashed;
         }
-        /* Perbaikan selector agar strikethrough dan redup langsung diaplikasikan ke teks */
         .agenda-item.completed-item .agenda-content h4,
         .agenda-item.completed-item .agenda-content p {
             text-decoration: line-through;
         }
         
-        .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; }
-        .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; }
+        .agenda-content {
+            flex-grow: 1;
+            overflow: hidden;
+            padding-right: 8px;
+        }
+        .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .agenda-content p { margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
         .agenda-actions {
             display: flex;
             align-items: center;
             gap: 6px;
+            flex-shrink: 0;
         }
         .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
+        .btn-edit {
+            background: rgba(0, 0, 0, 0.6);
+            color: #55ff55;
+            border: 1px solid #55ff55;
+            padding: 3px 6px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: bold;
+        }
+        .btn-edit:hover { background: #55ff55; color: black; }
         .btn-delete {
             background: rgba(0, 0, 0, 0.6);
             color: #ff5555;
@@ -359,6 +382,59 @@
             margin-top: 6px;
         }
         .btn-load-more:hover { color: #fff; border-color: #fff; }
+
+        /* Modal Pop-up Detail */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        .modal-card {
+            background: #0d0d0d;
+            border: 2px solid #ffffff;
+            width: 100%;
+            max-width: 420px;
+            padding: 16px;
+            box-sizing: border-box;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.9);
+            position: relative;
+        }
+        .modal-header {
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            color: #fff;
+            border-bottom: 1px dashed var(--border-color);
+            padding-bottom: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: #ff5555;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .modal-body p {
+            margin: 6px 0;
+            font-size: 12px;
+        }
+        .modal-body strong {
+            color: var(--muted-gray);
+            font-family: monospace;
+            font-size: 10px;
+            display: block;
+            text-transform: uppercase;
+        }
 
         .footer-tag {
             text-align: center;
@@ -401,14 +477,15 @@
     </div>
 
     <div class="form-section desktop-form-column">
-        <h4>+ Create Entry</h4>
+        <h4 id="formTitleHeader">+ Create Entry</h4>
+        <input type="hidden" id="editEntryId">
         <div class="form-group">
             <label>Title</label>
             <input type="text" id="title" placeholder="e.g., Spring Thief / Plagiarism">
         </div>
         <div class="form-group">
             <label>Description / Note (Optional)</label>
-            <input type="text" id="description" placeholder="Short detail or sub-note...">
+            <textarea id="description" placeholder="Short detail or sub-note..."></textarea>
         </div>
         <div class="form-group">
             <label>Type</label>
@@ -439,7 +516,7 @@
         </div>
         <div class="form-buttons">
             <button class="btn-reset" onclick="resetForm()">Reset</button>
-            <button class="btn-submit" onclick="addSchedule()">Save Entry</button>
+            <button class="btn-submit" id="submitBtn" onclick="saveSchedule()">Save Entry</button>
         </div>
     </div>
 
@@ -458,6 +535,19 @@
 
     <div class="footer-tag desktop-full-span">
         <span>― 夜を歩く者のための記録 ―</span>
+    </div>
+</div>
+
+<!-- Modal Pop-up Detail -->
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalTitleText">Entry Detail</span>
+            <button class="modal-close" onclick="closeDetailModal()">×</button>
+        </div>
+        <div class="modal-body" id="modalBodyContent">
+            <!-- Content injected via JS -->
+        </div>
     </div>
 </div>
 
@@ -566,12 +656,19 @@
     }
 
     function resetForm() {
+        document.getElementById('editEntryId').value = '';
         document.getElementById('title').value = '';
         document.getElementById('description').value = '';
+        document.getElementById('type').value = 'Event';
         document.getElementById('date').value = '';
+        document.getElementById('priority').value = 'personal';
+        document.getElementById('timeblock').value = 'morning';
+        document.getElementById('formTitleHeader').innerText = '+ Create Entry';
+        document.getElementById('submitBtn').innerText = 'Save Entry';
     }
 
-    async function addSchedule() {
+    async function saveSchedule() {
+        const id = document.getElementById('editEntryId').value;
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const type = document.getElementById('type').value;
@@ -584,18 +681,54 @@
             return;
         }
 
-        const newEntry = { title, description, type, date, priority, timeblock, completed: false };
-        const { error } = await supabaseClient.from('schedules').insert([newEntry]);
-        
-        if (error) {
-            alert('Gagal menyimpan ke cloud: ' + error.message);
+        if (id) {
+            // Mode Update / Reschedule
+            const { error } = await supabaseClient
+                .from('schedules')
+                .update({ title, description, type, date, priority, timeblock })
+                .eq('id', id);
+
+            if (error) {
+                alert('Gagal memperbarui ke cloud: ' + error.message);
+            } else {
+                resetForm();
+                fetchSchedules();
+            }
         } else {
-            resetForm();
-            fetchSchedules();
+            // Mode Create Baru
+            const newEntry = { title, description, type, date, priority, timeblock, completed: false };
+            const { error } = await supabaseClient.from('schedules').insert([newEntry]);
+            
+            if (error) {
+                alert('Gagal menyimpan ke cloud: ' + error.message);
+            } else {
+                resetForm();
+                fetchSchedules();
+            }
         }
     }
 
-    async function toggleComplete(id) {
+    function editSchedule(id) {
+        const item = schedules.find(s => s.id === id);
+        if (item) {
+            document.getElementById('editEntryId').value = item.id;
+            document.getElementById('title').value = item.title;
+            document.getElementById('description').value = item.description || '';
+            document.getElementById('type').value = item.type;
+            document.getElementById('date').value = item.date;
+            document.getElementById('priority').value = item.priority;
+            document.getElementById('timeblock').value = item.timeblock;
+            
+            document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
+            document.getElementById('submitBtn').innerText = 'Update Entry';
+            
+            // Scroll ke form jika di mobile
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    async function toggleComplete(id, event) {
+        event.stopPropagation();
         const item = schedules.find(s => s.id === id);
         if (item) {
             const newStatus = !item.completed;
@@ -604,10 +737,39 @@
         }
     }
 
-    async function deleteSchedule(id) {
+    async function deleteSchedule(id, event) {
+        event.stopPropagation();
         if (confirm('Delete this entry?')) {
             const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
             if (!error) fetchSchedules();
+        }
+    }
+
+    function openDetailModal(id) {
+        const item = schedules.find(s => s.id === id);
+        if (!item) return;
+
+        document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
+        
+        const modalBody = document.getElementById('modalBodyContent');
+        modalBody.innerHTML = `
+            <p><strong>Date</strong> ${item.date}</p>
+            <p><strong>Description / Note</strong> ${item.description ? item.description : '-'}</p>
+            <p><strong>Priority Tag</strong> ${item.priority}</p>
+            <p><strong>Timeblock</strong> ${item.timeblock}</p>
+            <p><strong>Status</strong> ${item.completed ? 'Completed' : 'Pending'}</p>
+        `;
+        
+        document.getElementById('detailModal').style.display = 'flex';
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detailModal').style.display = 'none';
+    }
+
+    function closeModal(event) {
+        if (event.target.id === 'detailModal') {
+            closeDetailModal();
         }
     }
 
@@ -665,18 +827,19 @@
                 const c2 = timeblockColors[s.timeblock] || '#333';
                 const gradient = `linear-gradient(135deg, ${c1}, ${c2})`;
                 const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
-                const descHTML = s.description ? `<p style="margin: 2px 0 0 0; font-size: 10px; opacity: 0.85; font-style: italic;">💬 ${s.description}</p>` : '';
+                const descText = s.description ? s.description : 'No additional note';
 
                 html += `
-                    <div class="${itemClass}" style="background: ${gradient};">
+                    <div class="${itemClass}" style="background: ${gradient};" onclick="openDetailModal(${s.id})">
                         <div class="agenda-content">
                             <h4>[${s.type}] ${s.title}</h4>
-                            ${descHTML}
+                            <p>💬 ${descText}</p>
                             <p>🏷️ ${s.priority} / ${s.timeblock}</p>
                         </div>
                         <div class="agenda-actions">
-                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id})" title="Mark complete">` : ''}
-                            <button class="btn-delete" onclick="deleteSchedule(${s.id})">X</button>
+                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete(${s.id}, event)" title="Mark complete">` : ''}
+                            <button class="btn-edit" onclick="editSchedule(${s.id}); event.stopPropagation();">Edit</button>
+                            <button class="btn-delete" onclick="deleteSchedule(${s.id}, event)">X</button>
                         </div>
                     </div>
                 `;
