@@ -13,10 +13,6 @@
 
     <style>
         :root {
-            /* 
-              PENGATURAN GAYA GEN Z (HUMBLE & CHILL):
-              Ubah jadi true jika ingin huruf kecil semua (lowercase) & hilangkan spasi renggang.
-            */
             --forceLowercase: true;
             --cleanSpacing: true;
 
@@ -41,7 +37,6 @@
             text-transform: uppercase;
         }
 
-        /* KELAS OTONOM UNTUK MODE HUMBLE / GEN Z */
         body.humble-lower {
             text-transform: lowercase !important;
         }
@@ -650,18 +645,11 @@
 </div>
 
 <script>
-    /* =========================================================
-       PENGATURAN HUMBLE & CHILL (GEN Z MODE)
-       Ubah variabel di bawah ini menjadi `true` jika ingin diaktifkan:
-       - forceLowercase: true  -> Semua teks otomatis huruf kecil
-       - cleanSpacing: true    -> Menghilangkan jarak renggang (letter-spacing: 0)
-    ========================================================= */
     const HUMBLE_CONFIG = {
         forceLowercase: false,
         cleanSpacing: false
     };
 
-    // Eksekusi otomatis ke HTML Body berdasarkan config di atas
     if (HUMBLE_CONFIG.forceLowercase) {
         document.body.classList.add('humble-lower');
     }
@@ -679,6 +667,8 @@
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
     const timeblockOrder = { morning: 1, work: 2, night: 3 };
+    const priorityOrder = { personal: 1, professional: 2, daily: 3 };
+    const typeOrder = { Task: 1, Event: 2, Birthday: 3 };
 
     let currentDate = new Date();
 
@@ -719,6 +709,19 @@
         renderCalendar();
     }
 
+    function sortItems(items) {
+        const sortBy = document.getElementById('sortBySelect').value;
+        return [...items].sort((a, b) => {
+            if (sortBy === 'priority') {
+                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+            } else if (sortBy === 'type') {
+                return (typeOrder[a.type] || 2) - (typeOrder[b.type] || 2);
+            } else {
+                return (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+            }
+        });
+    }
+
     function renderCalendar() {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
@@ -755,7 +758,7 @@
                 return false;
             });
 
-            daySchedules.sort((a, b) => (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2));
+            daySchedules = sortItems(daySchedules);
 
             let badgesHTML = '';
             daySchedules.forEach(s => {
@@ -945,8 +948,9 @@
                 });
             }
         } else if (typeKey === 'skipped') {
-            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped / past tasks' : '🕰️ SKIPPED / PAST TASKS';
-            const skipped = schedules.filter(s => s.date && s.date < todayStr && !s.completed);
+            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped tasks' : '🕰️ SKIPPED TASKS';
+            // Hanya mengambil task yang belum dicentang dan tanggalnya sudah lewat
+            const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
             } else {
@@ -1009,7 +1013,7 @@
             return;
         }
 
-        const inboxItems = schedules.filter(s => !s.date);
+        const inboxItems = sortItems(schedules.filter(s => !s.date));
         if (inboxItems.length > 0) {
             let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
             if (HUMBLE_CONFIG.forceLowercase) inboxTitle = inboxTitle.toLowerCase();
@@ -1031,7 +1035,7 @@
 
         if (selectedFilterDate) {
             document.getElementById('clearFilterBtn').style.display = 'inline-block';
-            let filteredItems = schedules.filter(s => s.date === selectedFilterDate);
+            let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
             
             if (filteredItems.length === 0) {
                 container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${selectedFilterDate}.</div>`;
@@ -1054,11 +1058,9 @@
             document.getElementById('clearFilterBtn').style.display = 'none';
         }
 
-        const todayItems = schedules.filter(s => s.date === todayStr);
+        const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
 
         if (todayItems.length > 0) {
-            todayItems.sort((a, b) => (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2));
-            
             let todayTitle = `📌 TODAY (${todayStr})`;
             if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
 
@@ -1074,7 +1076,7 @@
             htmlToday += `</div>`;
             container.innerHTML = htmlToday;
         } else {
-            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
+            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.0</div>`;
         }
     }
 
