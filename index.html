@@ -6,11 +6,19 @@
     <title>Yorushika Calendar // ヨルシカ</title>
     <!-- Favicon Yorushika -->
     <link rel="icon" type="image/png" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
-    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Plus+Jakarta+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root {
+            /* 
+              PENGATURAN GAYA GEN Z (HUMBLE & CHILL):
+              Ubah jadi true jika ingin huruf kecil semua (lowercase) & hilangkan spasi renggang.
+            */
+            --forceLowercase: false;
+            --cleanSpacing: false;
+
+            --main-font: 'JetBrains Mono', monospace;
             --bg-pure: #050505;
             --card-bg: #0d0d0d;
             --border-color: #262626;
@@ -18,12 +26,42 @@
             --muted-gray: #737373;
             --birthday-strawberry: #ff4d6d;
         }
+        
+        body, input, select, textarea, button {
+            font-family: var(--main-font);
+        }
+
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg-pure);
             color: var(--text-main);
             margin: 0;
             padding: 12px;
+            text-transform: uppercase;
+        }
+
+        /* KELAS OTONOM UNTUK MODE HUMBLE / GEN Z */
+        body.humble-lower {
+            text-transform: lowercase !important;
+        }
+        body.humble-lower input, 
+        body.humble-lower select, 
+        body.humble-lower textarea, 
+        body.humble-lower option,
+        body.humble-lower .agenda-content h4,
+        body.humble-lower .agenda-content p,
+        body.humble-lower .modal-body,
+        body.humble-lower .modal-body strong {
+            text-transform: lowercase !important;
+        }
+
+        body.humble-spacing .jp-title-logo,
+        body.humble-spacing .sub-tag,
+        body.humble-spacing h2,
+        body.humble-spacing .calendar-nav h3,
+        body.humble-spacing .form-section h4,
+        body.humble-spacing .agenda-list h4,
+        body.humble-spacing .footer-tag {
+            letter-spacing: 0px !important;
         }
         
         .container {
@@ -41,9 +79,9 @@
 
         @media (min-width: 1100px) {
             .container {
-                max-width: 1350px;
+                max-width: 1450px;
                 display: grid;
-                grid-template-columns: 320px 1fr 380px;
+                grid-template-columns: 420px 1fr 380px;
                 grid-template-rows: auto auto auto;
                 gap: 20px;
                 align-items: start;
@@ -55,8 +93,7 @@
         }
         
         #dbStatus {
-            font-family: 'VT323', monospace;
-            font-size: 13px;
+            font-size: 12px;
             text-align: center;
             padding: 5px;
             border: 1px dashed var(--border-color);
@@ -75,29 +112,23 @@
             margin-bottom: 6px;
         }
         .jp-title-logo {
-            font-family: 'VT323', monospace;
             font-size: 24px;
             letter-spacing: 4px;
             color: #ffffff;
             margin: 0;
-            text-transform: uppercase;
         }
         .sub-tag {
             font-size: 9px;
             color: var(--muted-gray);
             letter-spacing: 2px;
-            text-transform: uppercase;
-            font-family: monospace;
         }
 
         h2 { 
             text-align: center; 
             color: #ffffff; 
-            font-family: 'VT323', monospace;
-            font-size: 26px;
+            font-size: 22px;
             letter-spacing: 3px;
             margin: 0 0 10px 0; 
-            text-transform: uppercase;
             border-bottom: 1px dashed var(--border-color);
             padding-bottom: 6px;
         }
@@ -112,8 +143,7 @@
             border: 1px solid var(--border-color);
         }
         .calendar-nav h3 {
-            font-family: 'VT323', monospace;
-            font-size: 20px;
+            font-size: 16px;
             letter-spacing: 1px;
             margin: 0;
             color: #ffffff;
@@ -123,8 +153,7 @@
             color: white;
             border: 1px solid var(--border-color);
             padding: 4px 12px;
-            font-family: 'VT323', monospace;
-            font-size: 16px;
+            font-size: 14px;
             cursor: pointer;
         }
         .calendar-nav button:hover { background: #ffffff; color: #000000; }
@@ -134,10 +163,9 @@
             grid-template-columns: repeat(7, 1fr);
             text-align: center;
             font-weight: bold;
-            font-size: 11px;
+            font-size: 10px;
             color: var(--muted-gray);
             margin-bottom: 4px;
-            text-transform: uppercase;
         }
         .days-grid {
             display: grid;
@@ -150,7 +178,7 @@
             border: 1px solid var(--border-color);
             border-radius: 1px;
             padding: 3px;
-            font-size: 11px;
+            font-size: 10px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
@@ -166,7 +194,7 @@
             color: #ffffff;
             text-decoration: underline;
         }
-        .day-number { font-weight: bold; color: var(--muted-gray); font-family: 'VT323', monospace; font-size: 15px; }
+        .day-number { font-weight: bold; color: var(--muted-gray); font-size: 13px; }
         
         .badges-container {
             max-height: 45px;
@@ -183,7 +211,6 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            font-family: monospace;
             border: 1px solid rgba(255,255,255,0.2);
         }
         .mini-badge.completed-badge {
@@ -198,14 +225,13 @@
             border-radius: 2px;
         }
         .form-section h4 {
-            font-family: 'VT323', monospace;
-            font-size: 18px;
+            font-size: 15px;
             letter-spacing: 1px;
             color: #ffffff;
             margin: 0 0 10px 0;
         }
         .form-group { margin-bottom: 8px; }
-        label { display: block; margin-bottom: 2px; font-weight: 600; font-size: 10px; color: var(--muted-gray); text-transform: uppercase; }
+        label { display: block; margin-bottom: 2px; font-weight: 600; font-size: 9px; color: var(--muted-gray); }
         input, select, textarea {
             width: 100%;
             padding: 7px;
@@ -214,9 +240,10 @@
             color: var(--text-main);
             border-radius: 2px;
             box-sizing: border-box;
-            font-size: 12px;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
         }
+        select option { text-transform: uppercase; }
         textarea { resize: vertical; min-height: 50px; white-space: pre-wrap; }
         input:focus, select:focus, textarea:focus { outline: 1px solid #ffffff; }
         
@@ -234,7 +261,7 @@
             border-radius: 2px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
         }
         .btn-reset {
             flex: 1;
@@ -245,7 +272,7 @@
             border-radius: 2px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .agenda-list { 
@@ -264,8 +291,7 @@
             padding-bottom: 4px;
         }
         .agenda-list h4 {
-            font-family: 'VT323', monospace;
-            font-size: 18px;
+            font-size: 15px;
             letter-spacing: 1px;
             color: #ffffff;
             margin: 0;
@@ -279,8 +305,7 @@
             background: #1a1a1a;
             color: #fff;
             border: 1px solid var(--border-color);
-            font-family: 'VT323', monospace;
-            font-size: 12px;
+            font-size: 11px;
             padding: 2px 4px;
             cursor: pointer;
             width: auto;
@@ -289,37 +314,52 @@
             background: #1a1a1a;
             color: #ff5555;
             border: 1px solid var(--border-color);
-            font-family: 'VT323', monospace;
-            font-size: 11px;
+            font-size: 10px;
             padding: 2px 6px;
             cursor: pointer;
         }
         .btn-clear-filter:hover { background: #ff5555; color: #fff; }
 
+        .archive-windows-nav {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+        .btn-window-trigger {
+            background: #141414;
+            color: #ffffff;
+            border: 1px solid var(--border-color);
+            padding: 6px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+        }
+        .btn-window-trigger:hover { background: #ffffff; color: #000000; }
+
         .dumplist-box {
             background: #080808;
             border: 1px dashed var(--border-color);
             padding: 8px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .dumplist-title {
-            font-family: 'VT323', monospace;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--muted-gray);
             margin-bottom: 6px;
             border-bottom: 1px dotted var(--border-color);
             padding-bottom: 2px;
         }
 
-        .date-group-card {
-            background: #050505;
+        .section-category-box {
+            background: #060606;
             border: 1px solid var(--border-color);
             padding: 8px;
             margin-bottom: 8px;
         }
-        .date-group-header {
-            font-family: 'VT323', monospace;
-            font-size: 14px;
+        .section-category-title {
+            font-size: 12px;
             color: #ffffff;
             border-bottom: 1px dashed var(--border-color);
             padding-bottom: 4px;
@@ -350,7 +390,6 @@
             text-decoration: line-through !important;
         }
         
-        /* Text Overflow Control for Archive Cards */
         .agenda-content {
             flex-grow: 1;
             overflow: hidden;
@@ -358,17 +397,17 @@
         }
         .agenda-content h4 { 
             margin: 0; 
-            font-size: 12px; 
+            font-size: 11px; 
             font-weight: 600; 
             white-space: nowrap; 
             overflow: hidden; 
             text-overflow: ellipsis; 
+            text-transform: uppercase; 
         }
         .agenda-content p { 
             margin: 2px 0 0 0; 
-            font-size: 10px; 
+            font-size: 9px; 
             opacity: 0.85; 
-            font-family: monospace; 
             display: -webkit-box;
             -webkit-line-clamp: 1;
             -webkit-box-orient: vertical;
@@ -376,6 +415,7 @@
             text-overflow: ellipsis;
             white-space: normal;
             word-break: break-all;
+            text-transform: uppercase; 
         }
         
         .agenda-actions {
@@ -392,7 +432,7 @@
             padding: 3px 6px;
             border-radius: 2px;
             cursor: pointer;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
         }
         .btn-edit:hover { background: #55ff55; color: black; }
@@ -403,23 +443,10 @@
             padding: 3px 5px;
             border-radius: 2px;
             cursor: pointer;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
         }
         .btn-delete:hover { background: #ff5555; color: white; }
-        
-        .btn-load-more {
-            width: 100%;
-            background: #111;
-            color: var(--muted-gray);
-            border: 1px dashed var(--border-color);
-            padding: 6px;
-            font-family: 'VT323', monospace;
-            font-size: 14px;
-            cursor: pointer;
-            margin-top: 6px;
-        }
-        .btn-load-more:hover { color: #fff; border-color: #fff; }
 
         .modal-overlay {
             display: none;
@@ -436,15 +463,17 @@
             background: #0d0d0d;
             border: 2px solid #ffffff;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
             padding: 16px;
             box-sizing: border-box;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             position: relative;
         }
         .modal-header {
-            font-family: 'VT323', monospace;
-            font-size: 20px;
+            font-size: 15px;
             color: #fff;
             border-bottom: 1px dashed var(--border-color);
             padding-bottom: 6px;
@@ -452,32 +481,36 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            flex-shrink: 0;
+        }
+        .modal-scroll-body {
+            overflow-y: auto;
+            max-height: calc(80vh - 60px);
+            padding-right: 4px;
         }
         .modal-close {
             background: none;
             border: none;
             color: #ff5555;
-            font-family: 'VT323', monospace;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
         }
         .modal-body p {
             margin: 6px 0;
-            font-size: 12px;
+            font-size: 11px;
             white-space: pre-wrap;
+            text-transform: uppercase;
         }
         .modal-body strong {
             color: var(--muted-gray);
-            font-family: monospace;
-            font-size: 10px;
+            font-size: 9px;
             display: block;
             text-transform: uppercase;
         }
 
         .footer-tag {
             text-align: center;
-            font-family: 'VT323', monospace;
-            font-size: 12px;
+            font-size: 11px;
             color: var(--muted-gray);
             margin-top: 10px;
             border-top: 1px dashed var(--border-color);
@@ -572,36 +605,73 @@
                     <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
                 </div>
             </div>
+
+            <div class="archive-windows-nav">
+                <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">🎂 Birthdays List</button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">🕰️ Skipped Tasks</button>
+            </div>
+
             <div id="dumplistContainer"></div>
-            <div id="agendaContainer" style="font-size: 12px; color: var(--muted-gray);">No entries recorded yet.</div>
-            <button id="loadMoreBtn" class="btn-load-more" style="display: none;" onclick="toggleShowAllArchive()">▼ Load More Dates</button>
+            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
         </div>
     </div>
 
     <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
 
     <div class="footer-tag desktop-full-span">
-        <span>― 夜を歩く者のための記録 ―</span>
+        <span>― 夜을歩く者のための記録 ―</span>
     </div>
 </div>
 
-<div class="modal-overlay" id="detailModal" onclick="closeModal(event)">
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
             <span id="modalTitleText">Entry Detail</span>
             <button class="modal-close" onclick="closeDetailModal()">×</button>
         </div>
-        <div class="modal-body" id="modalBodyContent"></div>
+        <div class="modal-scroll-body">
+            <div class="modal-body" id="modalBodyContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="directoryModalTitle">Directory</span>
+            <button class="modal-close" onclick="closeDirectoryModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div id="directoryModalContent" style="font-size: 11px;"></div>
+        </div>
     </div>
 </div>
 
 <script>
+    /* =========================================================
+       PENGATURAN HUMBLE & CHILL (GEN Z MODE)
+       Ubah variabel di bawah ini menjadi `true` jika ingin diaktifkan:
+       - forceLowercase: true  -> Semua teks otomatis huruf kecil
+       - cleanSpacing: true    -> Menghilangkan jarak renggang (letter-spacing: 0)
+    ========================================================= */
+    const HUMBLE_CONFIG = {
+        forceLowercase: false,
+        cleanSpacing: false
+    };
+
+    // Eksekusi otomatis ke HTML Body berdasarkan config di atas
+    if (HUMBLE_CONFIG.forceLowercase) {
+        document.body.classList.add('humble-lower');
+    }
+    if (HUMBLE_CONFIG.cleanSpacing) {
+        document.body.classList.add('humble-spacing');
+    }
+
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let schedules = [];
-    let showAllArchive = false;
     let selectedFilterDate = null;
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
@@ -652,7 +722,10 @@
         const month = currentDate.getMonth();
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        document.getElementById('monthYearDisplay').innerText = `${monthNames[month].toUpperCase()} ${year}`;
+        let monthText = monthNames[month];
+        if (HUMBLE_CONFIG.forceLowercase) monthText = monthText.toLowerCase();
+
+        document.getElementById('monthYearDisplay').innerText = `${monthText} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
@@ -690,7 +763,9 @@
                 }
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${s.title}</div>`;
+                let badgeTitle = s.title;
+                if (HUMBLE_CONFIG.forceLowercase) badgeTitle = badgeTitle.toLowerCase();
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${badgeTitle}</div>`;
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
@@ -819,14 +894,30 @@
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
-        document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
+        let modalTitle = `[${item.type}] ${item.title}`;
+        let itemType = item.type;
+        let itemDesc = item.description ? item.description : '-';
+        let itemPriority = item.type === 'Birthday' ? 'Birthday (Strawberry)' : item.priority;
+        let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
+        let itemStatus = item.completed ? 'Completed' : 'Pending';
+
+        if (HUMBLE_CONFIG.forceLowercase) {
+            modalTitle = modalTitle.toLowerCase();
+            itemType = itemType.toLowerCase();
+            itemDesc = itemDesc.toLowerCase();
+            itemPriority = itemPriority.toLowerCase();
+            itemTimeblock = itemTimeblock.toLowerCase();
+            itemStatus = itemStatus.toLowerCase();
+        }
+
+        document.getElementById('modalTitleText').innerText = modalTitle;
         const modalBody = document.getElementById('modalBodyContent');
         modalBody.innerHTML = `
             <p><strong>Date</strong> ${item.date ? item.date : 'Inbox (No Date)'}</p>
-            <p><strong>Description / Note</strong> ${item.description ? item.description : '-'}</p>
-            <p><strong>Priority Tag</strong> ${item.type === 'Birthday' ? 'Birthday (Strawberry)' : item.priority}</p>
-            <p><strong>Timeblock</strong> ${item.type === 'Birthday' ? 'All Day' : item.timeblock}</p>
-            <p><strong>Status</strong> ${item.completed ? 'Completed' : 'Pending'}</p>
+            <p><strong>Description / Note</strong> ${itemDesc}</p>
+            <p><strong>Priority Tag</strong> ${itemPriority}</p>
+            <p><strong>Timeblock</strong> ${itemTimeblock}</p>
+            <p><strong>Status</strong> ${itemStatus}</p>
         `;
         document.getElementById('detailModal').style.display = 'flex';
     }
@@ -835,54 +926,100 @@
         document.getElementById('detailModal').style.display = 'none';
     }
 
-    function closeModal(event) {
-        if (event.target.id === 'detailModal') closeDetailModal();
+    function openDirectoryModal(typeKey) {
+        const modalTitle = document.getElementById('directoryModalTitle');
+        const modalContent = document.getElementById('directoryModalContent');
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        let html = '';
+        if (typeKey === 'birthdays') {
+            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🎂 birthdays directory' : '🎂 BIRTHDAYS DIRECTORY';
+            const birthdays = schedules.filter(s => s.type === 'Birthday');
+            if (birthdays.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
+            } else {
+                birthdays.forEach(s => {
+                    html += renderCardHTML(s, 'var(--birthday-strawberry)');
+                });
+            }
+        } else if (typeKey === 'skipped') {
+            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped / past tasks' : '🕰️ SKIPPED / PAST TASKS';
+            const skipped = schedules.filter(s => s.date && s.date < todayStr && !s.completed);
+            if (skipped.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
+            } else {
+                skipped.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+            }
+        }
+        modalContent.innerHTML = html;
+        document.getElementById('directoryModal').style.display = 'flex';
     }
 
-    function toggleShowAllArchive() {
-        showAllArchive = !showAllArchive;
-        renderAgendaList();
+    function closeDirectoryModal() {
+        document.getElementById('directoryModal').style.display = 'none';
+    }
+
+    function closeModal(event, modalId) {
+        if (event.target.id === modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+    }
+
+    function renderCardHTML(s, bgStyle) {
+        const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+        let descText = s.description ? s.description : 'No additional note';
+        let tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.date} | ${s.priority} / ${s.timeblock}`;
+        let titleText = `[${s.type}] ${s.title}`;
+
+        if (HUMBLE_CONFIG.forceLowercase) {
+            titleText = titleText.toLowerCase();
+            descText = descText.toLowerCase();
+            tagDisplay = tagDisplay.toLowerCase();
+        }
+
+        return `
+            <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>${titleText}</h4>
+                    <p>💬 ${descText}</p>
+                    <p>🏷️ ${tagDisplay}</p>
+                </div>
+                <div class="agenda-actions">
+                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                </div>
+            </div>
+        `;
     }
 
     function renderAgendaList() {
         const container = document.getElementById('agendaContainer');
         const dumplistContainer = document.getElementById('dumplistContainer');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const sortMode = document.getElementById('sortBySelect').value;
         const todayStr = new Date().toISOString().split('T')[0];
 
         if (schedules.length === 0) {
             container.innerHTML = 'No entries recorded yet.';
             dumplistContainer.innerHTML = '';
-            loadMoreBtn.style.display = 'none';
             return;
         }
 
         const inboxItems = schedules.filter(s => !s.date);
         if (inboxItems.length > 0) {
+            let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
+            if (HUMBLE_CONFIG.forceLowercase) inboxTitle = inboxTitle.toLowerCase();
+
             let inboxHTML = `
                 <div class="dumplist-box">
-                    <div class="dumplist-title">📥 Inbox / Dumplist (${inboxItems.length})</div>
+                    <div class="dumplist-title">${inboxTitle}</div>
             `;
             inboxItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
-                const descText = s.description ? s.description : 'No additional note';
-
-                inboxHTML += `
-                    <div class="${itemClass}" style="background: ${bgStyle};" onclick="openDetailModal('${s.id}')">
-                        <div class="agenda-content">
-                            <h4>[${s.type}] ${s.title}</h4>
-                            <p>💬 ${descText}</p>
-                        </div>
-                        <div class="agenda-actions">
-                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
-                            <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
-                            <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
-                        </div>
-                    </div>
-                `;
+                inboxHTML += renderCardHTML(s, bgStyle);
             });
             inboxHTML += `</div>`;
             dumplistContainer.innerHTML = inboxHTML;
@@ -890,96 +1027,52 @@
             dumplistContainer.innerHTML = '';
         }
 
-        let activeSchedules = schedules.filter(s => s.date);
         if (selectedFilterDate) {
-            activeSchedules = activeSchedules.filter(s => s.date === selectedFilterDate);
             document.getElementById('clearFilterBtn').style.display = 'inline-block';
-        } else {
-            document.getElementById('clearFilterBtn').style.display = 'none';
-            // Auto-hide Option B: Sembunyikan tugas masa lalu yang sudah selesai (completed)
-            activeSchedules = activeSchedules.filter(s => {
-                const isPast = s.date < todayStr;
-                const isCompleted = s.completed;
-                if (isPast && isCompleted) return false;
-                return true;
-            });
-        }
+            let filteredItems = schedules.filter(s => s.date === selectedFilterDate);
+            
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${selectedFilterDate}.</div>`;
+                return;
+            }
 
-        if (activeSchedules.length === 0 && inboxItems.length === 0) {
-            container.innerHTML = `<div style="text-align: center; padding: 10px; font-style: italic;">No active schedules found.</div>`;
-            loadMoreBtn.style.display = 'none';
-            return;
-        } else if (activeSchedules.length === 0) {
-            container.innerHTML = '';
-            loadMoreBtn.style.display = 'none';
-            return;
-        }
+            let filterTitle = `📅 Filtered Date: ${selectedFilterDate}`;
+            if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
 
-        const groupedMap = {};
-        activeSchedules.forEach(s => {
-            if (!groupedMap[s.date]) groupedMap[s.date] = [];
-            groupedMap[s.date].push(s);
-        });
-
-        const sortedDates = Object.keys(groupedMap).sort((a, b) => new Date(a) - new Date(b));
-        const limitDates = (selectedFilterDate || showAllArchive) ? sortedDates : sortedDates.slice(0, 3);
-
-        let html = '';
-        limitDates.forEach(dateStr => {
-            let items = groupedMap[dateStr];
-
-            items.sort((a, b) => {
-                if (sortMode === 'priority') {
-                    return a.priority.localeCompare(b.priority);
-                } else if (sortMode === 'type') {
-                    return a.type.localeCompare(b.type);
-                } else {
-                    return (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
-                }
-            });
-
-            html += `
-                <div class="date-group-card">
-                    <div class="date-group-header">
-                        <span>📅 ${dateStr}</span>
-                        <span>[${items.length}]</span>
-                    </div>
-            `;
-
-            items.forEach(s => {
+            let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
+            filteredItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                
-                const isPast = s.date < todayStr;
-                const itemClass = (s.completed && isPast) ? 'agenda-item completed-item' : (s.completed && s.type === 'Task' ? 'agenda-item completed-item' : 'agenda-item');
-                const descText = s.description ? s.description : 'No additional note';
-                const tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.priority} / ${s.timeblock}`;
-
-                html += `
-                    <div class="${itemClass}" style="background: ${bgStyle};" onclick="openDetailModal('${s.id}')">
-                        <div class="agenda-content">
-                            <h4>[${s.type}] ${s.title}</h4>
-                            <p>💬 ${descText}</p>
-                            <p>🏷️ ${tagDisplay}</p>
-                        </div>
-                        <div class="agenda-actions">
-                            ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)" title="Mark complete">` : ''}
-                            <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
-                            <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
-                        </div>
-                    </div>
-                `;
+                html += renderCardHTML(s, bgStyle);
             });
             html += `</div>`;
-        });
-
-        container.innerHTML = html;
-
-        if (!selectedFilterDate && sortedDates.length > 3) {
-            loadMoreBtn.style.display = 'block';
-            loadMoreBtn.innerText = showAllArchive ? '▲ Show Less Dates' : '▼ Load More Dates (' + (sortedDates.length - 3) + ' more)';
+            container.innerHTML = html;
+            return;
         } else {
-            loadMoreBtn.style.display = 'none';
+            document.getElementById('clearFilterBtn').style.display = 'none';
+        }
+
+        const todayItems = schedules.filter(s => s.date === todayStr);
+
+        if (todayItems.length > 0) {
+            todayItems.sort((a, b) => (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2));
+            
+            let todayTitle = `📌 TODAY (${todayStr})`;
+            if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
+
+            let htmlToday = `
+                <div class="section-category-box">
+                    <div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>
+            `;
+            todayItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                htmlToday += renderCardHTML(s, bgStyle);
+            });
+            htmlToday += `</div>`;
+            container.innerHTML = htmlToday;
+        } else {
+            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
         }
     }
 
