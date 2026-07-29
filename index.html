@@ -227,7 +227,7 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
-            display: none; /* Default hidden di mobile */
+            display: none;
         }
         .form-section h4 {
             font-size: 15px;
@@ -620,7 +620,7 @@
     </div>
 </div>
 
-<!-- Modal Form Khusus Mobile (Terpisah agar tidak nge-bug blank) -->
+<!-- Modal Form Khusus Mobile -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -718,13 +718,12 @@
 
     let currentDate = new Date();
 
-    // Helper format YYYY-MM-DD ke DD/MM
     function formatDateDDMM(dateStr) {
         if (!dateStr) return '';
         if (dateStr.includes('-')) {
             const parts = dateStr.split('-');
             if (parts.length === 3) return `${parts[2]}/${parts[1]}`; // DD/MM
-            if (parts.length === 2) return `${parts[1]}/${parts[0]}`; // MM/DD jika tersimpan MM-DD
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`; // MM/DD
         }
         return dateStr;
     }
@@ -739,8 +738,8 @@
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
-            dateLbl.innerText = 'Birthday Date (MM-DD)';
-            dateInput.type = 'date'; // Tetap date picker native tapi tahun diabaikan saat simpan
+            dateLbl.innerText = 'Birthday Date (DD/MM)';
+            dateInput.type = 'date';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
@@ -759,7 +758,7 @@
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
-            dateLbl.innerText = 'Birthday Date (MM-DD)';
+            dateLbl.innerText = 'Birthday Date (DD/MM)';
             dateInput.type = 'date';
         } else {
             priorityGrp.style.display = 'block';
@@ -946,7 +945,7 @@
         if (dateInputVal) {
             if (type === 'Birthday') {
                 let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
-                date = `2000-${cleanVal}`; // Dummy year for DB
+                date = `2000-${cleanVal}`;
             } else {
                 date = dateInputVal;
             }
@@ -1058,7 +1057,7 @@
         let displayDate = item.date;
         if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
             const parts = item.date.split('-');
-            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`; // DD/MM
+            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`;
         } else {
             displayDate = formatDateDDMM(item.date);
         }
@@ -1130,7 +1129,7 @@
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
             const parts = s.date.split('-');
-            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`; // DD/MM
+            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`;
         } else {
             displayDate = formatDateDDMM(s.date);
         }
