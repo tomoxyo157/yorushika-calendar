@@ -12,8 +12,8 @@
 
     <style>
         :root {
-            --forceLowercase: false;
-            --cleanSpacing: false;
+            --forceLowercase: true;
+            --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
             --card-bg: #0d0d0d;
@@ -343,6 +343,22 @@
         }
         .btn-window-trigger:hover { background: #ffffff; color: #000000; }
 
+        .nav-counter-badge {
+            background: #ffffff;
+            color: #000000;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 1px 5px;
+            border-radius: 10px;
+            margin-left: 4px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .btn-window-trigger:hover .nav-counter-badge {
+            background: #000000;
+            color: #ffffff;
+        }
+
         .dumplist-box {
             background: #080808;
             border: 1px dashed var(--border-color);
@@ -604,8 +620,12 @@
             </div>
 
             <div class="archive-windows-nav">
-                <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">🎂 Birthdays List</button>
-                <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">🕰️ Skipped Tasks</button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
+                    🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
+                    🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
+                </button>
             </div>
 
             <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
@@ -785,7 +805,19 @@
             schedules = data || [];
             localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
         }
+        updateArchiveCounters();
         renderCalendar();
+    }
+
+    function updateArchiveCounters() {
+        const nowLocal = new Date();
+        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+
+        const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
+        const skippedCount = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed).length;
+
+        document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
+        document.getElementById('skippedBadgeCount').innerText = skippedCount;
     }
 
     function sortItems(items) {
