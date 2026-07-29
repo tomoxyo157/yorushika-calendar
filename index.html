@@ -234,7 +234,7 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
         .mini-badge.completed-badge {
-            opacity: 0.25;
+            opacity: 0.35;
             text-decoration: line-through;
         }
 
@@ -243,7 +243,7 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
-            display: none; /* Default hidden on mobile unless inside modal */
+            display: none;
         }
         .form-section h4 {
             font-size: 15px;
@@ -363,8 +363,8 @@
             background: #080808;
             border: 1px dashed var(--border-color);
             padding: 8px;
-            margin-bottom: 8px;
-            opacity: 0.39; /* Dimmed 60% */
+            margin-top: 10px;
+            opacity: 0.5; /* Dimmed 50% */
         }
         .dumplist-title {
             font-size: 12px;
@@ -404,7 +404,7 @@
         .agenda-item:hover { border-color: #ffffff; }
         
         .agenda-item.completed-item {
-            opacity: 0.35 !important; 
+            opacity: 0.35 !important; /* Dimmed 65% */
             border-style: dashed;
         }
         .agenda-item.completed-item .agenda-content h4,
@@ -572,7 +572,7 @@
     <!-- Mobile Trigger for Form Modal -->
     <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
-    <!-- Form Section (Desktop / Inside Modal) -->
+    <!-- Form Section -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4 id="formTitleHeader">+ Create Entry</h4>
         <input type="hidden" id="editEntryId">
@@ -637,8 +637,11 @@
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">🕰️ Skipped Tasks</button>
             </div>
 
-            <div id="dumplistContainer"></div>
+            <!-- Agenda/Today list di atas -->
             <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
+            
+            <!-- Dumplist dipindah ke bawah -->
+            <div id="dumplistContainer"></div>
         </div>
     </div>
 
@@ -656,9 +659,7 @@
             <span id="modalFormHeaderTitle">Create Entry</span>
             <button class="modal-close" onclick="closeFormModal()">×</button>
         </div>
-        <div class="modal-scroll-body" id="modalFormBodyContainer">
-            <!-- Form will be dynamically moved here on mobile or cloned -->
-        </div>
+        <div class="modal-scroll-body" id="modalFormBodyContainer"></div>
     </div>
 </div>
 
@@ -692,12 +693,8 @@
         cleanSpacing: false
     };
 
-    if (HUMBLE_CONFIG.forceLowercase) {
-        document.body.classList.add('humble-lower');
-    }
-    if (HUMBLE_CONFIG.cleanSpacing) {
-        document.body.classList.add('humble-spacing');
-    }
+    if (HUMBLE_CONFIG.forceLowercase) document.body.classList.add('humble-lower');
+    if (HUMBLE_CONFIG.cleanSpacing) document.body.classList.add('humble-spacing');
 
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
@@ -720,15 +717,20 @@
         const priorityGrp = document.getElementById('priorityGroup');
         const timeblockGrp = document.getElementById('timeblockGroup');
         const dateLbl = document.getElementById('dateLabel');
+        const dateInput = document.getElementById('date');
 
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
-            dateLbl.innerText = 'Date (Month & Day - Recurring Yearly)';
+            dateLbl.innerText = 'Birthday Date (Format: MM-DD, e.g., 05-24)';
+            dateInput.type = 'text';
+            dateInput.placeholder = 'MM-DD';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
             dateLbl.innerText = 'Date (Leave blank for Inbox)';
+            dateInput.type = 'date';
+            dateInput.placeholder = '';
         }
     }
 
@@ -815,9 +817,8 @@
             let badgesHTML = '';
             daySchedules.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') {
-                    bgStyle = `var(--birthday-strawberry)`;
-                }
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
                 let badgeTitle = s.title;
@@ -877,10 +878,7 @@
 
     function closeFormModal() {
         const formSec = document.getElementById('formSectionContainer');
-        const container = document.querySelector('.container');
-        if (window.innerWidth < 1100) {
-            formSec.style.display = 'none';
-        }
+        if (window.innerWidth < 1100) formSec.style.display = 'none';
         document.getElementById('formModal').style.display = 'none';
     }
 
@@ -889,8 +887,17 @@
         const title = document.getElementById('title').value;
         const description = document.getElementById('description').value;
         const type = document.getElementById('type').value;
-        let date = document.getElementById('date').value;
-        if (!date) date = null;
+        let dateInputVal = document.getElementById('date').value;
+        let date = null;
+
+        if (dateInputVal) {
+            if (type === 'Birthday') {
+                let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
+                date = `2000-${cleanVal}`; // Tahun dummy untuk kemudahan parsing MM-DD
+            } else {
+                date = dateInputVal;
+            }
+        }
 
         let priority = document.getElementById('priority').value;
         let timeblock = document.getElementById('timeblock').value;
@@ -937,7 +944,14 @@
             document.getElementById('title').value = item.title;
             document.getElementById('description').value = item.description || '';
             document.getElementById('type').value = item.type;
-            document.getElementById('date').value = item.date || '';
+            
+            if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+                const parts = item.date.split('-');
+                document.getElementById('date').value = parts.length === 3 ? `${parts[1]}-${parts[2]}` : item.date;
+            } else {
+                document.getElementById('date').value = item.date || '';
+            }
+
             document.getElementById('priority').value = item.priority;
             document.getElementById('timeblock').value = item.timeblock;
             
@@ -978,9 +992,15 @@
         let modalTitle = `[${item.type}] ${item.title}`;
         let itemType = item.type;
         let itemDesc = item.description ? item.description : '-';
-        let itemPriority = item.type === 'Birthday' ? 'Birthday (Strawberry)' : item.priority;
+        let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
         let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
         let itemStatus = item.completed ? 'Completed' : 'Pending';
+
+        let displayDate = item.date;
+        if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+            const parts = item.date.split('-');
+            if (parts.length === 3) displayDate = `${parts[1]}-${parts[2]}`;
+        }
 
         if (HUMBLE_CONFIG.forceLowercase) {
             modalTitle = modalTitle.toLowerCase();
@@ -994,7 +1014,7 @@
         document.getElementById('modalTitleText').innerText = modalTitle;
         const modalBody = document.getElementById('modalBodyContent');
         modalBody.innerHTML = `
-            <p><strong>Date</strong> ${item.date ? item.date : 'Inbox (No Date)'}</p>
+            <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
@@ -1047,11 +1067,8 @@
     function closeModal(event, modalId) {
         if (event.target.id === modalId) {
             document.getElementById(modalId).style.display = 'none';
-            if (modalId === 'formModal') {
-                const formSec = document.getElementById('formSectionContainer');
-                if (window.innerWidth >= 1100) {
-                    document.querySelector('.container').appendChild(formSec);
-                }
+            if (modalId === 'formModal' && window.innerWidth >= 1100) {
+                document.querySelector('.container').appendChild(document.getElementById('formSectionContainer'));
             }
         }
     }
@@ -1060,11 +1077,17 @@
         const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
         let descText = s.description ? s.description : 'No additional note';
         
+        let displayDate = s.date;
+        if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
+            const parts = s.date.split('-');
+            if (parts.length === 3) displayDate = `${parts[1]}-${parts[2]}`; // MM-DD
+        }
+
         let tagDisplay = '';
         if (isBirthdayDirectory) {
-            tagDisplay = s.date; // Bersih tanpa teks strawberry
+            tagDisplay = displayDate; // Bersih tanpa teks strawberry
         } else {
-            tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.date} | ${s.priority} / ${s.timeblock}`;
+            tagDisplay = s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`;
         }
 
         let titleText = `[${s.type}] ${s.title}`;
@@ -1103,6 +1126,51 @@
             return;
         }
 
+        // 1. Render Today / Filtered Activities di atas
+        if (selectedFilterDate) {
+            document.getElementById('clearFilterBtn').style.display = 'inline-block';
+            let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
+            
+            if (filteredItems.length === 0) {
+                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${selectedFilterDate}.</div>`;
+            } else {
+                let filterTitle = `📅 Filtered Date: ${selectedFilterDate}`;
+                if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
+
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
+                filteredItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+                html += `</div>`;
+                container.innerHTML = html;
+            }
+        } else {
+            document.getElementById('clearFilterBtn').style.display = 'none';
+            const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
+
+            if (todayItems.length > 0) {
+                let todayTitle = `📌 TODAY (${todayStr})`;
+                if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
+
+                let htmlToday = `
+                    <div class="section-category-box">
+                        <div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>
+                `;
+                todayItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    htmlToday += renderCardHTML(s, bgStyle);
+                });
+                htmlToday += `</div>`;
+                container.innerHTML = htmlToday;
+            } else {
+                container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
+            }
+        }
+
+        // 2. Render Dumplist / Inbox di bawah
         const inboxItems = sortItems(schedules.filter(s => !s.date));
         if (inboxItems.length > 0) {
             let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
@@ -1122,55 +1190,8 @@
         } else {
             dumplistContainer.innerHTML = '';
         }
-
-        if (selectedFilterDate) {
-            document.getElementById('clearFilterBtn').style.display = 'inline-block';
-            let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
-            
-            if (filteredItems.length === 0) {
-                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${selectedFilterDate}.</div>`;
-                return;
-            }
-
-            let filterTitle = `📅 Filtered Date: ${selectedFilterDate}`;
-            if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
-
-            let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
-            filteredItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
-            });
-            html += `</div>`;
-            container.innerHTML = html;
-            return;
-        } else {
-            document.getElementById('clearFilterBtn').style.display = 'none';
-        }
-
-        const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
-
-        if (todayItems.length > 0) {
-            let todayTitle = `📌 TODAY (${todayStr})`;
-            if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
-
-            let htmlToday = `
-                <div class="section-category-box">
-                    <div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>
-            `;
-            todayItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                htmlToday += renderCardHTML(s, bgStyle);
-            });
-            htmlToday += `</div>`;
-            container.innerHTML = htmlToday;
-        } else {
-            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
-        }
     }
 
-    // Handle responsive form placement on load / resize
     window.addEventListener('resize', () => {
         const formSec = document.getElementById('formSectionContainer');
         const container = document.querySelector('.container');
