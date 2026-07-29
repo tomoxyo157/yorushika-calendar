@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yorushika Calendar // ヨルシカ</title>
-    <!-- Favicon Yorushika -->
     <link rel="icon" type="image/png" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,7 +14,6 @@
         :root {
             --forceLowercase: false;
             --cleanSpacing: false;
-
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
             --card-bg: #0d0d0d;
@@ -51,17 +49,6 @@
         body.humble-lower .mobile-create-trigger {
             text-transform: lowercase !important;
         }
-
-        body.humble-spacing .jp-title-logo,
-        body.humble-spacing .sub-tag,
-        body.humble-spacing h2,
-        body.humble-spacing .calendar-nav h3,
-        body.humble-spacing .form-section h4,
-        body.humble-spacing .agenda-list h4,
-        body.humble-spacing .footer-tag,
-        body.humble-spacing .mobile-create-trigger {
-            letter-spacing: 0px !important;
-        }
         
         .container {
             max-width: 500px;
@@ -76,7 +63,6 @@
             gap: 16px;
         }
 
-        /* Mobile Create Trigger Button */
         .mobile-create-trigger {
             display: block;
             width: 100%;
@@ -92,9 +78,7 @@
             border-radius: 2px;
             margin-bottom: 4px;
         }
-        .mobile-create-trigger:hover {
-            background: #e0e0e0;
-        }
+        .mobile-create-trigger:hover { background: #e0e0e0; }
 
         @media (min-width: 1100px) {
             .container {
@@ -243,7 +227,7 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
-            display: none;
+            display: none; /* Default hidden di mobile */
         }
         .form-section h4 {
             font-size: 15px;
@@ -364,7 +348,7 @@
             border: 1px dashed var(--border-color);
             padding: 8px;
             margin-top: 10px;
-            opacity: 0.5; /* Dimmed 50% */
+            opacity: 0.5;
         }
         .dumplist-title {
             font-size: 12px;
@@ -404,7 +388,7 @@
         .agenda-item:hover { border-color: #ffffff; }
         
         .agenda-item.completed-item {
-            opacity: 0.35 !important; /* Dimmed 65% */
+            opacity: 0.35 !important;
             border-style: dashed;
         }
         .agenda-item.completed-item .agenda-content h4,
@@ -418,26 +402,13 @@
             padding-right: 8px;
         }
         .agenda-content h4 { 
-            margin: 0; 
-            font-size: 11px; 
-            font-weight: 600; 
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis; 
-            text-transform: uppercase; 
+            margin: 0; font-size: 11px; font-weight: 600; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; 
         }
         .agenda-content p { 
-            margin: 2px 0 0 0; 
-            font-size: 9px; 
-            opacity: 0.85; 
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: normal;
-            word-break: break-all;
-            text-transform: uppercase; 
+            margin: 2px 0 0 0; font-size: 9px; opacity: 0.85; 
+            display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+            overflow: hidden; text-overflow: ellipsis; white-space: normal; word-break: break-all; text-transform: uppercase; 
         }
         
         .agenda-actions {
@@ -572,7 +543,7 @@
     <!-- Mobile Trigger for Form Modal -->
     <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
-    <!-- Form Section -->
+    <!-- Form Section (Desktop Version) -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4 id="formTitleHeader">+ Create Entry</h4>
         <input type="hidden" id="editEntryId">
@@ -637,10 +608,7 @@
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">🕰️ Skipped Tasks</button>
             </div>
 
-            <!-- Agenda/Today list di atas -->
             <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
-            
-            <!-- Dumplist dipindah ke bawah -->
             <div id="dumplistContainer"></div>
         </div>
     </div>
@@ -652,14 +620,58 @@
     </div>
 </div>
 
-<!-- Form Modal for Mobile -->
+<!-- Modal Form Khusus Mobile (Terpisah agar tidak nge-bug blank) -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
             <span id="modalFormHeaderTitle">Create Entry</span>
             <button class="modal-close" onclick="closeFormModal()">×</button>
         </div>
-        <div class="modal-scroll-body" id="modalFormBodyContainer"></div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="m_editEntryId">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief / Plagiarism">
+                </div>
+                <div class="form-group">
+                    <label>Description / Note (Optional)</label>
+                    <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="m_type" onchange="m_handleTypeChange()">
+                        <option value="Event">Event</option>
+                        <option value="Task">Task (With checkmark)</option>
+                        <option value="Birthday">Birthday (Recurring Yearly)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
+                    <input type="date" id="m_date">
+                </div>
+                <div class="form-group" id="m_priorityGroup">
+                    <label>Priority Tagging</label>
+                    <select id="m_priority">
+                        <option value="personal">Personal (Mint Green)</option>
+                        <option value="professional">Professional (Maroon)</option>
+                        <option value="daily">Daily (Ink Charcoal)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="m_timeblockGroup">
+                    <label>Timeblock Tagging</label>
+                    <select id="m_timeblock">
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="m_resetForm()">Reset</button>
+                    <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -688,13 +700,7 @@
 </div>
 
 <script>
-    const HUMBLE_CONFIG = {
-        forceLowercase: false,
-        cleanSpacing: false
-    };
-
-    if (HUMBLE_CONFIG.forceLowercase) document.body.classList.add('humble-lower');
-    if (HUMBLE_CONFIG.cleanSpacing) document.body.classList.add('humble-spacing');
+    const HUMBLE_CONFIG = { forceLowercase: false, cleanSpacing: false };
 
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
@@ -712,6 +718,17 @@
 
     let currentDate = new Date();
 
+    // Helper format YYYY-MM-DD ke DD/MM
+    function formatDateDDMM(dateStr) {
+        if (!dateStr) return '';
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`; // DD/MM
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`; // MM/DD jika tersimpan MM-DD
+        }
+        return dateStr;
+    }
+
     function handleTypeChange() {
         const typeVal = document.getElementById('type').value;
         const priorityGrp = document.getElementById('priorityGroup');
@@ -722,15 +739,33 @@
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
-            dateLbl.innerText = 'Birthday Date (Format: MM-DD, e.g., 05-24)';
-            dateInput.type = 'text';
-            dateInput.placeholder = 'MM-DD';
+            dateLbl.innerText = 'Birthday Date (MM-DD)';
+            dateInput.type = 'date'; // Tetap date picker native tapi tahun diabaikan saat simpan
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
             dateLbl.innerText = 'Date (Leave blank for Inbox)';
             dateInput.type = 'date';
-            dateInput.placeholder = '';
+        }
+    }
+
+    function m_handleTypeChange() {
+        const typeVal = document.getElementById('m_type').value;
+        const priorityGrp = document.getElementById('m_priorityGroup');
+        const timeblockGrp = document.getElementById('m_timeblockGroup');
+        const dateLbl = document.getElementById('m_dateLabel');
+        const dateInput = document.getElementById('m_date');
+
+        if (typeVal === 'Birthday') {
+            priorityGrp.style.display = 'none';
+            timeblockGrp.style.display = 'none';
+            dateLbl.innerText = 'Birthday Date (MM-DD)';
+            dateInput.type = 'date';
+        } else {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'block';
+            dateLbl.innerText = 'Date (Leave blank for Inbox)';
+            dateInput.type = 'date';
         }
     }
 
@@ -846,6 +881,7 @@
 
     function handleGridCellClick(dateStr) {
         document.getElementById('date').value = dateStr;
+        document.getElementById('m_date').value = dateStr;
         selectedFilterDate = dateStr;
         renderAgendaList();
     }
@@ -868,39 +904,56 @@
         document.getElementById('submitBtn').innerText = 'Save Entry';
     }
 
+    function m_resetForm() {
+        document.getElementById('m_editEntryId').value = '';
+        document.getElementById('m_title').value = '';
+        document.getElementById('m_description').value = '';
+        document.getElementById('m_type').value = 'Event';
+        document.getElementById('m_date').value = '';
+        document.getElementById('m_priority').value = 'personal';
+        document.getElementById('m_timeblock').value = 'morning';
+        m_handleTypeChange();
+        document.getElementById('modalFormHeaderTitle').innerText = 'Create Entry';
+        document.getElementById('m_submitBtn').innerText = 'Save Entry';
+    }
+
     function openFormModal() {
-        const formSec = document.getElementById('formSectionContainer');
-        const modalBody = document.getElementById('modalFormBodyContainer');
-        modalBody.appendChild(formSec);
-        formSec.style.display = 'block';
+        m_resetForm();
         document.getElementById('formModal').style.display = 'flex';
     }
 
     function closeFormModal() {
-        const formSec = document.getElementById('formSectionContainer');
-        if (window.innerWidth < 1100) formSec.style.display = 'none';
         document.getElementById('formModal').style.display = 'none';
     }
 
     async function saveSchedule() {
-        const id = document.getElementById('editEntryId').value;
-        const title = document.getElementById('title').value;
-        const description = document.getElementById('description').value;
-        const type = document.getElementById('type').value;
-        let dateInputVal = document.getElementById('date').value;
+        executeSave(false);
+    }
+
+    async function m_saveSchedule() {
+        executeSave(true);
+    }
+
+    async function executeSave(isMobile) {
+        const prefix = isMobile ? 'm_' : '';
+        const id = document.getElementById(prefix + 'editEntryId').value;
+        const title = document.getElementById(prefix + 'title').value;
+        const description = document.getElementById(prefix + 'description').value;
+        const type = document.getElementById(prefix + 'type').value;
+        let dateInputVal = document.getElementById(prefix + 'date').value;
         let date = null;
 
         if (dateInputVal) {
             if (type === 'Birthday') {
                 let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
-                date = `2000-${cleanVal}`; // Tahun dummy untuk kemudahan parsing MM-DD
+                date = `2000-${cleanVal}`; // Dummy year for DB
             } else {
                 date = dateInputVal;
             }
         }
 
-        let priority = document.getElementById('priority').value;
-        let timeblock = document.getElementById('timeblock').value;
+        let priority = document.getElementById(prefix + 'priority').value;
+        let timeblock = document.getElementById(prefix + 'timeblock').value;
         let recurring = 'none';
 
         if (type === 'Birthday') {
@@ -922,6 +975,7 @@
 
             if (!error) {
                 resetForm();
+                m_resetForm();
                 closeFormModal();
                 fetchSchedules();
             }
@@ -931,6 +985,7 @@
             
             if (!error) {
                 resetForm();
+                m_resetForm();
                 closeFormModal();
                 fetchSchedules();
             }
@@ -940,28 +995,33 @@
     function editSchedule(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
-            document.getElementById('editEntryId').value = item.id;
-            document.getElementById('title').value = item.title;
-            document.getElementById('description').value = item.description || '';
-            document.getElementById('type').value = item.type;
+            const isMobile = window.innerWidth < 1100;
+            const prefix = isMobile ? 'm_' : '';
+
+            document.getElementById(prefix + 'editEntryId').value = item.id;
+            document.getElementById(prefix + 'title').value = item.title;
+            document.getElementById(prefix + 'description').value = item.description || '';
+            document.getElementById(prefix + 'type').value = item.type;
             
             if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
                 const parts = item.date.split('-');
-                document.getElementById('date').value = parts.length === 3 ? `${parts[1]}-${parts[2]}` : item.date;
+                document.getElementById(prefix + 'date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
             } else {
-                document.getElementById('date').value = item.date || '';
+                document.getElementById(prefix + 'date').value = item.date || '';
             }
 
-            document.getElementById('priority').value = item.priority;
-            document.getElementById('timeblock').value = item.timeblock;
+            document.getElementById(prefix + 'priority').value = item.priority;
+            document.getElementById(prefix + 'timeblock').value = item.timeblock;
             
-            handleTypeChange();
-            document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
-            document.getElementById('submitBtn').innerText = 'Update Entry';
-
-            if (window.innerWidth < 1100) {
-                openFormModal();
+            if (isMobile) {
+                m_handleTypeChange();
+                document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
+                document.getElementById('m_submitBtn').innerText = 'Update Entry';
+                document.getElementById('formModal').style.display = 'flex';
             } else {
+                handleTypeChange();
+                document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
+                document.getElementById('submitBtn').innerText = 'Update Entry';
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
@@ -990,7 +1050,6 @@
         if (!item) return;
 
         let modalTitle = `[${item.type}] ${item.title}`;
-        let itemType = item.type;
         let itemDesc = item.description ? item.description : '-';
         let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
         let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
@@ -999,12 +1058,13 @@
         let displayDate = item.date;
         if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
             const parts = item.date.split('-');
-            if (parts.length === 3) displayDate = `${parts[1]}-${parts[2]}`;
+            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`; // DD/MM
+        } else {
+            displayDate = formatDateDDMM(item.date);
         }
 
         if (HUMBLE_CONFIG.forceLowercase) {
             modalTitle = modalTitle.toLowerCase();
-            itemType = itemType.toLowerCase();
             itemDesc = itemDesc.toLowerCase();
             itemPriority = itemPriority.toLowerCase();
             itemTimeblock = itemTimeblock.toLowerCase();
@@ -1012,8 +1072,7 @@
         }
 
         document.getElementById('modalTitleText').innerText = modalTitle;
-        const modalBody = document.getElementById('modalBodyContent');
-        modalBody.innerHTML = `
+        document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
@@ -1023,9 +1082,7 @@
         document.getElementById('detailModal').style.display = 'flex';
     }
 
-    function closeDetailModal() {
-        document.getElementById('detailModal').style.display = 'none';
-    }
+    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; }
 
     function openDirectoryModal(typeKey) {
         const modalTitle = document.getElementById('directoryModalTitle');
@@ -1040,9 +1097,7 @@
             if (birthdays.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
             } else {
-                birthdays.forEach(s => {
-                    html += renderCardHTML(s, 'var(--birthday-strawberry)', true);
-                });
+                birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped tasks' : '🕰️ SKIPPED TASKS';
@@ -1060,16 +1115,11 @@
         document.getElementById('directoryModal').style.display = 'flex';
     }
 
-    function closeDirectoryModal() {
-        document.getElementById('directoryModal').style.display = 'none';
-    }
+    function closeDirectoryModal() { document.getElementById('directoryModal').style.display = 'none'; }
 
     function closeModal(event, modalId) {
         if (event.target.id === modalId) {
             document.getElementById(modalId).style.display = 'none';
-            if (modalId === 'formModal' && window.innerWidth >= 1100) {
-                document.querySelector('.container').appendChild(document.getElementById('formSectionContainer'));
-            }
         }
     }
 
@@ -1080,18 +1130,19 @@
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
             const parts = s.date.split('-');
-            if (parts.length === 3) displayDate = `${parts[1]}-${parts[2]}`; // MM-DD
+            if (parts.length === 3) displayDate = `${parts[2]}/${parts[1]}`; // DD/MM
+        } else {
+            displayDate = formatDateDDMM(s.date);
         }
 
         let tagDisplay = '';
         if (isBirthdayDirectory) {
-            tagDisplay = displayDate; // Bersih tanpa teks strawberry
+            tagDisplay = displayDate;
         } else {
             tagDisplay = s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`;
         }
 
         let titleText = `[${s.type}] ${s.title}`;
-
         if (HUMBLE_CONFIG.forceLowercase) {
             titleText = titleText.toLowerCase();
             descText = descText.toLowerCase();
@@ -1126,15 +1177,14 @@
             return;
         }
 
-        // 1. Render Today / Filtered Activities di atas
         if (selectedFilterDate) {
             document.getElementById('clearFilterBtn').style.display = 'inline-block';
             let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
             
             if (filteredItems.length === 0) {
-                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${selectedFilterDate}.</div>`;
+                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;
             } else {
-                let filterTitle = `📅 Filtered Date: ${selectedFilterDate}`;
+                let filterTitle = `📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}`;
                 if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
 
                 let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
@@ -1151,13 +1201,10 @@
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
 
             if (todayItems.length > 0) {
-                let todayTitle = `📌 TODAY (${todayStr})`;
+                let todayTitle = `📌 TODAY (${formatDateDDMM(todayStr)})`;
                 if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
 
-                let htmlToday = `
-                    <div class="section-category-box">
-                        <div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>
-                `;
+                let htmlToday = `<div class="section-category-box"><div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>`;
                 todayItems.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
@@ -1170,16 +1217,12 @@
             }
         }
 
-        // 2. Render Dumplist / Inbox di bawah
         const inboxItems = sortItems(schedules.filter(s => !s.date));
         if (inboxItems.length > 0) {
             let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
             if (HUMBLE_CONFIG.forceLowercase) inboxTitle = inboxTitle.toLowerCase();
 
-            let inboxHTML = `
-                <div class="dumplist-box">
-                    <div class="dumplist-title">${inboxTitle}</div>
-            `;
+            let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title">${inboxTitle}</div>`;
             inboxItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
@@ -1191,18 +1234,6 @@
             dumplistContainer.innerHTML = '';
         }
     }
-
-    window.addEventListener('resize', () => {
-        const formSec = document.getElementById('formSectionContainer');
-        const container = document.querySelector('.container');
-        if (window.innerWidth >= 1100) {
-            container.appendChild(formSec);
-            formSec.style.display = 'block';
-            document.getElementById('formModal').style.display = 'none';
-        } else {
-            formSec.style.display = 'none';
-        }
-    });
 
     if (window.innerWidth >= 1100) {
         document.getElementById('formSectionContainer').style.display = 'block';
