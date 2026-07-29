@@ -13,8 +13,8 @@
 
     <style>
         :root {
-            --forceLowercase: true;
-            --cleanSpacing: true;
+            --forceLowercase: false;
+            --cleanSpacing: false;
 
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
@@ -47,7 +47,8 @@
         body.humble-lower .agenda-content h4,
         body.humble-lower .agenda-content p,
         body.humble-lower .modal-body,
-        body.humble-lower .modal-body strong {
+        body.humble-lower .modal-body strong,
+        body.humble-lower .mobile-create-trigger {
             text-transform: lowercase !important;
         }
 
@@ -57,7 +58,8 @@
         body.humble-spacing .calendar-nav h3,
         body.humble-spacing .form-section h4,
         body.humble-spacing .agenda-list h4,
-        body.humble-spacing .footer-tag {
+        body.humble-spacing .footer-tag,
+        body.humble-spacing .mobile-create-trigger {
             letter-spacing: 0px !important;
         }
         
@@ -74,6 +76,26 @@
             gap: 16px;
         }
 
+        /* Mobile Create Trigger Button */
+        .mobile-create-trigger {
+            display: block;
+            width: 100%;
+            background: #ffffff;
+            color: #000000;
+            border: 1px solid #ffffff;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 2px;
+            margin-bottom: 4px;
+        }
+        .mobile-create-trigger:hover {
+            background: #e0e0e0;
+        }
+
         @media (min-width: 1100px) {
             .container {
                 max-width: 1450px;
@@ -86,7 +108,8 @@
             .desktop-full-span { grid-column: span 3; }
             .desktop-agenda-column { grid-column: 1; grid-row: 2 / span 2; }
             .desktop-calendar-column { grid-column: 2; grid-row: 2 / span 2; }
-            .desktop-form-column { grid-column: 3; grid-row: 2 / span 2; margin-top: 0 !important; }
+            .desktop-form-column { grid-column: 3; grid-row: 2 / span 2; margin-top: 0 !important; display: block !important; }
+            .mobile-create-trigger { display: none !important; }
         }
         
         #dbStatus {
@@ -220,6 +243,7 @@
             padding: 12px;
             border: 1px solid var(--border-color);
             border-radius: 2px;
+            display: none; /* Default hidden on mobile unless inside modal */
         }
         .form-section h4 {
             font-size: 15px;
@@ -340,6 +364,7 @@
             border: 1px dashed var(--border-color);
             padding: 8px;
             margin-bottom: 8px;
+            opacity: 0.75; /* Dimmed 25% */
         }
         .dumplist-title {
             font-size: 12px;
@@ -544,7 +569,11 @@
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <div class="form-section desktop-form-column">
+    <!-- Mobile Trigger for Form Modal -->
+    <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
+
+    <!-- Form Section (Desktop / Inside Modal) -->
+    <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4 id="formTitleHeader">+ Create Entry</h4>
         <input type="hidden" id="editEntryId">
         <div class="form-group">
@@ -620,6 +649,19 @@
     </div>
 </div>
 
+<!-- Form Modal for Mobile -->
+<div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalFormHeaderTitle">Create Entry</span>
+            <button class="modal-close" onclick="closeFormModal()">×</button>
+        </div>
+        <div class="modal-scroll-body" id="modalFormBodyContainer">
+            <!-- Form will be dynamically moved here on mobile or cloned -->
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -666,8 +708,9 @@
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
+    
     const timeblockOrder = { morning: 1, work: 2, night: 3 };
-    const priorityOrder = { personal: 1, professional: 2, daily: 3 };
+    const priorityOrder = { professional: 1, daily: 2, personal: 3 };
     const typeOrder = { Task: 1, Event: 2, Birthday: 3 };
 
     let currentDate = new Date();
@@ -713,11 +756,19 @@
         const sortBy = document.getElementById('sortBySelect').value;
         return [...items].sort((a, b) => {
             if (sortBy === 'priority') {
-                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
-            } else if (sortBy === 'type') {
-                return (typeOrder[a.type] || 2) - (typeOrder[b.type] || 2);
-            } else {
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
                 return (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+            } else if (sortBy === 'type') {
+                let tDiff = (typeOrder[a.type] || 2) - (typeOrder[b.type] || 2);
+                if (tDiff !== 0) return tDiff;
+                let tbDiff = (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                if (tbDiff !== 0) return tbDiff;
+                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+            } else {
+                let tbDiff = (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                if (tbDiff !== 0) return tbDiff;
+                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
             }
         });
     }
@@ -740,7 +791,8 @@
             gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
         }
 
-        const todayStr = new Date().toISOString().split('T')[0];
+        const nowLocal = new Date();
+        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         for (let day = 1; day <= totalDays; day++) {
             const formattedMonth = String(month + 1).padStart(2, '0');
@@ -815,6 +867,23 @@
         document.getElementById('submitBtn').innerText = 'Save Entry';
     }
 
+    function openFormModal() {
+        const formSec = document.getElementById('formSectionContainer');
+        const modalBody = document.getElementById('modalFormBodyContainer');
+        modalBody.appendChild(formSec);
+        formSec.style.display = 'block';
+        document.getElementById('formModal').style.display = 'flex';
+    }
+
+    function closeFormModal() {
+        const formSec = document.getElementById('formSectionContainer');
+        const container = document.querySelector('.container');
+        if (window.innerWidth < 1100) {
+            formSec.style.display = 'none';
+        }
+        document.getElementById('formModal').style.display = 'none';
+    }
+
     async function saveSchedule() {
         const id = document.getElementById('editEntryId').value;
         const title = document.getElementById('title').value;
@@ -846,6 +915,7 @@
 
             if (!error) {
                 resetForm();
+                closeFormModal();
                 fetchSchedules();
             }
         } else {
@@ -854,6 +924,7 @@
             
             if (!error) {
                 resetForm();
+                closeFormModal();
                 fetchSchedules();
             }
         }
@@ -873,7 +944,12 @@
             handleTypeChange();
             document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
             document.getElementById('submitBtn').innerText = 'Update Entry';
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (window.innerWidth < 1100) {
+                openFormModal();
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     }
 
@@ -934,7 +1010,8 @@
     function openDirectoryModal(typeKey) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
-        const todayStr = new Date().toISOString().split('T')[0];
+        const nowLocal = new Date();
+        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         let html = '';
         if (typeKey === 'birthdays') {
@@ -944,19 +1021,18 @@
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
             } else {
                 birthdays.forEach(s => {
-                    html += renderCardHTML(s, 'var(--birthday-strawberry)');
+                    html += renderCardHTML(s, 'var(--birthday-strawberry)', true);
                 });
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped tasks' : '🕰️ SKIPPED TASKS';
-            // Hanya mengambil task yang belum dicentang dan tanggalnya sudah lewat
             const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
             } else {
                 skipped.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle);
+                    html += renderCardHTML(s, bgStyle, false);
                 });
             }
         }
@@ -971,13 +1047,26 @@
     function closeModal(event, modalId) {
         if (event.target.id === modalId) {
             document.getElementById(modalId).style.display = 'none';
+            if (modalId === 'formModal') {
+                const formSec = document.getElementById('formSectionContainer');
+                if (window.innerWidth >= 1100) {
+                    document.querySelector('.container').appendChild(formSec);
+                }
+            }
         }
     }
 
-    function renderCardHTML(s, bgStyle) {
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
         const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
         let descText = s.description ? s.description : 'No additional note';
-        let tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.date} | ${s.priority} / ${s.timeblock}`;
+        
+        let tagDisplay = '';
+        if (isBirthdayDirectory) {
+            tagDisplay = s.date; // Bersih tanpa teks strawberry
+        } else {
+            tagDisplay = s.type === 'Birthday' ? 'Birthday / Strawberry' : `${s.date} | ${s.priority} / ${s.timeblock}`;
+        }
+
         let titleText = `[${s.type}] ${s.title}`;
 
         if (HUMBLE_CONFIG.forceLowercase) {
@@ -1005,7 +1094,8 @@
     function renderAgendaList() {
         const container = document.getElementById('agendaContainer');
         const dumplistContainer = document.getElementById('dumplistContainer');
-        const todayStr = new Date().toISOString().split('T')[0];
+        const nowLocal = new Date();
+        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         if (schedules.length === 0) {
             container.innerHTML = 'No entries recorded yet.';
@@ -1076,8 +1166,25 @@
             htmlToday += `</div>`;
             container.innerHTML = htmlToday;
         } else {
-            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.0</div>`;
+            container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
         }
+    }
+
+    // Handle responsive form placement on load / resize
+    window.addEventListener('resize', () => {
+        const formSec = document.getElementById('formSectionContainer');
+        const container = document.querySelector('.container');
+        if (window.innerWidth >= 1100) {
+            container.appendChild(formSec);
+            formSec.style.display = 'block';
+            document.getElementById('formModal').style.display = 'none';
+        } else {
+            formSec.style.display = 'none';
+        }
+    });
+
+    if (window.innerWidth >= 1100) {
+        document.getElementById('formSectionContainer').style.display = 'block';
     }
 
     fetchSchedules();
