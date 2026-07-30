@@ -12,7 +12,7 @@
 
     <style>
         :root {
-            --forceLowercase: false;
+            --forceLowercase: true;
             --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
@@ -35,6 +35,21 @@
             text-transform: uppercase;
         }
 
+        body.humble-lower {
+            text-transform: lowercase !important;
+        }
+        body.humble-lower input, 
+        body.humble-lower select, 
+        body.humble-lower textarea, 
+        body.humble-lower option,
+        body.humble-lower .agenda-content h4,
+        body.humble-lower .agenda-content p,
+        body.humble-lower .modal-body,
+        body.humble-lower .modal-body strong,
+        body.humble-lower .mobile-create-trigger {
+            text-transform: lowercase !important;
+        }
+        
         .container {
             max-width: 500px;
             margin: auto;
@@ -207,23 +222,6 @@
             text-decoration: line-through;
         }
 
-        /* Blender Collection Badges on Cards */
-        .card-badges-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 3px;
-            margin-top: 3px;
-        }
-        .collection-badge-tag {
-            background: #222;
-            border: 1px solid #555;
-            color: #fff;
-            font-size: 7px;
-            padding: 1px 4px;
-            border-radius: 2px;
-            letter-spacing: 0.5px;
-        }
-
         .form-section {
             background: #000000;
             padding: 12px;
@@ -329,7 +327,7 @@
 
         .archive-windows-nav {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr 1fr;
             gap: 6px;
             margin-bottom: 10px;
         }
@@ -337,8 +335,8 @@
             background: #141414;
             color: #ffffff;
             border: 1px solid var(--border-color);
-            padding: 6px 4px;
-            font-size: 9px;
+            padding: 6px 8px;
+            font-size: 10px;
             cursor: pointer;
             text-align: center;
             font-weight: bold;
@@ -348,11 +346,11 @@
         .nav-counter-badge {
             background: #ffffff;
             color: #000000;
-            font-size: 8px;
+            font-size: 9px;
             font-weight: bold;
-            padding: 1px 4px;
+            padding: 1px 5px;
             border-radius: 10px;
-            margin-left: 2px;
+            margin-left: 4px;
             display: inline-block;
             vertical-align: middle;
         }
@@ -361,31 +359,12 @@
             color: #ffffff;
         }
 
-        /* Controlled list height & overflow expansion */
-        .section-scroll-box {
-            max-height: 220px;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-        .expand-overflow-btn {
-            display: block;
-            width: 100%;
-            background: #111;
-            color: #bbb;
-            border: 1px dashed var(--border-color);
-            padding: 5px;
-            font-size: 9px;
-            text-align: center;
-            cursor: pointer;
-            margin-top: 6px;
-        }
-        .expand-overflow-btn:hover { background: #222; color: #fff; }
-
         .dumplist-box {
             background: #080808;
             border: 1px dashed var(--border-color);
             padding: 8px;
             margin-top: 10px;
+            opacity: 0.5;
         }
         .dumplist-title {
             font-size: 12px;
@@ -477,19 +456,8 @@
             font-weight: bold;
         }
         .btn-delete:hover { background: #ff5555; color: white; }
-        .btn-unlink {
-            background: rgba(0, 0, 0, 0.6);
-            color: #ffaa00;
-            border: 1px solid #ffaa00;
-            padding: 3px 5px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 8px;
-            font-weight: bold;
-        }
-        .btn-unlink:hover { background: #ffaa00; color: black; }
 
-        /* Smooth Popup / Popout Modal Animations */
+        /* Modal Animated Styling */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -501,12 +469,15 @@
             padding: 10px;
             box-sizing: border-box;
             opacity: 0;
-            transition: opacity 0.2s ease-in-out;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+
         .modal-overlay.active {
-            display: flex;
             opacity: 1;
+            visibility: visible;
         }
+
         .modal-card {
             background: #0d0d0d;
             border: 2px solid #ffffff;
@@ -519,12 +490,14 @@
             box-sizing: border-box;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             position: relative;
-            transform: scale(0.9);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
         .modal-overlay.active .modal-card {
             transform: scale(1);
         }
+
         .modal-header {
             font-size: 15px;
             color: #fff;
@@ -608,8 +581,8 @@
         <h4 id="formTitleHeader">+ Create Entry</h4>
         <input type="hidden" id="editEntryId">
         <div class="form-group">
-            <label>Title (e.g. Meeting .projectA)</label>
-            <input type="text" id="title" placeholder="Spring Thief / .projectA">
+            <label>Title</label>
+            <input type="text" id="title" placeholder="e.g., Spring Thief / Plagiarism">
         </div>
         <div class="form-group">
             <label>Description / Note (Optional)</label>
@@ -665,13 +638,10 @@
 
             <div class="archive-windows-nav">
                 <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
-                    🎂 B-Day <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                    🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
                     🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
-                </button>
-                <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">
-                    🏷️ Labels <span id="collectionBadgeCount" class="nav-counter-badge">0</span>
                 </button>
             </div>
 
@@ -698,8 +668,8 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label>Title (e.g. Meeting .projectA)</label>
-                    <input type="text" id="m_title" placeholder="Spring Thief / .projectA">
+                    <label>Title</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief / Plagiarism">
                 </div>
                 <div class="form-group">
                     <label>Description / Note (Optional)</label>
@@ -742,19 +712,6 @@
     </div>
 </div>
 
-<!-- Overflow Expanded List Modal -->
-<div class="modal-overlay" id="overflowModal" onclick="closeModal(event, 'overflowModal')">
-    <div class="modal-card" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <span id="overflowModalTitle">Expanded List</span>
-            <button class="modal-close" onclick="closeOverflowModal()">×</button>
-        </div>
-        <div class="modal-scroll-body">
-            <div id="overflowModalContent" style="font-size: 11px;"></div>
-        </div>
-    </div>
-</div>
-
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -780,6 +737,8 @@
 </div>
 
 <script>
+    const HUMBLE_CONFIG = { forceLowercase: false, cleanSpacing: false };
+
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -796,32 +755,28 @@
 
     let currentDate = new Date();
 
-    function parseSmartInput(rawTitle) {
-        if (!rawTitle) return { cleanTitle: '', labels: [] };
-        const tokens = rawTitle.trim().split(/\s+/);
-        const cleanTokens = [];
-        const labels = [];
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('active');
+        }, 10);
+    }
 
-        tokens.forEach(token => {
-            if (token.startsWith('.') && token.length > 1) {
-                labels.push(token.substring(1)); // ambil teks setelah titik
-            } else {
-                cleanTokens.push(token);
-            }
-        });
-
-        return {
-            cleanTitle: cleanTokens.join(' '),
-            labels: labels
-        };
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
     }
 
     function formatDateDDMM(dateStr) {
         if (!dateStr) return '';
         if (dateStr.includes('-')) {
             const parts = dateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
-            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`; // DD/MM
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`; // MM/DD
         }
         return dateStr;
     }
@@ -893,18 +848,9 @@
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const skippedCount = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed).length;
-        
-        // Count unique labels across all items
-        let uniqueLabels = new Set();
-        schedules.forEach(s => {
-            if (s.labels && Array.isArray(s.labels)) {
-                s.labels.forEach(l => uniqueLabels.add(l));
-            }
-        });
 
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
         document.getElementById('skippedBadgeCount').innerText = skippedCount;
-        document.getElementById('collectionBadgeCount').innerText = uniqueLabels.size;
     }
 
     function sortItems(items) {
@@ -933,7 +879,10 @@
         const month = currentDate.getMonth();
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
+        let monthText = monthNames[month];
+        if (HUMBLE_CONFIG.forceLowercase) monthText = monthText.toLowerCase();
+
+        document.getElementById('monthYearDisplay').innerText = `${monthText} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
@@ -971,7 +920,9 @@
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${s.title}</div>`;
+                let badgeTitle = s.title;
+                if (HUMBLE_CONFIG.forceLowercase) badgeTitle = badgeTitle.toLowerCase();
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${badgeTitle}</div>`;
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
@@ -1032,21 +983,11 @@
 
     function openFormModal() {
         m_resetForm();
-        document.getElementById('formModal').classList.add('active');
+        showModal('formModal');
     }
 
     function closeFormModal() {
-        document.getElementById('formModal').classList.remove('active');
-    }
-
-    function openOverflowModal(titleText, htmlContent) {
-        document.getElementById('overflowModalTitle').innerText = titleText;
-        document.getElementById('overflowModalContent').innerHTML = htmlContent;
-        document.getElementById('overflowModal').classList.add('active');
-    }
-
-    function closeOverflowModal() {
-        document.getElementById('overflowModal').classList.remove('active');
+        hideModal('formModal');
     }
 
     async function saveSchedule() {
@@ -1060,7 +1001,7 @@
     async function executeSave(isMobile) {
         const prefix = isMobile ? 'm_' : '';
         const id = document.getElementById(prefix + 'editEntryId').value;
-        const rawTitle = document.getElementById(prefix + 'title').value;
+        const title = document.getElementById(prefix + 'title').value;
         const description = document.getElementById(prefix + 'description').value;
         const type = document.getElementById(prefix + 'type').value;
         let dateInputVal = document.getElementById(prefix + 'date').value;
@@ -1085,30 +1026,15 @@
             timeblock = 'morning';
         }
 
-        if (!rawTitle) {
+        if (!title) {
             alert('Title is required!');
             return;
-        }
-
-        // Smart Parser: ekstrak label titik & bersihkan judul utama
-        const parsed = parseSmartInput(rawTitle);
-        const title = parsed.cleanTitle;
-        const newLabels = parsed.labels;
-
-        // Jika sedang Edit, pertahankan label lama yang tidak dihapus / gabungkan dengan label baru
-        let finalLabels = newLabels;
-        if (id) {
-            const existingItem = schedules.find(s => String(s.id) === String(id));
-            if (existingItem && existingItem.labels) {
-                // Gabungkan label lama dan label baru tanpa duplikat
-                finalLabels = Array.from(new Set([...existingItem.labels, ...newLabels]));
-            }
         }
 
         if (id) {
             const { error } = await supabaseClient
                 .from('schedules')
-                .update({ title, description, type, date, priority, timeblock, recurring, labels: finalLabels })
+                .update({ title, description, type, date, priority, timeblock, recurring })
                 .eq('id', id);
 
             if (!error) {
@@ -1118,7 +1044,7 @@
                 fetchSchedules();
             }
         } else {
-            const newEntry = { title, description, type, date, priority, timeblock, recurring, completed: false, labels: finalLabels };
+            const newEntry = { title, description, type, date, priority, timeblock, recurring, completed: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
             if (!error) {
@@ -1136,14 +1062,8 @@
             const isMobile = window.innerWidth < 1100;
             const prefix = isMobile ? 'm_' : '';
 
-            // Saat edit, tampilkan kembali label titik di form input agar mudah diubah jika mau
-            let displayTitle = item.title;
-            if (item.labels && item.labels.length > 0) {
-                displayTitle += ' ' + item.labels.map(l => '.' + l).join(' ');
-            }
-
             document.getElementById(prefix + 'editEntryId').value = item.id;
-            document.getElementById(prefix + 'title').value = displayTitle;
+            document.getElementById(prefix + 'title').value = item.title;
             document.getElementById(prefix + 'description').value = item.description || '';
             document.getElementById(prefix + 'type').value = item.type;
             
@@ -1161,7 +1081,7 @@
                 m_handleTypeChange();
                 document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
                 document.getElementById('m_submitBtn').innerText = 'Update Entry';
-                document.getElementById('formModal').classList.add('active');
+                showModal('formModal');
             } else {
                 handleTypeChange();
                 document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
@@ -1183,30 +1103,21 @@
 
     async function deleteSchedule(id, event) {
         event.stopPropagation();
-        if (confirm('Delete this entry completely?')) {
+        if (confirm('Delete this entry?')) {
             const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
             if (!error) fetchSchedules();
-        }
-    }
-
-    async function unlinkLabel(id, labelName, event) {
-        event.stopPropagation();
-        if (confirm(`Unlink label ".${labelName}" from this entry?`)) {
-            const item = schedules.find(s => String(s.id) === String(id));
-            if (item && item.labels) {
-                const updatedLabels = item.labels.filter(l => l !== labelName);
-                const { error } = await supabaseClient.from('schedules').update({ labels: updatedLabels }).eq('id', id);
-                if (!error) {
-                    closeDirectoryModal();
-                    fetchSchedules();
-                }
-            }
         }
     }
 
     function openDetailModal(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
+
+        let modalTitle = `[${item.type}] ${item.title}`;
+        let itemDesc = item.description ? item.description : '-';
+        let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
+        let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
+        let itemStatus = item.completed ? 'Completed' : 'Pending';
 
         let displayDate = item.date;
         if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
@@ -1216,23 +1127,28 @@
             displayDate = formatDateDDMM(item.date);
         }
 
-        let labelsHTML = (item.labels && item.labels.length > 0) ? item.labels.map(l => `.${l}`).join(', ') : '-';
+        if (HUMBLE_CONFIG.forceLowercase) {
+            modalTitle = modalTitle.toLowerCase();
+            itemDesc = itemDesc.toLowerCase();
+            itemPriority = itemPriority.toLowerCase();
+            itemTimeblock = itemTimeblock.toLowerCase();
+            itemStatus = itemStatus.toLowerCase();
+        }
 
-        document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
+        document.getElementById('modalTitleText').innerText = modalTitle;
         document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
-            <p><strong>Description / Note</strong> ${item.description ? item.description : '-'}</p>
-            <p><strong>Priority Tag</strong> ${item.type === 'Birthday' ? 'Birthday' : item.priority}</p>
-            <p><strong>Timeblock</strong> ${item.type === 'Birthday' ? 'All Day' : item.timeblock}</p>
-            <p><strong>Collection Labels</strong> ${labelsHTML}</p>
-            <p><strong>Status</strong> ${item.completed ? 'Completed' : 'Pending'}</p>
+            <p><strong>Description / Note</strong> ${itemDesc}</p>
+            <p><strong>Priority Tag</strong> ${itemPriority}</p>
+            <p><strong>Timeblock</strong> ${itemTimeblock}</p>
+            <p><strong>Status</strong> ${itemStatus}</p>
         `;
-        document.getElementById('detailModal').classList.add('active');
+        showModal('detailModal');
     }
 
-    function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); }
+    function closeDetailModal() { hideModal('detailModal'); }
 
-    function openDirectoryModal(typeKey, specificLabel = null) {
+    function openDirectoryModal(typeKey) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const nowLocal = new Date();
@@ -1240,7 +1156,7 @@
 
         let html = '';
         if (typeKey === 'birthdays') {
-            modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
+            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🎂 birthdays directory' : '🎂 BIRTHDAYS DIRECTORY';
             const birthdays = schedules.filter(s => s.type === 'Birthday');
             if (birthdays.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
@@ -1248,7 +1164,7 @@
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'skipped') {
-            modalTitle.innerText = '🕰️ SKIPPED TASKS';
+            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped tasks' : '🕰️ SKIPPED TASKS';
             const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
@@ -1258,62 +1174,16 @@
                     html += renderCardHTML(s, bgStyle, false);
                 });
             }
-        } else if (typeKey === 'collections') {
-            modalTitle.innerText = '🏷️ BLENDER COLLECTIONS (LABELS)';
-            
-            // Kumpulkan semua label unik
-            let labelMap = {};
-            schedules.forEach(s => {
-                if (s.labels && Array.isArray(s.labels)) {
-                    s.labels.forEach(l => {
-                        if (!labelMap[l]) labelMap[l] = [];
-                        labelMap[l].push(s);
-                    });
-                }
-            });
-
-            const keys = Object.keys(labelMap);
-            if (keys.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found. Ketik titik (misal: .projectA) pada judul saat membuat entry!</div>';
-            } else {
-                keys.forEach(lName => {
-                    html += `
-                        <div class="section-category-box">
-                            <div class="section-category-title">
-                                <span>📁 .${lName}</span>
-                                <span>[${labelMap[lName].length} items]</span>
-                            </div>
-                    `;
-                    labelMap[lName].forEach(s => {
-                        let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                        if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                        
-                        html += `
-                            <div class="agenda-item" style="background: ${bgStyle}; margin-bottom: 4px;" onclick="openDetailModal('${s.id}')">
-                                <div class="agenda-content">
-                                    <h4>[${s.type}] ${s.title}</h4>
-                                    <p>${s.description ? s.description : 'No note'}</p>
-                                </div>
-                                <div class="agenda-actions">
-                                    <button class="btn-unlink" onclick="unlinkLabel('${s.id}', '${lName}', event)" title="Unlink label from this event">Unlink</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                    html += `</div>`;
-                });
-            }
         }
-        
         modalContent.innerHTML = html;
-        document.getElementById('directoryModal').classList.add('active');
+        showModal('directoryModal');
     }
 
-    function closeDirectoryModal() { document.getElementById('directoryModal').classList.remove('active'); }
+    function closeDirectoryModal() { hideModal('directoryModal'); }
 
     function closeModal(event, modalId) {
         if (event.target.id === modalId) {
-            document.getElementById(modalId).classList.remove('active');
+            hideModal(modalId);
         }
     }
 
@@ -1336,19 +1206,19 @@
             tagDisplay = s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`;
         }
 
-        // Render Blender Collection Badges
-        let labelsBadgeHTML = '';
-        if (s.labels && s.labels.length > 0) {
-            labelsBadgeHTML = `<div class="card-badges-row">` + s.labels.map(l => `<span class="collection-badge-tag">.${l}</span>`).join('') + `</div>`;
+        let titleText = `[${s.type}] ${s.title}`;
+        if (HUMBLE_CONFIG.forceLowercase) {
+            titleText = titleText.toLowerCase();
+            descText = descText.toLowerCase();
+            tagDisplay = tagDisplay.toLowerCase();
         }
 
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[${s.type}] ${s.title}</h4>
+                    <h4>${titleText}</h4>
                     <p>💬 ${descText}</p>
                     <p>🏷️ ${tagDisplay}</p>
-                    ${labelsBadgeHTML}
                 </div>
                 <div class="agenda-actions">
                     ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
@@ -1378,7 +1248,16 @@
             if (filteredItems.length === 0) {
                 container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;
             } else {
-                let html = buildSectionContent(`📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}`, filteredItems, 'filteredOverflow');
+                let filterTitle = `📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}`;
+                if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
+
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
+                filteredItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+                html += `</div>`;
                 container.innerHTML = html;
             }
         } else {
@@ -1386,7 +1265,16 @@
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
 
             if (todayItems.length > 0) {
-                let htmlToday = buildSectionContent(`📌 TODAY (${formatDateDDMM(todayStr)})`, todayItems, 'todayOverflow');
+                let todayTitle = `📌 TODAY (${formatDateDDMM(todayStr)})`;
+                if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
+
+                let htmlToday = `<div class="section-category-box"><div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>`;
+                todayItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    htmlToday += renderCardHTML(s, bgStyle);
+                });
+                htmlToday += `</div>`;
                 container.innerHTML = htmlToday;
             } else {
                 container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
@@ -1395,68 +1283,20 @@
 
         const inboxItems = sortItems(schedules.filter(s => !s.date));
         if (inboxItems.length > 0) {
-            let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title">📥 Inbox / Dumplist (${inboxItems.length})</div>`;
-            
-            // Handle overflow for inbox if items > 4
-            if (inboxItems.length > 4) {
-                let previewItems = inboxItems.slice(0, 4);
-                let fullHTML = '';
-                inboxItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    fullHTML += renderCardHTML(s, bgStyle);
-                });
+            let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
+            if (HUMBLE_CONFIG.forceLowercase) inboxTitle = inboxTitle.toLowerCase();
 
-                let previewHTML = `<div class="section-scroll-box">`;
-                previewItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    previewHTML += renderCardHTML(s, bgStyle);
-                });
-                previewHTML += `</div><button class="expand-overflow-btn" onclick='openOverflowModal("📥 Inbox / Dumplist", \`${fullHTML.replace(/`/g, '\\`')}\`)'>Lihat Semua Inbox (${inboxItems.length}) ↗</button>`;
-                inboxHTML += previewHTML;
-            } else {
-                inboxItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    inboxHTML += renderCardHTML(s, bgStyle);
-                });
-            }
+            let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title">${inboxTitle}</div>`;
+            inboxItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                inboxHTML += renderCardHTML(s, bgStyle);
+            });
             inboxHTML += `</div>`;
             dumplistContainer.innerHTML = inboxHTML;
         } else {
             dumplistContainer.innerHTML = '';
         }
-    }
-
-    function buildSectionContent(title, items, overflowKey) {
-        let html = `<div class="section-category-box"><div class="section-category-title"><span>${title}</span><span>[${items.length}]</span></div>`;
-        
-        if (items.length > 4) {
-            let previewItems = items.slice(0, 4);
-            let fullHTML = '';
-            items.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                fullHTML += renderCardHTML(s, bgStyle);
-            });
-
-            html += `<div class="section-scroll-box">`;
-            previewItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
-            });
-            html += `</div><button class="expand-overflow-btn" onclick='openOverflowModal("${title}", \`${fullHTML.replace(/`/g, '\\`')}\`)'>Lihat Semua (${items.length}) ↗</button>`;
-        } else {
-            items.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
-            });
-        }
-        html += `</div>`;
-        return html;
     }
 
     if (window.innerWidth >= 1100) {
