@@ -12,7 +12,7 @@
 
     <style>
         :root {
-            --forceLowercase: true;
+            --forceLowercase: false;
             --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
@@ -21,6 +21,8 @@
             --text-main: #e6e6e6;
             --muted-gray: #737373;
             --birthday-strawberry: #ff4d6d;
+            --discord-badge-bg: #1e1f22;
+            --discord-badge-border: #35363c;
         }
         
         body, input, select, textarea, button {
@@ -35,21 +37,6 @@
             text-transform: uppercase;
         }
 
-        body.humble-lower {
-            text-transform: lowercase !important;
-        }
-        body.humble-lower input, 
-        body.humble-lower select, 
-        body.humble-lower textarea, 
-        body.humble-lower option,
-        body.humble-lower .agenda-content h4,
-        body.humble-lower .agenda-content p,
-        body.humble-lower .modal-body,
-        body.humble-lower .modal-body strong,
-        body.humble-lower .mobile-create-trigger {
-            text-transform: lowercase !important;
-        }
-        
         .container {
             max-width: 500px;
             margin: auto;
@@ -222,6 +209,28 @@
             text-decoration: line-through;
         }
 
+        /* Discord-style Tag / Pill Badges */
+        .pill-badges-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 3px;
+        }
+        .discord-pill {
+            background: var(--discord-badge-bg);
+            border: 1px solid var(--discord-badge-border);
+            color: #b5bac1;
+            font-size: 8px;
+            padding: 1px 5px;
+            border-radius: 4px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .discord-pill.time-pill { color: #f2f3f5; border-color: #4e5058; }
+        .discord-pill.label-pill { color: #dbdee1; }
+
         .form-section {
             background: #000000;
             padding: 12px;
@@ -327,7 +336,7 @@
 
         .archive-windows-nav {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 6px;
             margin-bottom: 10px;
         }
@@ -335,8 +344,8 @@
             background: #141414;
             color: #ffffff;
             border: 1px solid var(--border-color);
-            padding: 6px 8px;
-            font-size: 10px;
+            padding: 6px 4px;
+            font-size: 9px;
             cursor: pointer;
             text-align: center;
             font-weight: bold;
@@ -346,11 +355,11 @@
         .nav-counter-badge {
             background: #ffffff;
             color: #000000;
-            font-size: 9px;
+            font-size: 8px;
             font-weight: bold;
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 10px;
-            margin-left: 4px;
+            margin-left: 2px;
             display: inline-block;
             vertical-align: middle;
         }
@@ -364,7 +373,6 @@
             border: 1px dashed var(--border-color);
             padding: 8px;
             margin-top: 10px;
-            opacity: 0.5;
         }
         .dumplist-title {
             font-size: 12px;
@@ -372,6 +380,8 @@
             margin-bottom: 6px;
             border-bottom: 1px dotted var(--border-color);
             padding-bottom: 2px;
+            display: flex;
+            justify-content: space-between;
         }
 
         .section-category-box {
@@ -457,6 +467,20 @@
         }
         .btn-delete:hover { background: #ff5555; color: white; }
 
+        .btn-overflow-more {
+            display: block;
+            width: 100%;
+            background: #141414;
+            color: #fff;
+            border: 1px dashed var(--border-color);
+            padding: 5px;
+            font-size: 9px;
+            text-align: center;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+        .btn-overflow-more:hover { background: #262626; border-color: #fff; }
+
         /* Modal Animated Styling */
         .modal-overlay {
             display: none;
@@ -534,6 +558,32 @@
             text-transform: uppercase;
         }
 
+        /* Label edit pills inside modal */
+        .editable-pill-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .editable-pill {
+            background: #2b2d31;
+            border: 1px solid #383a40;
+            color: #f2f3f5;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .editable-pill .remove-pill {
+            cursor: pointer;
+            color: #ed4245;
+            font-weight: bold;
+            font-size: 10px;
+        }
+        .editable-pill .remove-pill:hover { color: #ff6b6b; }
+
         .footer-tag {
             text-align: center;
             font-size: 11px;
@@ -581,8 +631,8 @@
         <h4 id="formTitleHeader">+ Create Entry</h4>
         <input type="hidden" id="editEntryId">
         <div class="form-group">
-            <label>Title</label>
-            <input type="text" id="title" placeholder="e.g., Spring Thief / Plagiarism">
+            <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+            <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
         </div>
         <div class="form-group">
             <label>Description / Note (Optional)</label>
@@ -643,6 +693,9 @@
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
                     🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
                 </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">
+                    🏷️ Labels <span id="labelBadgeCount" class="nav-counter-badge">0</span>
+                </button>
             </div>
 
             <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
@@ -668,8 +721,8 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="m_title" placeholder="e.g., Spring Thief / Plagiarism">
+                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
                 </div>
                 <div class="form-group">
                     <label>Description / Note (Optional)</label>
@@ -737,8 +790,6 @@
 </div>
 
 <script>
-    const HUMBLE_CONFIG = { forceLowercase: false, cleanSpacing: false };
-
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -758,25 +809,45 @@
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
         modal.style.display = 'flex';
-        setTimeout(() => {
-            modal.classList.add('active');
-        }, 10);
+        setTimeout(() => { modal.classList.add('active'); }, 10);
     }
 
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
         modal.classList.remove('active');
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    }
+
+    // Helper: Parse Todoist-style tags & time from raw title
+    function parseTodoistTitle(rawTitle) {
+        if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
+
+        // Match time pattern like 10am, 9pm, 14:00, etc.
+        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
+        // Match label pattern starting with dot like .projectA
+        const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
+
+        let timeTags = [];
+        let labelTags = [];
+
+        let match;
+        while ((match = timeRegex.exec(rawTitle)) !== null) {
+            timeTags.push(match[1].toLowerCase());
+        }
+        while ((match = labelRegex.exec(rawTitle)) !== null) {
+            labelTags.push(match[1]);
+        }
+
+        // Clean title by removing parsed tags for display card header if desired, or keep raw
+        return { cleanTitle: rawTitle, timeTags, labelTags };
     }
 
     function formatDateDDMM(dateStr) {
         if (!dateStr) return '';
         if (dateStr.includes('-')) {
             const parts = dateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}`; // DD/MM
-            if (parts.length === 2) return `${parts[1]}/${parts[0]}`; // MM/DD
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
         }
         return dateStr;
     }
@@ -848,9 +919,16 @@
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const skippedCount = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed).length;
+        
+        let allLabels = new Set();
+        schedules.forEach(s => {
+            const parsed = parseTodoistTitle(s.title);
+            parsed.labelTags.forEach(l => allLabels.add(l));
+        });
 
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
         document.getElementById('skippedBadgeCount').innerText = skippedCount;
+        document.getElementById('labelBadgeCount').innerText = allLabels.size;
     }
 
     function sortItems(items) {
@@ -879,10 +957,7 @@
         const month = currentDate.getMonth();
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        let monthText = monthNames[month];
-        if (HUMBLE_CONFIG.forceLowercase) monthText = monthText.toLowerCase();
-
-        document.getElementById('monthYearDisplay').innerText = `${monthText} ${year}`;
+        document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
@@ -920,9 +995,7 @@
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
-                let badgeTitle = s.title;
-                if (HUMBLE_CONFIG.forceLowercase) badgeTitle = badgeTitle.toLowerCase();
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${badgeTitle}</div>`;
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${s.title}</div>`;
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
@@ -986,17 +1059,10 @@
         showModal('formModal');
     }
 
-    function closeFormModal() {
-        hideModal('formModal');
-    }
+    function closeFormModal() { hideModal('formModal'); }
 
-    async function saveSchedule() {
-        executeSave(false);
-    }
-
-    async function m_saveSchedule() {
-        executeSave(true);
-    }
+    async function saveSchedule() { executeSave(false); }
+    async function m_saveSchedule() { executeSave(true); }
 
     async function executeSave(isMobile) {
         const prefix = isMobile ? 'm_' : '';
@@ -1109,11 +1175,26 @@
         }
     }
 
+    // Remove specific label pill directly from detail modal
+    async function removeLabelFromItem(id, labelToRemove, event) {
+        event.stopPropagation();
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) return;
+
+        // Strip the label from title
+        let newTitle = item.title.replace(labelToRemove, '').replace(/\s+/g, ' ').trim();
+        const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
+        if (!error) {
+            await fetchSchedules();
+            openDetailModal(id); // Refresh detail modal
+        }
+    }
+
     function openDetailModal(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
-        let modalTitle = `[${item.type}] ${item.title}`;
+        const parsed = parseTodoistTitle(item.title);
         let itemDesc = item.description ? item.description : '-';
         let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
         let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
@@ -1127,28 +1208,34 @@
             displayDate = formatDateDDMM(item.date);
         }
 
-        if (HUMBLE_CONFIG.forceLowercase) {
-            modalTitle = modalTitle.toLowerCase();
-            itemDesc = itemDesc.toLowerCase();
-            itemPriority = itemPriority.toLowerCase();
-            itemTimeblock = itemTimeblock.toLowerCase();
-            itemStatus = itemStatus.toLowerCase();
+        // Build Discord-style label pills with remove 'x' button
+        let pillHTML = '';
+        if (parsed.timeTags.length > 0) {
+            parsed.timeTags.forEach(t => { pillHTML += `<span class="editable-pill time-pill">⏱️ ${t}</span>`; });
         }
+        if (parsed.labelTags.length > 0) {
+            parsed.labelTags.forEach(l => {
+                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeLabelFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
+            });
+        }
+        if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
 
-        document.getElementById('modalTitleText').innerText = modalTitle;
+        document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
         document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
             <p><strong>Status</strong> ${itemStatus}</p>
+            <p><strong>Discord-style Badges & Labels</strong></p>
+            <div class="editable-pill-container">${pillHTML}</div>
         `;
         showModal('detailModal');
     }
 
     function closeDetailModal() { hideModal('detailModal'); }
 
-    function openDirectoryModal(typeKey) {
+    function openDirectoryModal(typeKey, targetParam = null) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const nowLocal = new Date();
@@ -1156,7 +1243,7 @@
 
         let html = '';
         if (typeKey === 'birthdays') {
-            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🎂 birthdays directory' : '🎂 BIRTHDAYS DIRECTORY';
+            modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
             const birthdays = schedules.filter(s => s.type === 'Birthday');
             if (birthdays.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
@@ -1164,7 +1251,7 @@
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'skipped') {
-            modalTitle.innerText = HUMBLE_CONFIG.forceLowercase ? '🕰️ skipped tasks' : '🕰️ SKIPPED TASKS';
+            modalTitle.innerText = '🕰️ SKIPPED TASKS';
             const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
@@ -1174,6 +1261,53 @@
                     html += renderCardHTML(s, bgStyle, false);
                 });
             }
+        } else if (typeKey === 'collections') {
+            if (!targetParam) {
+                modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
+                let labelMap = {};
+                schedules.forEach(s => {
+                    const parsed = parseTodoistTitle(s.title);
+                    parsed.labelTags.forEach(l => {
+                        if (!labelMap[l]) labelMap[l] = [];
+                        labelMap[l].push(s);
+                    });
+                });
+                const keys = Object.keys(labelMap);
+                if (keys.length === 0) {
+                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found. Use .label in title.</div>';
+                } else {
+                    keys.forEach(l => {
+                        html += `
+                            <div class="agenda-item" style="background: #141414; margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
+                                <div class="agenda-content">
+                                    <h4>🏷️ ${l}</h4>
+                                    <p>Total items: ${labelMap[l].length}</p>
+                                </div>
+                                <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                            </div>
+                        `;
+                    });
+                }
+            } else {
+                modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
+                const matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
+                matched.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+            }
+        } else if (typeKey === 'upcoming_overflow') {
+            modalTitle.innerText = '🚀 UPCOMING TASKS (FULL LIST)';
+            const tomorrow = new Date(nowLocal);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+            const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
+            upcomingItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                html += renderCardHTML(s, bgStyle);
+            });
         }
         modalContent.innerHTML = html;
         showModal('directoryModal');
@@ -1182,9 +1316,7 @@
     function closeDirectoryModal() { hideModal('directoryModal'); }
 
     function closeModal(event, modalId) {
-        if (event.target.id === modalId) {
-            hideModal(modalId);
-        }
+        if (event.target.id === modalId) { hideModal(modalId); }
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
@@ -1199,24 +1331,19 @@
             displayDate = formatDateDDMM(s.date);
         }
 
-        let tagDisplay = '';
-        if (isBirthdayDirectory) {
-            tagDisplay = displayDate;
-        } else {
-            tagDisplay = s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`;
-        }
+        let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`);
 
-        let titleText = `[${s.type}] ${s.title}`;
-        if (HUMBLE_CONFIG.forceLowercase) {
-            titleText = titleText.toLowerCase();
-            descText = descText.toLowerCase();
-            tagDisplay = tagDisplay.toLowerCase();
-        }
+        // Parse title for Discord pills preview inside card
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        parsed.timeTags.forEach(t => { pillsHTML += `<span class="discord-pill time-pill">⏱️ ${t}</span>`; });
+        parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
 
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>${titleText}</h4>
+                    <h4>[${s.type}] ${s.title}</h4>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                     <p>💬 ${descText}</p>
                     <p>🏷️ ${tagDisplay}</p>
                 </div>
@@ -1235,6 +1362,10 @@
         const nowLocal = new Date();
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
+        const tomorrow = new Date(nowLocal);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
         if (schedules.length === 0) {
             container.innerHTML = 'No entries recorded yet.';
             dumplistContainer.innerHTML = '';
@@ -1248,10 +1379,7 @@
             if (filteredItems.length === 0) {
                 container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;
             } else {
-                let filterTitle = `📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}`;
-                if (HUMBLE_CONFIG.forceLowercase) filterTitle = filterTitle.toLowerCase();
-
-                let html = `<div class="section-category-box"><div class="section-category-title"><span>${filterTitle}</span><span>[${filteredItems.length}]</span></div>`;
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filteredItems.length}]</span></div>`;
                 filteredItems.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
@@ -1260,42 +1388,64 @@
                 html += `</div>`;
                 container.innerHTML = html;
             }
+            dumplistContainer.innerHTML = '';
         } else {
             document.getElementById('clearFilterBtn').style.display = 'none';
+            
+            // 1. TODAY SECTION (Limit 5 displayed, overflow button if > 5)
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
+            let htmlMain = '';
 
             if (todayItems.length > 0) {
-                let todayTitle = `📌 TODAY (${formatDateDDMM(todayStr)})`;
-                if (HUMBLE_CONFIG.forceLowercase) todayTitle = todayTitle.toLowerCase();
-
-                let htmlToday = `<div class="section-category-box"><div class="section-category-title"><span>${todayTitle}</span><span>[${todayItems.length}]</span></div>`;
-                todayItems.forEach(s => {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
+                const displayToday = todayItems.slice(0, 5);
+                displayToday.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    htmlToday += renderCardHTML(s, bgStyle);
+                    htmlMain += renderCardHTML(s, bgStyle);
                 });
-                htmlToday += `</div>`;
-                container.innerHTML = htmlToday;
-            } else {
-                container.innerHTML = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today. Click any date on calendar to check details.</div>`;
+                if (todayItems.length > 5) {
+                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                }
+                htmlMain += `</div>`;
             }
-        }
 
-        const inboxItems = sortItems(schedules.filter(s => !s.date));
-        if (inboxItems.length > 0) {
-            let inboxTitle = `📥 Inbox / Dumplist (${inboxItems.length})`;
-            if (HUMBLE_CONFIG.forceLowercase) inboxTitle = inboxTitle.toLowerCase();
+            // 2. UPCOMING SECTION (H+1) (Limit 5 displayed, overflow button if > 5)
+            const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
+            if (upcomingItems.length > 0) {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
+                const displayUpcoming = upcomingItems.slice(0, 5);
+                displayUpcoming.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    htmlMain += renderCardHTML(s, bgStyle);
+                });
+                if (upcomingItems.length > 5) {
+                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${upcomingItems.length - 5} more upcoming items...</button>`;
+                }
+                htmlMain += `</div>`;
+            }
 
-            let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title">${inboxTitle}</div>`;
-            inboxItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                inboxHTML += renderCardHTML(s, bgStyle);
-            });
-            inboxHTML += `</div>`;
-            dumplistContainer.innerHTML = inboxHTML;
-        } else {
-            dumplistContainer.innerHTML = '';
+            if (!htmlMain) {
+                htmlMain = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today or tomorrow. Click any date on calendar.</div>`;
+            }
+            container.innerHTML = htmlMain;
+
+            // 3. DUMPLIST / INBOX SECTION
+            const inboxItems = sortItems(schedules.filter(s => !s.date));
+            if (inboxItems.length > 0) {
+                let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
+                const displayInbox = inboxItems.slice(0, 5);
+                displayInbox.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    inboxHTML += renderCardHTML(s, bgStyle);
+                });
+                inboxHTML += `</div>`;
+                dumplistContainer.innerHTML = inboxHTML;
+            } else {
+                dumplistContainer.innerHTML = '';
+            }
         }
     }
 
