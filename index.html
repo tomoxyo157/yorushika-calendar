@@ -558,7 +558,7 @@
             text-transform: uppercase;
         }
 
-        /* Label edit pills inside modal */
+        /* Label/Time edit pills inside modal */
         .editable-pill-container {
             display: flex;
             flex-wrap: wrap;
@@ -818,13 +818,11 @@
         setTimeout(() => { modal.style.display = 'none'; }, 300);
     }
 
-    // Helper: Parse Todoist-style tags & time from raw title
+    // Parser Pintar Todoist-style: membersihkan judul & memisahkan tag waktu serta label
     function parseTodoistTitle(rawTitle) {
         if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
 
-        // Match time pattern like 10am, 9pm, 14:00, etc.
         const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
-        // Match label pattern starting with dot like .projectA
         const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
 
         let timeTags = [];
@@ -838,8 +836,10 @@
             labelTags.push(match[1]);
         }
 
-        // Clean title by removing parsed tags for display card header if desired, or keep raw
-        return { cleanTitle: rawTitle, timeTags, labelTags };
+        // Hapus waktu dan label dari judul asli card
+        let cleanTitle = rawTitle.replace(timeRegex, '').replace(labelRegex, '').replace(/\s+/g, ' ').trim();
+
+        return { cleanTitle, timeTags, labelTags };
     }
 
     function formatDateDDMM(dateStr) {
@@ -995,7 +995,9 @@
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${s.title}</div>`;
+                
+                const parsed = parseTodoistTitle(s.title);
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${parsed.cleanTitle}</div>`;
             });
 
             const isToday = (dateStr === todayStr) ? 'today' : '';
@@ -1175,18 +1177,17 @@
         }
     }
 
-    // Remove specific label pill directly from detail modal
-    async function removeLabelFromItem(id, labelToRemove, event) {
+    // Fungsi universal menghapus tag waktu atau label langsung dari judul card
+    async function removeTagFromItem(id, tagToRemove, event) {
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
-        // Strip the label from title
-        let newTitle = item.title.replace(labelToRemove, '').replace(/\s+/g, ' ').trim();
+        let newTitle = item.title.replace(new RegExp(`\\b${tagToRemove}\\b`, 'gi'), '').replace(/\s+/g, ' ').trim();
         const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
         if (!error) {
             await fetchSchedules();
-            openDetailModal(id); // Refresh detail modal
+            openDetailModal(id);
         }
     }
 
@@ -1208,19 +1209,21 @@
             displayDate = formatDateDDMM(item.date);
         }
 
-        // Build Discord-style label pills with remove 'x' button
+        // Pill badges dengan tombol silang (×) di modal detail/edit
         let pillHTML = '';
         if (parsed.timeTags.length > 0) {
-            parsed.timeTags.forEach(t => { pillHTML += `<span class="editable-pill time-pill">⏱️ ${t}</span>`; });
+            parsed.timeTags.forEach(t => { 
+                pillHTML += `<span class="editable-pill time-pill">⏱️ ${t} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${t}', event)" title="Remove time">×</span></span>`; 
+            });
         }
         if (parsed.labelTags.length > 0) {
             parsed.labelTags.forEach(l => {
-                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeLabelFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
+                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
             });
         }
         if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
 
-        document.getElementById('modalTitleText').innerText = `[${item.type}] ${item.title}`;
+        document.getElementById('modalTitleText').innerText = `[${item.type}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
@@ -1241,6 +1244,12 @@
         const nowLocal = new Date();
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
+        let headerActionsHTML = '';
+        if (typeKey === 'collections' && targetParam !== null) {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
+        }
+        headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
+
         let html = '';
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
@@ -1258,9 +1267,36 @@
             } else {
                 skipped.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle, false);
+                    html += renderCardHTML(s, bgStyle);
                 });
             }
+        } else if (typeKey === 'today_overflow') {
+            modalTitle.innerText = '📌 TODAY (FULL LIST)';
+            const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
+            todayItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                html += renderCardHTML(s, bgStyle);
+            });
+        } else if (typeKey === 'upcoming_overflow') {
+            modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
+            const tomorrow = new Date(nowLocal);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+            const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
+            upcomingItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                html += renderCardHTML(s, bgStyle);
+            });
+        } else if (typeKey === 'inbox_overflow') {
+            modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
+            const inboxItems = sortItems(schedules.filter(s => !s.date));
+            inboxItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                html += renderCardHTML(s, bgStyle);
+            });
         } else if (typeKey === 'collections') {
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
@@ -1297,18 +1333,11 @@
                     html += renderCardHTML(s, bgStyle);
                 });
             }
-        } else if (typeKey === 'upcoming_overflow') {
-            modalTitle.innerText = '🚀 UPCOMING TASKS (FULL LIST)';
-            const tomorrow = new Date(nowLocal);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
-            const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
-            upcomingItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
-            });
         }
+
+        const modalHeaderEl = document.querySelector('#directoryModal .modal-header');
+        modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
+        
         modalContent.innerHTML = html;
         showModal('directoryModal');
     }
@@ -1319,9 +1348,9 @@
         if (event.target.id === modalId) { hideModal(modalId); }
     }
 
+    // Render Card Utama: Urutan line konsisten & deskripsi kondisional
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
         const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
-        let descText = s.description ? s.description : 'No additional note';
         
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
@@ -1333,19 +1362,20 @@
 
         let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`);
 
-        // Parse title for Discord pills preview inside card
         const parsed = parseTodoistTitle(s.title);
         let pillsHTML = '';
         parsed.timeTags.forEach(t => { pillsHTML += `<span class="discord-pill time-pill">⏱️ ${t}</span>`; });
         parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
 
+        let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
+
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[${s.type}] ${s.title}</h4>
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
-                    <p>💬 ${descText}</p>
+                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                    ${descHTML}
                     <p>🏷️ ${tagDisplay}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
                     ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
@@ -1392,10 +1422,10 @@
         } else {
             document.getElementById('clearFilterBtn').style.display = 'none';
             
-            // 1. TODAY SECTION (Limit 5 displayed, overflow button if > 5)
-            const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
             let htmlMain = '';
 
+            // 1. TODAY SECTION (Limit 5, Overflow mandiri jika > 5)
+            const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
             if (todayItems.length > 0) {
                 htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
                 const displayToday = todayItems.slice(0, 5);
@@ -1405,12 +1435,12 @@
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (todayItems.length > 5) {
-                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
                 }
                 htmlMain += `</div>`;
             }
 
-            // 2. UPCOMING SECTION (H+1) (Limit 5 displayed, overflow button if > 5)
+            // 2. UPCOMING SECTION (Limit 5, Overflow mandiri jika > 5)
             const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
             if (upcomingItems.length > 0) {
                 htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
@@ -1431,7 +1461,7 @@
             }
             container.innerHTML = htmlMain;
 
-            // 3. DUMPLIST / INBOX SECTION
+            // 3. DUMPLIST / INBOX SECTION (Limit 5, Overflow mandiri jika > 5)
             const inboxItems = sortItems(schedules.filter(s => !s.date));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
@@ -1441,6 +1471,9 @@
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     inboxHTML += renderCardHTML(s, bgStyle);
                 });
+                if (inboxItems.length > 5) {
+                    inboxHTML += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 5} more inbox items...</button>`;
+                }
                 inboxHTML += `</div>`;
                 dumplistContainer.innerHTML = inboxHTML;
             } else {
