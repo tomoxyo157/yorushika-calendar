@@ -773,7 +773,7 @@
 
 <div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
-        <div class="modal-header">
+        <div class="modal-header" id="directoryModalHeader">
             <span id="directoryModalTitle">Directory</span>
             <button class="modal-close" onclick="closeDirectoryModal()">×</button>
         </div>
@@ -826,7 +826,8 @@
             timeTags.push(match[1].toLowerCase());
         }
         while ((match = labelRegex.exec(rawTitle)) !== null) {
-            labelTags.push(match[1]);
+            // Menghilangkan karakter titik (.) diawal saat disimpan ke labelTags
+            labelTags.push(match[1].substring(1));
         }
 
         let cleanTitle = rawTitle.replace(timeRegex, '').replace(labelRegex, '').replace(/\s+/g, ' ').trim();
@@ -926,6 +927,10 @@
     function sortItems(items) {
         const sortBy = document.getElementById('sortBySelect').value;
         return [...items].sort((a, b) => {
+            // Task yang sudah dicentang (completed) dipaksa turun ke posisi paling bawah
+            if (a.completed && !b.completed) return 1;
+            if (!a.completed && b.completed) return -1;
+
             if (sortBy === 'priority') {
                 let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
                 if (pDiff !== 0) return pDiff;
@@ -1061,7 +1066,7 @@
     async function executeSave(isMobile) {
         const prefix = isMobile ? 'm_' : '';
         const id = document.getElementById(prefix + 'editEntryId').value;
-        const title = document.getElementById(prefix + 'title').value;
+        const rawInputTitle = document.getElementById(prefix + 'title').value;
         const description = document.getElementById(prefix + 'description').value;
         const type = document.getElementById(prefix + 'type').value;
         let dateInputVal = document.getElementById(prefix + 'date').value;
@@ -1086,15 +1091,36 @@
             timeblock = 'morning';
         }
 
-        if (!title) {
+        if (!rawInputTitle) {
             alert('Title is required!');
             return;
         }
 
+        let finalTitleToSave = rawInputTitle;
+
         if (id) {
+            // Mode Edit: Pertahankan tag lama, gabungkan tag baru, ganti waktu/teks tanpa menghapus label eksisting
+            const existingItem = schedules.find(s => String(s.id) === String(id));
+            if (existingItem) {
+                const oldParsed = parseTodoistTitle(existingItem.title);
+                const newParsed = parseTodoistTitle(rawInputTitle);
+
+                // Gabungkan label lama dan label baru secara unik
+                let combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
+                
+                // Ambil waktu baru jika ada di input, jika tidak ada, pertahankan waktu lama
+                let combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
+
+                let builtTitleParts = [newParsed.cleanTitle];
+                combinedTimes.forEach(t => builtTitleParts.push(t));
+                combinedLabels.forEach(l => builtTitleParts.push('.' + l));
+
+                finalTitleToSave = builtTitleParts.join(' ');
+            }
+
             const { error } = await supabaseClient
                 .from('schedules')
-                .update({ title, description, type, date, priority, timeblock, recurring })
+                .update({ title: finalTitleToSave, description, type, date, priority, timeblock, recurring })
                 .eq('id', id);
 
             if (!error) {
@@ -1104,7 +1130,7 @@
                 fetchSchedules();
             }
         } else {
-            const newEntry = { title, description, type, date, priority, timeblock, recurring, completed: false };
+            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
             if (!error) {
@@ -1119,14 +1145,12 @@
     function editSchedule(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
-            // Tutup modal direktori / detail agar tidak tumpang tindih
             hideModal('directoryModal');
             hideModal('detailModal');
 
             const isMobile = window.innerWidth < 1100;
             const prefix = isMobile ? 'm_' : '';
 
-            // Bersihkan tag lama dari input form saat mode edit
             const parsed = parseTodoistTitle(item.title);
 
             document.getElementById(prefix + 'editEntryId').value = item.id;
@@ -1181,7 +1205,12 @@
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
-        let newTitle = item.title.replace(new RegExp(`\\b${tagToRemove}\\b`, 'gi'), '').replace(/\s+/g, ' ').trim();
+        // Mendukung penghapusan tag baik format dengan titik (.tag) maupun tanpa titik (tag)
+        let newTitle = item.title
+            .replace(new RegExp(`\\b\\.?${tagToRemove}\\b`, 'gi'), '')
+            .replace(/\s+/g, ' ')
+            .trim();
+
         const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
         if (!error) {
             await fetchSchedules();
@@ -1190,7 +1219,6 @@
     }
 
     function openDetailModal(id) {
-        // Tutup modal direktori agar tidak tumpang tindih
         hideModal('directoryModal');
 
         const item = schedules.find(s => String(s.id) === String(id));
@@ -1241,6 +1269,7 @@
     function openDirectoryModal(typeKey, targetParam = null) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
+        const modalHeaderEl = document.getElementById('directoryModalHeader');
         const nowLocal = new Date();
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
@@ -1335,9 +1364,7 @@
             }
         }
 
-        const modalHeaderEl = document.querySelector('#directoryModal .modal-header');
         modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
-        
         modalContent.innerHTML = html;
         showModal('directoryModal');
     }
