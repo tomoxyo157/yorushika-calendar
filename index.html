@@ -699,7 +699,7 @@
                     🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
-                    🔁 Habit / Rec <span id="habitBadgeCount" class="nav-counter-badge">0</span>
+                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
                     🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
@@ -833,7 +833,11 @@
 <script>
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: false },
+        db: { schema: 'public' },
+        global: { headers: { 'x-client-info': 'yorushika-calendar' } }
+    });
 
     let schedules = [];
     let selectedFilterDate = null;
@@ -946,22 +950,37 @@
     }
 
     async function fetchSchedules() {
-        const { data, error } = await supabaseClient
-            .from('schedules')
-            .select('*')
-            .order('date', { ascending: true, nullsFirst: false });
-
         const statusEl = document.getElementById('dbStatus');
-        if (error) {
-            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline Mode)';
-            statusEl.style.color = '#ff5555';
-            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
-        } else {
+        statusEl.innerText = 'Menghubungkan ke Supabase Cloud...';
+        statusEl.style.color = '#e6e6e6';
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+            const { data, error } = await supabaseClient
+                .from('schedules')
+                .select('*')
+                .order('date', { ascending: true, nullsFirst: false })
+                .abortSignal(controller.signal);
+
+            clearTimeout(timeoutId);
+
+            if (error) {
+                throw error;
+            }
+
             statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
             statusEl.style.color = '#55ff55';
             schedules = data || [];
             localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        } catch (err) {
+            console.warn('Supabase fetch error/timeout:', err);
+            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline / Cached Mode)';
+            statusEl.style.color = '#ff5555';
+            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
         }
+
         updateArchiveCounters();
         renderCalendar();
     }
@@ -971,8 +990,8 @@
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
-        const habitCount = schedules.filter(s => s.type === 'Habit').length;
-        const skippedCount = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed).length;
+        const habitCount = schedules.filter(s => s.type === 'Habit' || s.isHabitInstance).length;
+        const skippedCount = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
         schedules.forEach(s => {
@@ -1050,7 +1069,7 @@
             daySchedules.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
@@ -1280,6 +1299,7 @@
                 date: targetDate, 
                 timeblock: targetTimeblock, 
                 type: 'Task', 
+                isHabitInstance: true,
                 completed: false 
             })
             .eq('id', id);
@@ -1360,7 +1380,10 @@
         }
         if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
 
-        document.getElementById('modalTitleText').innerText = `[${item.type}] ${parsed.cleanTitle}`;
+        let detailTypeLabel = item.type;
+        if (item.isHabitInstance) detailTypeLabel = 'Habit';
+
+        document.getElementById('modalTitleText').innerText = `[${detailTypeLabel}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Habit / Master Inbox'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
@@ -1398,10 +1421,10 @@
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'habits') {
-            modalTitle.innerText = '🔁 HABIT / RECURRING LIST';
+            modalTitle.innerText = '🔁 HABITS DIRECTORY';
             const habits = schedules.filter(s => s.type === 'Habit');
             if (habits.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits/recurring items recorded.</div>';
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
                 const priorityGroups = [
                     { key: 'professional', label: 'Professional' },
@@ -1423,7 +1446,7 @@
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
-            const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
+            const skipped = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
             } else {
@@ -1438,6 +1461,7 @@
             todayItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'upcoming_overflow') {
@@ -1449,6 +1473,7 @@
             upcomingItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'inbox_overflow') {
@@ -1492,7 +1517,7 @@
                 matched.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
@@ -1530,8 +1555,8 @@
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
 
         let typePrefix = `[${s.type}]`;
-        if (s.type === 'Habit') {
-            typePrefix = '[🔁]';
+        if (s.type === 'Habit' || s.isHabitInstance) {
+            typePrefix = '[HABIT]';
         }
 
         return `
@@ -1560,7 +1585,7 @@
         return `
             <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[🔁] ${parsed.cleanTitle}</h4>
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
                     ${descHTML}
                     <p>🏷️ Priority: ${s.priority}</p>
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
@@ -1601,7 +1626,7 @@
                 filteredItems.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
                 });
                 html += `</div>`;
@@ -1620,7 +1645,7 @@
                 displayToday.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (todayItems.length > 5) {
@@ -1636,7 +1661,7 @@
                 displayUpcoming.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (upcomingItems.length > 5) {
