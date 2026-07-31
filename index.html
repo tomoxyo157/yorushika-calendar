@@ -699,7 +699,7 @@
                     🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
-                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
+                    🔁 Habit / Rec <span id="habitBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
                     🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
@@ -908,7 +908,7 @@
         } else if (typeVal === 'Habit') {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'none';
-            dateGrp.style.display = 'none'; // Habit master tidak punya tanggal
+            dateGrp.style.display = 'none';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
@@ -1135,7 +1135,7 @@
         let date = null;
 
         if (type === 'Habit') {
-            date = null; // Habit master tidak memiliki tanggal tetap
+            date = null;
         } else if (dateInputVal) {
             if (type === 'Birthday') {
                 let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
@@ -1180,7 +1180,7 @@
 
             const payload = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring };
             if (type === 'Habit') {
-                payload.date = null; // pastikan tetap bersih
+                payload.date = null;
             }
 
             const { error } = await supabaseClient
@@ -1252,7 +1252,6 @@
         hideModal('directoryModal');
         document.getElementById('assignEntryId').value = id;
         
-        // Default ke tanggal hari ini
         const nowLocal = new Date();
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
         document.getElementById('assignDate').value = todayStr;
@@ -1275,8 +1274,6 @@
             return;
         }
 
-        // Saat di-assign, type berubah menjadi 'Task' (atau tetap Habit tapi ber-date & timeblock), 
-        // agar ia turun ke kalender harian & schedule archive layaknya Task biasa.
         const { error } = await supabaseClient
             .from('schedules')
             .update({ 
@@ -1406,7 +1403,6 @@
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits/recurring items recorded.</div>';
             } else {
-                // Kelompokkan berdasarkan prioritas: professional, daily, personal
                 const priorityGroups = [
                     { key: 'professional', label: 'Professional' },
                     { key: 'daily', label: 'Daily' },
@@ -1533,10 +1529,15 @@
 
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
 
+        let typePrefix = `[${s.type}]`;
+        if (s.type === 'Habit') {
+            typePrefix = '[🔁]';
+        }
+
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                    <h4>${typePrefix} ${parsed.cleanTitle}</h4>
                     ${descHTML}
                     <p>🏷️ ${tagDisplay}</p>
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
@@ -1559,7 +1560,7 @@
         return `
             <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                    <h4>[🔁] ${parsed.cleanTitle}</h4>
                     ${descHTML}
                     <p>🏷️ Priority: ${s.priority}</p>
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
