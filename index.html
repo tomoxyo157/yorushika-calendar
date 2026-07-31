@@ -21,6 +21,7 @@
             --text-main: #e6e6e6;
             --muted-gray: #737373;
             --birthday-strawberry: #ff4d6d;
+            --habit-badge-bg: #3a506b;
             --discord-badge-bg: #1e1f22;
             --discord-badge-border: #35363c;
         }
@@ -335,16 +336,16 @@
 
         .archive-windows-nav {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
             margin-bottom: 10px;
         }
         .btn-window-trigger {
             background: #141414;
             color: #ffffff;
             border: 1px solid var(--border-color);
-            padding: 6px 4px;
-            font-size: 9px;
+            padding: 6px 2px;
+            font-size: 8px;
             cursor: pointer;
             text-align: center;
             font-weight: bold;
@@ -439,15 +440,26 @@
         .agenda-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             flex-shrink: 0;
         }
         .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
+        .btn-assign {
+            background: rgba(0, 0, 0, 0.6);
+            color: #4da6ff;
+            border: 1px solid #4da6ff;
+            padding: 3px 5px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .btn-assign:hover { background: #4da6ff; color: black; }
         .btn-edit {
             background: rgba(0, 0, 0, 0.6);
             color: #55ff55;
             border: 1px solid #55ff55;
-            padding: 3px 6px;
+            padding: 3px 5px;
             border-radius: 2px;
             cursor: pointer;
             font-size: 8px;
@@ -458,7 +470,7 @@
             background: rgba(0, 0, 0, 0.6);
             color: #ff5555;
             border: 1px solid #ff5555;
-            padding: 3px 5px;
+            padding: 3px 4px;
             border-radius: 2px;
             cursor: pointer;
             font-size: 8px;
@@ -639,9 +651,10 @@
                 <option value="Event">Event</option>
                 <option value="Task">Task (With checkmark)</option>
                 <option value="Birthday">Birthday (Recurring Yearly)</option>
+                <option value="Habit">Habit / Recurring</option>
             </select>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="dateGroup">
             <label id="dateLabel">Date (Leave blank for Inbox)</label>
             <input type="date" id="date">
         </div>
@@ -684,6 +697,9 @@
             <div class="archive-windows-nav">
                 <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
                     🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
+                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
                     🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
@@ -728,9 +744,10 @@
                         <option value="Event">Event</option>
                         <option value="Task">Task (With checkmark)</option>
                         <option value="Birthday">Birthday (Recurring Yearly)</option>
+                        <option value="Habit">Habit / Recurring</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="m_dateGroup">
                     <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
                     <input type="date" id="m_date">
                 </div>
@@ -753,6 +770,36 @@
                 <div class="form-buttons">
                     <button class="btn-reset" onclick="m_resetForm()">Reset</button>
                     <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span>🔁 Assign Habit to Schedule</span>
+            <button class="modal-close" onclick="closeAssignModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="assignEntryId">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <input type="date" id="assignDate">
+                </div>
+                <div class="form-group">
+                    <label>Timeblock Tagging</label>
+                    <select id="assignTimeblock">
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="closeAssignModal()">Cancel</button>
+                    <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button>
                 </div>
             </div>
         </div>
@@ -796,7 +843,7 @@
     
     const timeblockOrder = { morning: 1, work: 2, night: 3 };
     const priorityOrder = { professional: 1, daily: 2, personal: 3 };
-    const typeOrder = { Task: 1, Event: 2, Birthday: 3 };
+    const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
 
     let currentDate = new Date();
 
@@ -826,7 +873,6 @@
             timeTags.push(match[1].toLowerCase());
         }
         while ((match = labelRegex.exec(rawTitle)) !== null) {
-            // Menghilangkan karakter titik (.) diawal saat disimpan ke labelTags
             labelTags.push(match[1].substring(1));
         }
 
@@ -849,17 +895,24 @@
         const typeVal = document.getElementById('type').value;
         const priorityGrp = document.getElementById('priorityGroup');
         const timeblockGrp = document.getElementById('timeblockGroup');
+        const dateGrp = document.getElementById('dateGroup');
         const dateLbl = document.getElementById('dateLabel');
         const dateInput = document.getElementById('date');
 
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'block';
             dateLbl.innerText = 'Birthday Date (DD/MM)';
             dateInput.type = 'date';
+        } else if (typeVal === 'Habit') {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'none'; // Habit master tidak punya tanggal
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
+            dateGrp.style.display = 'block';
             dateLbl.innerText = 'Date (Leave blank for Inbox)';
             dateInput.type = 'date';
         }
@@ -869,17 +922,24 @@
         const typeVal = document.getElementById('m_type').value;
         const priorityGrp = document.getElementById('m_priorityGroup');
         const timeblockGrp = document.getElementById('m_timeblockGroup');
+        const dateGrp = document.getElementById('m_dateGroup');
         const dateLbl = document.getElementById('m_dateLabel');
         const dateInput = document.getElementById('m_date');
 
         if (typeVal === 'Birthday') {
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'block';
             dateLbl.innerText = 'Birthday Date (DD/MM)';
             dateInput.type = 'date';
+        } else if (typeVal === 'Habit') {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'none';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
+            dateGrp.style.display = 'block';
             dateLbl.innerText = 'Date (Leave blank for Inbox)';
             dateInput.type = 'date';
         }
@@ -911,6 +971,7 @@
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
+        const habitCount = schedules.filter(s => s.type === 'Habit').length;
         const skippedCount = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
@@ -920,6 +981,7 @@
         });
 
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
+        document.getElementById('habitBadgeCount').innerText = habitCount;
         document.getElementById('skippedBadgeCount').innerText = skippedCount;
         document.getElementById('labelBadgeCount').innerText = allLabels.size;
     }
@@ -927,7 +989,6 @@
     function sortItems(items) {
         const sortBy = document.getElementById('sortBySelect').value;
         return [...items].sort((a, b) => {
-            // Task yang sudah dicentang (completed) dipaksa turun ke posisi paling bawah
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
 
@@ -989,6 +1050,7 @@
             daySchedules.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
@@ -1072,7 +1134,9 @@
         let dateInputVal = document.getElementById(prefix + 'date').value;
         let date = null;
 
-        if (dateInputVal) {
+        if (type === 'Habit') {
+            date = null; // Habit master tidak memiliki tanggal tetap
+        } else if (dateInputVal) {
             if (type === 'Birthday') {
                 let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
                 date = `2000-${cleanVal}`;
@@ -1082,7 +1146,7 @@
         }
 
         let priority = document.getElementById(prefix + 'priority').value;
-        let timeblock = document.getElementById(prefix + 'timeblock').value;
+        let timeblock = type === 'Habit' ? 'morning' : document.getElementById(prefix + 'timeblock').value;
         let recurring = 'none';
 
         if (type === 'Birthday') {
@@ -1099,16 +1163,12 @@
         let finalTitleToSave = rawInputTitle;
 
         if (id) {
-            // Mode Edit: Pertahankan tag lama, gabungkan tag baru, ganti waktu/teks tanpa menghapus label eksisting
             const existingItem = schedules.find(s => String(s.id) === String(id));
             if (existingItem) {
                 const oldParsed = parseTodoistTitle(existingItem.title);
                 const newParsed = parseTodoistTitle(rawInputTitle);
 
-                // Gabungkan label lama dan label baru secara unik
                 let combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
-                
-                // Ambil waktu baru jika ada di input, jika tidak ada, pertahankan waktu lama
                 let combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
 
                 let builtTitleParts = [newParsed.cleanTitle];
@@ -1118,9 +1178,14 @@
                 finalTitleToSave = builtTitleParts.join(' ');
             }
 
+            const payload = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring };
+            if (type === 'Habit') {
+                payload.date = null; // pastikan tetap bersih
+            }
+
             const { error } = await supabaseClient
                 .from('schedules')
-                .update({ title: finalTitleToSave, description, type, date, priority, timeblock, recurring })
+                .update(payload)
                 .eq('id', id);
 
             if (!error) {
@@ -1182,6 +1247,54 @@
         }
     }
 
+    function openAssignModal(id, event) {
+        event.stopPropagation();
+        hideModal('directoryModal');
+        document.getElementById('assignEntryId').value = id;
+        
+        // Default ke tanggal hari ini
+        const nowLocal = new Date();
+        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        document.getElementById('assignDate').value = todayStr;
+        document.getElementById('assignTimeblock').value = 'morning';
+
+        showModal('assignModal');
+    }
+
+    function closeAssignModal() {
+        hideModal('assignModal');
+    }
+
+    async function executeAssignHabit() {
+        const id = document.getElementById('assignEntryId').value;
+        const targetDate = document.getElementById('assignDate').value;
+        const targetTimeblock = document.getElementById('assignTimeblock').value;
+
+        if (!targetDate) {
+            alert('Please select a target date!');
+            return;
+        }
+
+        // Saat di-assign, type berubah menjadi 'Task' (atau tetap Habit tapi ber-date & timeblock), 
+        // agar ia turun ke kalender harian & schedule archive layaknya Task biasa.
+        const { error } = await supabaseClient
+            .from('schedules')
+            .update({ 
+                date: targetDate, 
+                timeblock: targetTimeblock, 
+                type: 'Task', 
+                completed: false 
+            })
+            .eq('id', id);
+
+        if (!error) {
+            closeAssignModal();
+            fetchSchedules();
+        } else {
+            alert('Failed to assign habit.');
+        }
+    }
+
     async function toggleComplete(id, event) {
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
@@ -1205,7 +1318,6 @@
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
 
-        // Mendukung penghapusan tag baik format dengan titik (.tag) maupun tanpa titik (tag)
         let newTitle = item.title
             .replace(new RegExp(`\\b\\.?${tagToRemove}\\b`, 'gi'), '')
             .replace(/\s+/g, ' ')
@@ -1227,7 +1339,7 @@
         const parsed = parseTodoistTitle(item.title);
         let itemDesc = item.description ? item.description : '-';
         let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
-        let itemTimeblock = item.type === 'Birthday' ? 'All Day' : item.timeblock;
+        let itemTimeblock = (item.type === 'Birthday' || item.type === 'Habit') ? 'N/A' : item.timeblock;
         let itemStatus = item.completed ? 'Completed' : 'Pending';
 
         let displayDate = item.date;
@@ -1253,7 +1365,7 @@
 
         document.getElementById('modalTitleText').innerText = `[${item.type}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
-            <p><strong>Date</strong> ${displayDate ? displayDate : 'Inbox (No Date)'}</p>
+            <p><strong>Date</strong> ${displayDate ? displayDate : 'Habit / Master Inbox'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
@@ -1288,6 +1400,31 @@
             } else {
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
+        } else if (typeKey === 'habits') {
+            modalTitle.innerText = '🔁 HABIT / RECURRING LIST';
+            const habits = schedules.filter(s => s.type === 'Habit');
+            if (habits.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits/recurring items recorded.</div>';
+            } else {
+                // Kelompokkan berdasarkan prioritas: professional, daily, personal
+                const priorityGroups = [
+                    { key: 'professional', label: 'Professional' },
+                    { key: 'daily', label: 'Daily' },
+                    { key: 'personal', label: 'Personal' }
+                ];
+
+                priorityGroups.forEach(group => {
+                    const groupItems = habits.filter(h => h.priority === group.key);
+                    if (groupItems.length > 0) {
+                        html += `<div class="section-category-box"><div class="section-category-title"><span>📌 ${group.label} Habits</span><span>[${groupItems.length}]</span></div>`;
+                        groupItems.forEach(s => {
+                            let solidBg = priorityColors[s.priority] || '#333';
+                            html += renderHabitCardHTML(s, solidBg);
+                        });
+                        html += `</div>`;
+                    }
+                });
+            }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
             const skipped = schedules.filter(s => s.type === 'Task' && s.date && s.date < todayStr && !s.completed);
@@ -1320,7 +1457,7 @@
             });
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
-            const inboxItems = sortItems(schedules.filter(s => !s.date));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             inboxItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
@@ -1359,6 +1496,7 @@
                 matched.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
@@ -1412,6 +1550,29 @@
         `;
     }
 
+    function renderHabitCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+        let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
+
+        return `
+            <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                    ${descHTML}
+                    <p>🏷️ Priority: ${s.priority}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                </div>
+                <div class="agenda-actions">
+                    <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">Assign</button>
+                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                </div>
+            </div>
+        `;
+    }
+
     function renderAgendaList() {
         const container = document.getElementById('agendaContainer');
         const dumplistContainer = document.getElementById('dumplistContainer');
@@ -1439,6 +1600,7 @@
                 filteredItems.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
                 });
                 html += `</div>`;
@@ -1457,6 +1619,7 @@
                 displayToday.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (todayItems.length > 5) {
@@ -1472,6 +1635,7 @@
                 displayUpcoming.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (upcomingItems.length > 5) {
@@ -1485,7 +1649,7 @@
             }
             container.innerHTML = htmlMain;
 
-            const inboxItems = sortItems(schedules.filter(s => !s.date));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
