@@ -990,7 +990,7 @@
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
-        const habitCount = schedules.filter(s => s.type === 'Habit' || s.isHabitInstance).length;
+        const habitCount = schedules.filter(s => s.type === 'Habit').length;
         const skippedCount = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
@@ -1200,6 +1200,7 @@
             const payload = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring };
             if (type === 'Habit') {
                 payload.date = null;
+                payload.isHabitInstance = false;
             }
 
             const { error } = await supabaseClient
@@ -1214,7 +1215,7 @@
                 fetchSchedules();
             }
         } else {
-            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false };
+            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
             if (!error) {
@@ -1293,22 +1294,33 @@
             return;
         }
 
-        const { error } = await supabaseClient
-            .from('schedules')
-            .update({ 
-                date: targetDate, 
-                timeblock: targetTimeblock, 
-                type: 'Task', 
-                isHabitInstance: true,
-                completed: false 
-            })
-            .eq('id', id);
+        const masterHabit = schedules.find(s => String(s.id) === String(id));
+        if (!masterHabit) {
+            alert('Habit tidak ditemukan.');
+            return;
+        }
+
+        // Membuat salinan (duplikat) task baru ke schedule, master habit di direktori tetap aman tidak tersentuh
+        const newHabitInstance = {
+            title: masterHabit.title,
+            description: masterHabit.description || '',
+            type: 'Task',
+            date: targetDate,
+            priority: masterHabit.priority,
+            timeblock: targetTimeblock,
+            recurring: 'none',
+            isHabitInstance: true,
+            completed: false
+        };
+
+        const { error } = await supabaseClient.from('schedules').insert([newHabitInstance]);
 
         if (!error) {
             closeAssignModal();
             fetchSchedules();
         } else {
-            alert('Failed to assign habit.');
+            console.error('Supabase Error:', error);
+            alert('Failed to assign habit: ' + (error.message || 'Unknown error'));
         }
     }
 
