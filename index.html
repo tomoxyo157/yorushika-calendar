@@ -1069,7 +1069,8 @@
             daySchedules.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
@@ -1300,7 +1301,6 @@
             return;
         }
 
-        // Membuat salinan (duplikat) task baru ke schedule, master habit di direktori tetap aman tidak tersentuh
         const newHabitInstance = {
             title: masterHabit.title,
             description: masterHabit.description || '',
@@ -1473,7 +1473,8 @@
             todayItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'upcoming_overflow') {
@@ -1485,7 +1486,8 @@
             upcomingItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'inbox_overflow') {
@@ -1529,7 +1531,8 @@
                 matched.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
@@ -1567,12 +1570,17 @@
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
 
         let typePrefix = `[${s.type}]`;
-        if (s.type === 'Habit' || s.isHabitInstance) {
+        let finalCardBg = bgStyle;
+
+        if (s.isHabitInstance) {
+            typePrefix = '[HABIT]';
+            finalCardBg = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+        } else if (s.type === 'Habit') {
             typePrefix = '[HABIT]';
         }
 
         return `
-            <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
+            <div class="${itemClass}" style="background: ${finalCardBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
                     <h4>${typePrefix} ${parsed.cleanTitle}</h4>
                     ${descHTML}
@@ -1638,7 +1646,7 @@
                 filteredItems.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
                 });
                 html += `</div>`;
@@ -1657,7 +1665,7 @@
                 displayToday.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (todayItems.length > 5) {
@@ -1673,7 +1681,7 @@
                 displayUpcoming.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit' || s.isHabitInstance) bgStyle = `var(--habit-badge-bg)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (upcomingItems.length > 5) {
