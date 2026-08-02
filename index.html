@@ -859,6 +859,8 @@
 
     let schedules = [];
     let selectedFilterDate = null;
+    let currentOpenDirectoryKey = null;
+    let currentOpenDirectoryTarget = null;
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
@@ -1015,6 +1017,12 @@
 
         updateArchiveCounters();
         renderCalendar();
+
+        // Jika ada direktori modal yang sedang terbuka, refresh isinya secara live
+        const directoryModalEl = document.getElementById('directoryModal');
+        if (directoryModalEl && directoryModalEl.classList.contains('active')) {
+            openDirectoryModal(currentOpenDirectoryKey, currentOpenDirectoryTarget, true);
+        }
     }
 
     function updateArchiveCounters() {
@@ -1481,7 +1489,12 @@
 
     function closeDetailModal() { hideModal('detailModal'); }
 
-    function openDirectoryModal(typeKey, targetParam = null) {
+    function openDirectoryModal(typeKey, targetParam = null, isLiveRefresh = false) {
+        if (!isLiveRefresh) {
+            currentOpenDirectoryKey = typeKey;
+            currentOpenDirectoryTarget = targetParam;
+        }
+
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const modalHeaderEl = document.getElementById('directoryModalHeader');
@@ -1540,7 +1553,7 @@
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
-            const skipped = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed);
+            const skipped = sortItems(schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed));
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
             } else {
@@ -1552,34 +1565,46 @@
         } else if (typeKey === 'today_overflow') {
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
-            todayItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                html += renderCardHTML(s, bgStyle);
-            });
+            if (todayItems.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No entries for today.</div>';
+            } else {
+                todayItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+            }
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
             const tomorrow = new Date(nowLocal);
             tomorrow.setDate(tomorrow.getDate() + 1);
             const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
             const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
-            upcomingItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                html += renderCardHTML(s, bgStyle);
-            });
+            if (upcomingItems.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No upcoming entries.</div>';
+            } else {
+                upcomingItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+            }
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
-            inboxItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
-            });
+            if (inboxItems.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Inbox is empty.</div>';
+            } else {
+                inboxItems.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    html += renderCardHTML(s, bgStyle);
+                });
+            }
         } else if (typeKey === 'collections') {
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
@@ -1609,26 +1634,42 @@
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                const matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
-                matched.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle);
-                });
+                const matched = sortItems(schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam)));
+                if (matched.length === 0) {
+                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No items found with this label.</div>';
+                } else {
+                    matched.forEach(s => {
+                        let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                        if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                        if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                        if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                        html += renderCardHTML(s, bgStyle);
+                    });
+                }
             }
         }
 
         modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
         modalContent.innerHTML = html;
-        showModal('directoryModal');
+        if (!isLiveRefresh) {
+            showModal('directoryModal');
+        }
     }
 
-    function closeDirectoryModal() { hideModal('directoryModal'); }
+    function closeDirectoryModal() { 
+        currentOpenDirectoryKey = null;
+        currentOpenDirectoryTarget = null;
+        hideModal('directoryModal'); 
+    }
 
     function closeModal(event, modalId) {
-        if (event.target.id === modalId) { hideModal(modalId); }
+        if (event.target.id === modalId) { 
+            if (modalId === 'directoryModal') {
+                currentOpenDirectoryKey = null;
+                currentOpenDirectoryTarget = null;
+            }
+            hideModal(modalId); 
+        }
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
