@@ -367,6 +367,14 @@
             background: #000000;
             color: #ffffff;
         }
+        .nav-counter-badge.red-alert {
+            background: #ff4d6d;
+            color: #ffffff;
+        }
+        .btn-window-trigger:hover .nav-counter-badge.red-alert {
+            background: #ffffff;
+            color: #ff4d6d;
+        }
 
         .dumplist-box {
             background: #080808;
@@ -634,9 +642,9 @@
 
     <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
+    <!-- Desktop Column: ALWAYS New Entry Form -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
-        <h4 id="formTitleHeader">+ Create Entry</h4>
-        <input type="hidden" id="editEntryId">
+        <h4>+ Create Entry</h4>
         <div class="form-group">
             <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
             <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
@@ -676,14 +684,14 @@
         </div>
         <div class="form-buttons">
             <button class="btn-reset" onclick="resetForm()">Reset</button>
-            <button class="btn-submit" id="submitBtn" onclick="saveSchedule()">Save Entry</button>
+            <button class="btn-submit" onclick="saveSchedule()">Save Entry</button>
         </div>
     </div>
 
     <div class="desktop-agenda-column">
         <div class="agenda-list">
             <div class="agenda-header-row">
-                <h4>📋 Schedule Archive</h4>
+                <h4>📋 Schedule</h4>
                 <div class="agenda-controls">
                     <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
                         <option value="timeblock">Sort: Timeblock</option>
@@ -721,6 +729,7 @@
     </div>
 </div>
 
+<!-- Modal Form: Used for Create (Mobile) & Edit (Desktop & Mobile) -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -859,9 +868,23 @@
 
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
-        modal.classList.remove('active');
-        setTimeout(() => { modal.style.display = 'none'; }, 300);
+        if (modal) {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
     }
+
+    // ESC key listener to close active modals
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            ['formModal', 'assignModal', 'detailModal', 'directoryModal'].forEach(modalId => {
+                const el = document.getElementById(modalId);
+                if (el && el.classList.contains('active')) {
+                    hideModal(modalId);
+                }
+            });
+        }
+    });
 
     function parseTodoistTitle(rawTitle) {
         if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
@@ -1001,7 +1024,16 @@
 
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
         document.getElementById('habitBadgeCount').innerText = habitCount;
-        document.getElementById('skippedBadgeCount').innerText = skippedCount;
+        
+        // Skipped badge red alert styling
+        const skippedBadge = document.getElementById('skippedBadgeCount');
+        skippedBadge.innerText = skippedCount;
+        if (skippedCount > 0) {
+            skippedBadge.classList.add('red-alert');
+        } else {
+            skippedBadge.classList.remove('red-alert');
+        }
+
         document.getElementById('labelBadgeCount').innerText = allLabels.size;
     }
 
@@ -1109,8 +1141,8 @@
         renderAgendaList();
     }
 
+    // Reset Desktop New Entry Form
     function resetForm() {
-        document.getElementById('editEntryId').value = '';
         document.getElementById('title').value = '';
         document.getElementById('description').value = '';
         document.getElementById('type').value = 'Event';
@@ -1118,10 +1150,9 @@
         document.getElementById('priority').value = 'personal';
         document.getElementById('timeblock').value = 'morning';
         handleTypeChange();
-        document.getElementById('formTitleHeader').innerText = '+ Create Entry';
-        document.getElementById('submitBtn').innerText = 'Save Entry';
     }
 
+    // Reset Mobile / Edit Modal Form
     function m_resetForm() {
         document.getElementById('m_editEntryId').value = '';
         document.getElementById('m_title').value = '';
@@ -1142,16 +1173,12 @@
 
     function closeFormModal() { hideModal('formModal'); }
 
-    async function saveSchedule() { executeSave(false); }
-    async function m_saveSchedule() { executeSave(true); }
-
-    async function executeSave(isMobile) {
-        const prefix = isMobile ? 'm_' : '';
-        const id = document.getElementById(prefix + 'editEntryId').value;
-        const rawInputTitle = document.getElementById(prefix + 'title').value;
-        const description = document.getElementById(prefix + 'description').value;
-        const type = document.getElementById(prefix + 'type').value;
-        let dateInputVal = document.getElementById(prefix + 'date').value;
+    // Save from Desktop Column (Always New Entry)
+    async function saveSchedule() {
+        const rawInputTitle = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const type = document.getElementById('type').value;
+        let dateInputVal = document.getElementById('date').value;
         let date = null;
 
         if (type === 'Habit') {
@@ -1165,8 +1192,54 @@
             }
         }
 
-        let priority = document.getElementById(prefix + 'priority').value;
-        let timeblock = type === 'Habit' ? 'morning' : document.getElementById(prefix + 'timeblock').value;
+        let priority = document.getElementById('priority').value;
+        let timeblock = type === 'Habit' ? 'morning' : document.getElementById('timeblock').value;
+        let recurring = 'none';
+
+        if (type === 'Birthday') {
+            recurring = 'yearly';
+            priority = 'personal';
+            timeblock = 'morning';
+        }
+
+        if (!rawInputTitle) {
+            alert('Title is required!');
+            return;
+        }
+
+        const newEntry = { title: rawInputTitle, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+        const { error } = await supabaseClient.from('schedules').insert([newEntry]);
+        
+        if (!error) {
+            resetForm();
+            fetchSchedules();
+        } else {
+            alert('Failed to save entry: ' + (error.message || 'Unknown error'));
+        }
+    }
+
+    // Save from Modal Form (Used for Edit or Mobile Create)
+    async function m_saveSchedule() {
+        const id = document.getElementById('m_editEntryId').value;
+        const rawInputTitle = document.getElementById('m_title').value;
+        const description = document.getElementById('m_description').value;
+        const type = document.getElementById('m_type').value;
+        let dateInputVal = document.getElementById('m_date').value;
+        let date = null;
+
+        if (type === 'Habit') {
+            date = null;
+        } else if (dateInputVal) {
+            if (type === 'Birthday') {
+                let cleanVal = dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal;
+                date = `2000-${cleanVal}`;
+            } else {
+                date = dateInputVal;
+            }
+        }
+
+        let priority = document.getElementById('m_priority').value;
+        let timeblock = type === 'Habit' ? 'morning' : document.getElementById('m_timeblock').value;
         let recurring = 'none';
 
         if (type === 'Birthday') {
@@ -1210,7 +1283,6 @@
                 .eq('id', id);
 
             if (!error) {
-                resetForm();
                 m_resetForm();
                 closeFormModal();
                 fetchSchedules();
@@ -1220,7 +1292,6 @@
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
             
             if (!error) {
-                resetForm();
                 m_resetForm();
                 closeFormModal();
                 fetchSchedules();
@@ -1228,43 +1299,34 @@
         }
     }
 
+    // Edit triggers modal window explicitly for both Desktop & Mobile
     function editSchedule(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
             hideModal('directoryModal');
             hideModal('detailModal');
 
-            const isMobile = window.innerWidth < 1100;
-            const prefix = isMobile ? 'm_' : '';
-
             const parsed = parseTodoistTitle(item.title);
 
-            document.getElementById(prefix + 'editEntryId').value = item.id;
-            document.getElementById(prefix + 'title').value = parsed.cleanTitle;
-            document.getElementById(prefix + 'description').value = item.description || '';
-            document.getElementById(prefix + 'type').value = item.type;
+            document.getElementById('m_editEntryId').value = item.id;
+            document.getElementById('m_title').value = parsed.cleanTitle;
+            document.getElementById('m_description').value = item.description || '';
+            document.getElementById('m_type').value = item.type;
             
             if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
                 const parts = item.date.split('-');
-                document.getElementById(prefix + 'date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
+                document.getElementById('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
             } else {
-                document.getElementById(prefix + 'date').value = item.date || '';
+                document.getElementById('m_date').value = item.date || '';
             }
 
-            document.getElementById(prefix + 'priority').value = item.priority;
-            document.getElementById(prefix + 'timeblock').value = item.timeblock;
+            document.getElementById('m_priority').value = item.priority;
+            document.getElementById('m_timeblock').value = item.timeblock;
             
-            if (isMobile) {
-                m_handleTypeChange();
-                document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
-                document.getElementById('m_submitBtn').innerText = 'Update Entry';
-                showModal('formModal');
-            } else {
-                handleTypeChange();
-                document.getElementById('formTitleHeader').innerText = '✎ Edit / Reschedule';
-                document.getElementById('submitBtn').innerText = 'Update Entry';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            m_handleTypeChange();
+            document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
+            document.getElementById('m_submitBtn').innerText = 'Update Entry';
+            showModal('formModal');
         }
     }
 
@@ -1426,7 +1488,18 @@
         let html = '';
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
-            const birthdays = schedules.filter(s => s.type === 'Birthday');
+            let birthdays = schedules.filter(s => s.type === 'Birthday');
+            
+            // Sort birthdays ascending: Jan to Dec (month & day comparison)
+            birthdays.sort((a, b) => {
+                const getMonthDay = (dateStr) => {
+                    if (!dateStr) return '12-31';
+                    const parts = dateStr.split('-');
+                    return parts.length >= 3 ? `${parts[1]}-${parts[2]}` : (parts.length === 2 ? `${parts[0]}-${parts[1]}` : '12-31');
+                };
+                return getMonthDay(a.date).localeCompare(getMonthDay(b.date));
+            });
+
             if (birthdays.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
             } else {
