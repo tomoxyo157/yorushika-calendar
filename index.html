@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yorushika Calendar // ヨルシカ</title>
     
-    <!-- Favicon Standar untuk PC / Browser Desktop (Tetap Asli) -->
+    <!-- Favicon Standar untuk PC / Browser Desktop -->
     <link rel="icon" type="image/png" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
     
-    <!-- PWA Manifest & Icons (Terpisah: Home Screen Menggunakan Logo Yorushika Wikimedia) -->
+    <!-- PWA Manifest & Icons -->
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050505%22%2C%22theme_color%22%3A%22%23050505%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F2%2F27%2FYorushika_Logo.jpg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
     
-    <!-- Apple Touch Icon untuk iOS (Menggunakan logo Yorushika Wikimedia agar konsisten di HP) -->
+    <!-- Apple Touch Icon untuk iOS -->
     <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/2/27/Yorushika_Logo.jpg">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,8 +21,6 @@
 
     <style>
         :root {
-            --forceLowercase: false;
-            --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
             --card-bg: #0d0d0d;
@@ -461,38 +459,19 @@
             flex-shrink: 0;
         }
         .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
-        .btn-assign {
+        .btn-assign, .btn-edit, .btn-delete {
             background: rgba(0, 0, 0, 0.6);
-            color: #4da6ff;
-            border: 1px solid #4da6ff;
             padding: 3px 5px;
             border-radius: 2px;
             cursor: pointer;
             font-size: 8px;
             font-weight: bold;
         }
+        .btn-assign { color: #4da6ff; border: 1px solid #4da6ff; }
         .btn-assign:hover { background: #4da6ff; color: black; }
-        .btn-edit {
-            background: rgba(0, 0, 0, 0.6);
-            color: #55ff55;
-            border: 1px solid #55ff55;
-            padding: 3px 5px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 8px;
-            font-weight: bold;
-        }
+        .btn-edit { color: #55ff55; border: 1px solid #55ff55; }
         .btn-edit:hover { background: #55ff55; color: black; }
-        .btn-delete {
-            background: rgba(0, 0, 0, 0.6);
-            color: #ff5555;
-            border: 1px solid #ff5555;
-            padding: 3px 4px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 8px;
-            font-weight: bold;
-        }
+        .btn-delete { color: #ff5555; border: 1px solid #ff5555; padding: 3px 4px; }
         .btn-delete:hover { background: #ff5555; color: white; }
 
         .btn-overflow-more {
@@ -638,9 +617,9 @@
     <div class="desktop-calendar-column">
         <h2>Calendar</h2>
         <div class="calendar-nav">
-            <button onclick="changeMonth(-1)">◀</button>
+            <button onclick="changeMonth(-1)" aria-label="Previous Month">◀</button>
             <h3 id="monthYearDisplay"></h3>
-            <button onclick="changeMonth(1)">▶</button>
+            <button onclick="changeMonth(1)" aria-label="Next Month">▶</button>
         </div>
 
         <div class="weekdays">
@@ -651,19 +630,19 @@
 
     <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
-    <!-- Desktop Column: ALWAYS New Entry Form -->
+    <!-- Desktop Column: Form Entry -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4>+ Create Entry</h4>
         <div class="form-group">
-            <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+            <label for="title">Title (Tip: Use '10am', '.projectA' inside title)</label>
             <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
         </div>
         <div class="form-group">
-            <label>Description / Note (Optional)</label>
+            <label for="description">Description / Note (Optional)</label>
             <textarea id="description" placeholder="Short detail or sub-note..."></textarea>
         </div>
         <div class="form-group">
-            <label>Type</label>
+            <label for="type">Type</label>
             <select id="type" onchange="handleTypeChange()">
                 <option value="Event">Event</option>
                 <option value="Task">Task (With checkmark)</option>
@@ -672,11 +651,11 @@
             </select>
         </div>
         <div class="form-group" id="dateGroup">
-            <label id="dateLabel">Date (Leave blank for Inbox)</label>
+            <label id="dateLabel" for="date">Date (Leave blank for Inbox)</label>
             <input type="date" id="date">
         </div>
         <div class="form-group" id="priorityGroup">
-            <label>Priority Tagging</label>
+            <label for="priority">Priority Tagging</label>
             <select id="priority">
                 <option value="personal">Personal (Mint Green)</option>
                 <option value="professional">Professional (Maroon)</option>
@@ -684,7 +663,7 @@
             </select>
         </div>
         <div class="form-group" id="timeblockGroup">
-            <label>Timeblock Tagging</label>
+            <label for="timeblock">Timeblock Tagging</label>
             <select id="timeblock">
                 <option value="morning">3am - 9am (Golden Dawn)</option>
                 <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -702,7 +681,7 @@
             <div class="agenda-header-row">
                 <h4>📋 Schedule</h4>
                 <div class="agenda-controls">
-                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
+                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()" aria-label="Sort options">
                         <option value="timeblock">Sort: Timeblock</option>
                         <option value="priority">Sort: Priority</option>
                         <option value="type">Sort: Type</option>
@@ -738,7 +717,7 @@
     </div>
 </div>
 
-<!-- Modal Form: Used for Create (Mobile) & Edit (Desktop & Mobile) -->
+<!-- Modal Form: Mobile Create & Edit -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -749,15 +728,15 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+                    <label for="m_title">Title (Tip: Use '10am', '.projectA' inside title)</label>
                     <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
                 </div>
                 <div class="form-group">
-                    <label>Description / Note (Optional)</label>
+                    <label for="m_description">Description / Note (Optional)</label>
                     <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Type</label>
+                    <label for="m_type">Type</label>
                     <select id="m_type" onchange="m_handleTypeChange()">
                         <option value="Event">Event</option>
                         <option value="Task">Task (With checkmark)</option>
@@ -766,11 +745,11 @@
                     </select>
                 </div>
                 <div class="form-group" id="m_dateGroup">
-                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
+                    <label id="m_dateLabel" for="m_date">Date (Leave blank for Inbox)</label>
                     <input type="date" id="m_date">
                 </div>
                 <div class="form-group" id="m_priorityGroup">
-                    <label>Priority Tagging</label>
+                    <label for="m_priority">Priority Tagging</label>
                     <select id="m_priority">
                         <option value="personal">Personal (Mint Green)</option>
                         <option value="professional">Professional (Maroon)</option>
@@ -778,7 +757,7 @@
                     </select>
                 </div>
                 <div class="form-group" id="m_timeblockGroup">
-                    <label>Timeblock Tagging</label>
+                    <label for="m_timeblock">Timeblock Tagging</label>
                     <select id="m_timeblock">
                         <option value="morning">3am - 9am (Golden Dawn)</option>
                         <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -804,11 +783,11 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="assignEntryId">
                 <div class="form-group">
-                    <label>Target Date</label>
+                    <label for="assignDate">Target Date</label>
                     <input type="date" id="assignDate">
                 </div>
                 <div class="form-group">
-                    <label>Timeblock Tagging</label>
+                    <label for="assignTimeblock">Timeblock Tagging</label>
                     <select id="assignTimeblock">
                         <option value="morning">3am - 9am (Golden Dawn)</option>
                         <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -851,11 +830,18 @@
 <script>
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: { persistSession: false },
-        db: { schema: 'public' },
-        global: { headers: { 'x-client-info': 'yorushika-calendar' } }
-    });
+    
+    // Perbaikan: Tambahkan penanganan error inisialisasi client yang aman
+    let supabaseClient;
+    try {
+        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+            auth: { persistSession: false },
+            db: { schema: 'public' },
+            global: { headers: { 'x-client-info': 'yorushika-calendar' } }
+        });
+    } catch (e) {
+        console.error('Supabase initialization failed:', e);
+    }
 
     let schedules = [];
     let selectedFilterDate = null;
@@ -873,19 +859,19 @@
 
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
+        if (!modal) return;
         modal.style.display = 'flex';
-        setTimeout(() => { modal.classList.add('active'); }, 10);
+        requestAnimationFrame(() => { modal.classList.add('active'); });
     }
 
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal) {
+        if (modal && modal.classList.contains('active')) {
             modal.classList.remove('active');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
     }
 
-    // ESC key listener to close active modals
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             ['formModal', 'assignModal', 'detailModal', 'directoryModal'].forEach(modalId => {
@@ -988,6 +974,15 @@
         statusEl.innerText = 'Menghubungkan ke Supabase Cloud...';
         statusEl.style.color = '#e6e6e6';
 
+        if (!supabaseClient) {
+            statusEl.innerText = '⚠️ Supabase Client gagal dimuat (Offline Mode)';
+            statusEl.style.color = '#ff5555';
+            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+            updateArchiveCounters();
+            renderCalendar();
+            return;
+        }
+
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000);
@@ -1000,9 +995,7 @@
 
             clearTimeout(timeoutId);
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
             statusEl.style.color = '#55ff55';
@@ -1018,7 +1011,6 @@
         updateArchiveCounters();
         renderCalendar();
 
-        // Jika ada direktori modal yang sedang terbuka, refresh isinya secara live
         const directoryModalEl = document.getElementById('directoryModal');
         if (directoryModalEl && directoryModalEl.classList.contains('active')) {
             openDirectoryModal(currentOpenDirectoryKey, currentOpenDirectoryTarget, true);
@@ -1042,7 +1034,6 @@
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
         document.getElementById('habitBadgeCount').innerText = habitCount;
         
-        // Skipped badge red alert styling
         const skippedBadge = document.getElementById('skippedBadgeCount');
         skippedBadge.innerText = skippedCount;
         if (skippedCount > 0) {
@@ -1055,7 +1046,9 @@
     }
 
     function sortItems(items) {
-        const sortBy = document.getElementById('sortBySelect').value;
+        const sortBySelect = document.getElementById('sortBySelect');
+        const sortBy = sortBySelect ? sortBySelect.value : 'timeblock';
+        
         return [...items].sort((a, b) => {
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
@@ -1083,7 +1076,8 @@
         const month = currentDate.getMonth();
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
+        const monthYearDisplay = document.getElementById('monthYearDisplay');
+        if (monthYearDisplay) monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
@@ -1137,7 +1131,8 @@
             `;
         }
 
-        document.getElementById('daysGrid').innerHTML = gridHTML;
+        const daysGrid = document.getElementById('daysGrid');
+        if (daysGrid) daysGrid.innerHTML = gridHTML;
         renderAgendaList();
     }
 
@@ -1158,7 +1153,6 @@
         renderAgendaList();
     }
 
-    // Reset Desktop New Entry Form
     function resetForm() {
         document.getElementById('title').value = '';
         document.getElementById('description').value = '';
@@ -1169,7 +1163,6 @@
         handleTypeChange();
     }
 
-    // Reset Mobile / Edit Modal Form
     function m_resetForm() {
         document.getElementById('m_editEntryId').value = '';
         document.getElementById('m_title').value = '';
@@ -1190,7 +1183,6 @@
 
     function closeFormModal() { hideModal('formModal'); }
 
-    // Save from Desktop Column (Always New Entry)
     async function saveSchedule() {
         const rawInputTitle = document.getElementById('title').value;
         const description = document.getElementById('description').value;
@@ -1219,12 +1211,12 @@
             timeblock = 'morning';
         }
 
-        if (!rawInputTitle) {
+        if (!rawInputTitle.trim()) {
             alert('Title is required!');
             return;
         }
 
-        const newEntry = { title: rawInputTitle, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+        const newEntry = { title: rawInputTitle.trim(), description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
         const { error } = await supabaseClient.from('schedules').insert([newEntry]);
         
         if (!error) {
@@ -1235,7 +1227,6 @@
         }
     }
 
-    // Save from Modal Form (Used for Edit or Mobile Create)
     async function m_saveSchedule() {
         const id = document.getElementById('m_editEntryId').value;
         const rawInputTitle = document.getElementById('m_title').value;
@@ -1265,12 +1256,12 @@
             timeblock = 'morning';
         }
 
-        if (!rawInputTitle) {
+        if (!rawInputTitle.trim()) {
             alert('Title is required!');
             return;
         }
 
-        let finalTitleToSave = rawInputTitle;
+        let finalTitleToSave = rawInputTitle.trim();
 
         if (id) {
             const existingItem = schedules.find(s => String(s.id) === String(id));
@@ -1316,7 +1307,6 @@
         }
     }
 
-    // Edit triggers modal window explicitly for both Desktop & Mobile
     function editSchedule(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
@@ -1512,7 +1502,6 @@
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
             let birthdays = schedules.filter(s => s.type === 'Birthday');
             
-            // Sort birthdays ascending: Jan to Dec (month & day comparison)
             birthdays.sort((a, b) => {
                 const getMonthDay = (dateStr) => {
                     if (!dateStr) return '12-31';
@@ -1649,8 +1638,8 @@
             }
         }
 
-        modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
-        modalContent.innerHTML = html;
+        if (modalHeaderEl) modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
+        if (modalContent) modalContent.innerHTML = html;
         if (!isLiveRefresh) {
             showModal('directoryModal');
         }
@@ -1711,7 +1700,7 @@
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
-                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)" aria-label="Toggle task completion">` : ''}
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
@@ -1753,13 +1742,14 @@
         const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
         if (schedules.length === 0) {
-            container.innerHTML = 'No entries recorded yet.';
-            dumplistContainer.innerHTML = '';
+            if (container) container.innerHTML = 'No entries recorded yet.';
+            if (dumplistContainer) dumplistContainer.innerHTML = '';
             return;
         }
 
         if (selectedFilterDate) {
-            document.getElementById('clearFilterBtn').style.display = 'inline-block';
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            if (clearFilterBtn) clearFilterBtn.style.display = 'inline-block';
             let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
             
             if (filteredItems.length === 0) {
@@ -1775,9 +1765,10 @@
                 html += `</div>`;
                 container.innerHTML = html;
             }
-            dumplistContainer.innerHTML = '';
+            if (dumplistContainer) dumplistContainer.innerHTML = '';
         } else {
-            document.getElementById('clearFilterBtn').style.display = 'none';
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            if (clearFilterBtn) clearFilterBtn.style.display = 'none';
             
             let htmlMain = '';
 
@@ -1816,7 +1807,7 @@
             if (!htmlMain) {
                 htmlMain = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today or tomorrow. Click any date on calendar.</div>`;
             }
-            container.innerHTML = htmlMain;
+            if (container) container.innerHTML = htmlMain;
 
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             if (inboxItems.length > 0) {
@@ -1831,15 +1822,16 @@
                     inboxHTML += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 5} more inbox items...</button>`;
                 }
                 inboxHTML += `</div>`;
-                dumplistContainer.innerHTML = inboxHTML;
+                if (dumplistContainer) dumplistContainer.innerHTML = inboxHTML;
             } else {
-                dumplistContainer.innerHTML = '';
+                if (dumplistContainer) dumplistContainer.innerHTML = '';
             }
         }
     }
 
     if (window.innerWidth >= 1100) {
-        document.getElementById('formSectionContainer').style.display = 'block';
+        const formContainer = document.getElementById('formSectionContainer');
+        if (formContainer) formContainer.style.display = 'block';
     }
 
     fetchSchedules();
