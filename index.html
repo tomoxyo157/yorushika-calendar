@@ -17,7 +17,6 @@
 
     <style>
         :root {
-            --forceLowercase: true;
             --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
@@ -40,12 +39,7 @@
             color: var(--text-main);
             margin: 0;
             padding: 12px;
-            text-transform: var(--forceLowercase ? lowercase : uppercase);
-        }
-
-        /* Force lowercase global application if enabled */
-        body, input, select, textarea, button, h2, h3, h4, label, span, p {
-            text-transform: lowercase !important;
+            text-transform: none;
         }
 
         .container {
@@ -325,7 +319,6 @@
             box-sizing: border-box;
             font-size: 11px;
         }
-        select option { text-transform: lowercase; }
         textarea { resize: vertical; min-height: 50px; white-space: pre-wrap; }
         input:focus, select:focus, textarea:focus { outline: 1px solid #ffffff; }
         
@@ -520,17 +513,6 @@
             flex-shrink: 0;
         }
         .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
-        .btn-assign {
-            background: rgba(0, 0, 0, 0.6);
-            color: #4da6ff;
-            border: 1px solid #4da6ff;
-            padding: 3px 5px;
-            border-radius: 2px;
-            cursor: pointer;
-            font-size: 8px;
-            font-weight: bold;
-        }
-        .btn-assign:hover { background: #4da6ff; color: black; }
         .btn-edit {
             background: rgba(0, 0, 0, 0.6);
             color: #55ff55;
@@ -789,7 +771,7 @@
         <h4>+ create entry</h4>
         <div class="form-group">
             <label>title (tip: use '10am', '.projectA' inside title)</label>
-            <input type="text" id="title" placeholder="e.g., spring thief jam 10am .blender">
+            <input type="text" id="title" placeholder="e.g., Spring Thief Jam 10am .blender">
         </div>
         <div class="form-group">
             <label>description / note (optional)</label>
@@ -798,10 +780,10 @@
         <div class="form-group">
             <label>type</label>
             <select id="type" onchange="handleTypeChange()">
-                <option value="Event">event</option>
-                <option value="Task">task (with checkmark)</option>
-                <option value="Birthday">birthday (recurring yearly)</option>
-                <option value="Habit">habit / recurring</option>
+                <option value="Event">Event</option>
+                <option value="Task">Task (with checkmark)</option>
+                <option value="Birthday">Birthday (recurring yearly)</option>
+                <option value="Habit">Habit / recurring</option>
             </select>
         </div>
         <div class="form-group" id="dateGroup">
@@ -814,15 +796,15 @@
         <div class="form-group" id="priorityGroup">
             <label>priority tagging</label>
             <select id="priority">
-                <option value="personal">personal (mint green)</option>
-                <option value="professional">professional (maroon)</option>
-                <option value="daily">daily (ink charcoal)</option>
+                <option value="personal">Personal (mint green)</option>
+                <option value="professional">Professional (maroon)</option>
+                <option value="daily">Daily (ink charcoal)</option>
             </select>
         </div>
         <div class="form-group" id="timeblockGroup">
             <label>timeblock tagging</label>
             <select id="timeblock">
-                <option value="none" selected>none (slate grey)</option>
+                <option value="none" selected>None (slate grey)</option>
                 <option value="morning">3am - 9am (golden dawn)</option>
                 <option value="work">9am - 5pm (summer canopy / olive)</option>
                 <option value="night">5pm - 10pm (japanese indigo)</option>
@@ -887,7 +869,7 @@
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
                     <label>title (tip: use '10am', '.projectA' inside title)</label>
-                    <input type="text" id="m_title" placeholder="e.g., spring thief jam 10am .blender">
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief Jam 10am .blender">
                 </div>
                 <div class="form-group">
                     <label>description / note (optional)</label>
@@ -896,10 +878,10 @@
                 <div class="form-group">
                     <label>type</label>
                     <select id="m_type" onchange="m_handleTypeChange()">
-                        <option value="Event">event</option>
-                        <option value="Task">task (with checkmark)</option>
-                        <option value="Birthday">birthday (recurring yearly)</option>
-                        <option value="Habit">habit / recurring</option>
+                        <option value="Event">Event</option>
+                        <option value="Task">Task (with checkmark)</option>
+                        <option value="Birthday">Birthday (recurring yearly)</option>
+                        <option value="Habit">Habit / recurring</option>
                     </select>
                 </div>
                 <div class="form-group" id="m_dateGroup">
@@ -912,15 +894,15 @@
                 <div class="form-group" id="m_priorityGroup">
                     <label>priority tagging</label>
                     <select id="m_priority">
-                        <option value="personal">personal (mint green)</option>
-                        <option value="professional">professional (maroon)</option>
-                        <option value="daily">daily (ink charcoal)</option>
+                        <option value="personal">Personal (mint green)</option>
+                        <option value="professional">Professional (maroon)</option>
+                        <option value="daily">Daily (ink charcoal)</option>
                     </select>
                 </div>
                 <div class="form-group" id="m_timeblockGroup">
                     <label>timeblock tagging</label>
                     <select id="m_timeblock">
-                        <option value="none" selected>none (slate grey)</option>
+                        <option value="none" selected>None (slate grey)</option>
                         <option value="morning">3am - 9am (golden dawn)</option>
                         <option value="work">9am - 5pm (summer canopy / olive)</option>
                         <option value="night">5pm - 10pm (japanese indigo)</option>
@@ -954,7 +936,7 @@
                 <div class="form-group">
                     <label>timeblock tagging</label>
                     <select id="assignTimeblock">
-                        <option value="none" selected>none (slate grey)</option>
+                        <option value="none" selected>None (slate grey)</option>
                         <option value="morning">3am - 9am (golden dawn)</option>
                         <option value="work">9am - 5pm (summer canopy / olive)</option>
                         <option value="night">5pm - 10pm (japanese indigo)</option>
@@ -1006,11 +988,11 @@
     let schedules = [];
     let selectedFilterDate = null;
     let isHabitOrderMode = false;
+    let currentDirectoryState = { typeKey: null, targetParam: null };
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { none: '#555555', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
     
-    // Timeblock order: 'none' (when matching today/specific date) gets highest priority, then morning, work, night
     const timeblockOrder = { none: 0, morning: 1, work: 2, night: 3 };
     const priorityOrder = { professional: 1, daily: 2, personal: 3 };
     const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
@@ -1050,7 +1032,6 @@
         updateDateActionBtn(inputId, btnId);
     }
 
-    // Fungsi Login & Logout Handlers
     async function handleLogin() {
         const email = document.getElementById('authEmail').value;
         const password = document.getElementById('authPassword').value;
@@ -1239,6 +1220,12 @@
 
         updateArchiveCounters();
         renderCalendar();
+        
+        // Refresh directory modal content if it's currently open to reflect live changes
+        const dirModal = document.getElementById('directoryModal');
+        if (dirModal && dirModal.classList.contains('active') && currentDirectoryState.typeKey) {
+            openDirectoryModal(currentDirectoryState.typeKey, currentDirectoryState.targetParam);
+        }
     }
 
     function updateArchiveCounters() {
@@ -1276,11 +1263,10 @@
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
 
-            // Rule: 'none' timeblock on today or specific date has higher priority over morning/work/night
             const getEffectiveTbOrder = (item) => {
                 let tb = item.timeblock || 'none';
                 if (tb === 'none' && item.date && item.date >= todayStr) {
-                    return -1; // highest priority
+                    return -1;
                 }
                 return timeblockOrder[tb] ?? 2;
             };
@@ -1307,7 +1293,7 @@
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
 
-        const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
@@ -1661,8 +1647,6 @@
         const targetIndex = index + direction;
         if (targetIndex < 0 || targetIndex >= habits.length) return;
 
-        // Swap titles or custom ordering (since order isn't a dedicated column yet, we swap titles/identifiers or handle UI re-render)
-        // To implement persistence for manual order, let's swap the titles between the two habits
         let tempTitle = habits[index].title;
         let tempDesc = habits[index].description;
         let tempPriority = habits[index].priority;
@@ -1675,7 +1659,6 @@
         habits[targetIndex].description = tempDesc;
         habits[targetIndex].priority = tempPriority;
 
-        // Update both in database
         await supabaseClient.from('schedules').update({ title: habits[index].title, description: habits[index].description, priority: habits[index].priority }).eq('id', habits[index].id);
         await supabaseClient.from('schedules').update({ title: habits[targetIndex].title, description: habits[targetIndex].description, priority: habits[targetIndex].priority }).eq('id', habits[targetIndex].id);
 
@@ -1752,19 +1735,31 @@
     function closeDetailModal() { hideModal('detailModal'); }
 
     function openDirectoryModal(typeKey, targetParam = null) {
+        currentDirectoryState = { typeKey, targetParam };
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const modalHeaderEl = document.getElementById('directoryModalHeader');
         const todayStr = getTodayString();
 
         let headerActionsHTML = '';
-        if (typeKey === 'habits') {
+        
+        // Cek apakah ini label list terdalam (yang memiliki tombol back atau spesifik label tertentu/nested view)
+        // Sesuai instruksi: "Fitur edit order (tombol atas/bawah) dipindahkan dan difungsikan di label list terdalam (yang memiliki tombol back)."
+        // Label list terdalam adalah saat collections dengan targetParam tertentu (view label detail) atau view di dalam label
+        const isDeepestLabelView = (typeKey === 'collections' && targetParam !== null);
+
+        if (isDeepestLabelView) {
             headerActionsHTML += `<button class="btn-order" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleHabitOrderMode()">${isHabitOrderMode ? 'done ordering' : 'edit order'}</button>`;
-        }
-        if (typeKey === 'collections' && targetParam !== null) {
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← back</button>`;
+        } else if (typeKey === 'collections' && targetParam === null) {
+            // Main collections view (no back button yet)
+            headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
+        } else if (typeKey === 'habits') {
+            headerActionsHTML += `<button class="btn-order" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleHabitOrderMode()">${isHabitOrderMode ? 'done ordering' : 'edit order'}</button>`;
+            headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
+        } else {
+            headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
         }
-        headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
         let html = '';
         if (typeKey === 'birthdays') {
@@ -1789,7 +1784,6 @@
             modalTitle.innerText = '🔁 habits directory';
             let habits = schedules.filter(s => s.type === 'Habit');
             
-            // Sort habits alphabetically by title (ascending)
             habits.sort((a, b) => {
                 const titleA = parseTodoistTitle(a.title).cleanTitle;
                 const titleB = parseTodoistTitle(b.title).cleanTitle;
@@ -1846,7 +1840,7 @@
             inboxItems.forEach(s => {
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                html += renderCardHTML(s, bgStyle);
+                html += renderCardHTML(s, bgStyle, false, true); // true indicates inbox context without assign button
             });
         } else if (typeKey === 'collections') {
             if (!targetParam) {
@@ -1883,7 +1877,13 @@
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle);
+                    
+                    // Jika di dalam label list terdalam dan mode urut aktif untuk habit atau item, render dengan opsi order jika diperlukan, atau kartu standar
+                    if (isHabitOrderMode && s.type === 'Habit') {
+                        html += renderHabitCardHTML(s, bgStyle);
+                    } else {
+                        html += renderCardHTML(s, bgStyle);
+                    }
                 });
             }
         }
@@ -1895,22 +1895,26 @@
 
     function toggleHabitOrderMode() {
         isHabitOrderMode = !isHabitOrderMode;
-        openDirectoryModal('habits');
+        openDirectoryModal(currentDirectoryState.typeKey, currentDirectoryState.targetParam);
     }
 
     function closeDirectoryModal() { 
         isHabitOrderMode = false;
+        currentDirectoryState = { typeKey: null, targetParam: null };
         hideModal('directoryModal'); 
     }
 
     function closeModal(event, modalId) {
         if (event.target.id === modalId) { 
-            if (modalId === 'directoryModal') isHabitOrderMode = false;
+            if (modalId === 'directoryModal') {
+                isHabitOrderMode = false;
+                currentDirectoryState = { typeKey: null, targetParam: null };
+            }
             hideModal(modalId); 
         }
     }
 
-    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, isInboxContext = false) {
         const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
         
         let displayDate = s.date;
@@ -1921,7 +1925,7 @@
             displayDate = formatDateDDMM(s.date);
         }
 
-        let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock || 'none'}`);
+        let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate || 'inbox'} | ${s.priority} / ${s.timeblock || 'none'}`);
 
         const parsed = parseTodoistTitle(s.title);
         let pillsHTML = '';
@@ -1940,6 +1944,8 @@
             typePrefix = '[habit]';
         }
 
+        // Tombol assign ditiadakan dari dump list (dan list umum sesuai instruksi: "Tombol assign di dump list ditiadakan.")
+        // Tombol assign hanya ada khusus pada direktori habits.
         return `
             <div class="${itemClass}" style="background: ${finalCardBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
@@ -1971,7 +1977,6 @@
             `;
         } else {
             actionButtonsHTML = `
-                <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">assign</button>
                 <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">edit</button>
                 <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">x</button>
             `;
@@ -2072,7 +2077,6 @@
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 inbox / dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
                 displayInbox.forEach(s => {
-                    // Dumplist card background: gradient from priority color to slate grey (none)
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors['none']})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     
@@ -2094,7 +2098,6 @@
                                 ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                             </div>
                             <div class="agenda-actions">
-                                <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">assign</button>
                                 ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                                 <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">edit</button>
                                 <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">x</button>
