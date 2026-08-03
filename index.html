@@ -43,20 +43,60 @@
             margin: 0;
             padding: 12px;
             text-transform: uppercase;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
 
-        .container {
+        /* Container Login */
+        #authContainer {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 2px;
+            border: 2px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.95);
+            display: block;
+        }
+
+        /* Container Aplikasi Utama (Disembunyikan sebelum login) */
+        #appContainer {
+            display: none;
+            width: 100%;
             max-width: 500px;
-            margin: auto;
             background: var(--card-bg);
             padding: 16px;
             border-radius: 2px;
             border: 2px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.95);
-            display: flex;
             flex-direction: column;
             gap: 16px;
         }
+
+        .auth-error {
+            color: #ff5555;
+            font-size: 10px;
+            margin-top: 8px;
+            text-align: center;
+            min-height: 15px;
+        }
+
+        .btn-logout {
+            background: #1a1a1a;
+            color: #ff5555;
+            border: 1px solid var(--border-color);
+            padding: 8px;
+            font-size: 10px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-radius: 2px;
+        }
+        .btn-logout:hover { background: #ff5555; color: #ffffff; }
 
         .mobile-create-trigger {
             display: block;
@@ -85,9 +125,9 @@
         }
 
         @media (min-width: 1100px) {
-            .container {
+            #appContainer {
                 max-width: 1450px;
-                display: grid;
+                display: none; /* diatur via JS nanti setelah login */
                 grid-template-columns: 420px 1fr 380px;
                 grid-template-rows: auto auto auto;
                 gap: 20px;
@@ -611,7 +651,35 @@
 </head>
 <body>
 
-<div class="container">
+<!-- KOTAK LOGIN SUPABASE -->
+<div id="authContainer">
+    <div class="yorushika-header" style="margin-bottom: 15px;">
+        <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
+            <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
+            <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
+            <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
+        </svg>
+        <p class="jp-title-logo">ヨルシカ</p>
+        <span class="sub-tag">Secure Login Required</span>
+    </div>
+    
+    <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+            <label for="authEmail">Email</label>
+            <input type="email" id="authEmail" required placeholder="name@domain.com">
+        </div>
+        <div class="form-group">
+            <label for="authPassword">Password</label>
+            <input type="password" id="authPassword" required placeholder="••••••••">
+        </div>
+        <div class="auth-error" id="authErrorMsg"></div>
+        <button type="submit" class="mobile-create-trigger" style="margin-top: 10px;">Login System</button>
+    </form>
+</div>
+
+<!-- KONTEN UTAMA APLIKASI -->
+<div class="container" id="appContainer">
     <div class="yorushika-header desktop-full-span">
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
@@ -621,6 +689,11 @@
         </svg>
         <p class="jp-title-logo">ヨルシカ</p>
         <span class="sub-tag">Music & Schedule Archive</span>
+    </div>
+
+    <!-- Tombol Logout di Atas (Mobile/Desktop friendly) -->
+    <div class="desktop-full-span">
+        <button class="btn-logout" onclick="handleLogout()">🔒 Logout Session</button>
     </div>
     
     <div class="desktop-calendar-column">
@@ -844,7 +917,7 @@
     let supabaseClient;
     try {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: false },
+            auth: { persistSession: true, autoRefreshToken: true },
             db: { schema: 'public' },
             global: { headers: { 'x-client-info': 'yorushika-calendar' } }
         });
@@ -865,6 +938,56 @@
     const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
 
     let currentDate = new Date();
+
+    // -------------------------------------------------------------
+    // AUTHENTICATION LOGIC (SUPABASE AUTH)
+    // -------------------------------------------------------------
+    async function checkAuthSession() {
+        if (!supabaseClient) return;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session) {
+            document.getElementById('authContainer').style.display = 'none';
+            document.getElementById('appContainer').style.display = (window.innerWidth >= 1100) ? 'grid' : 'flex';
+            document.body.style.display = 'block';
+            fetchSchedules();
+        } else {
+            document.getElementById('authContainer').style.display = 'block';
+            document.getElementById('appContainer').style.display = 'none';
+            document.body.style.display = 'flex';
+        }
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        const errorMsgEl = document.getElementById('authErrorMsg');
+
+        errorMsgEl.innerText = 'Authenticating...';
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            errorMsgEl.innerText = 'Login Failed: ' + error.message;
+        } else {
+            errorMsgEl.innerText = '';
+            document.getElementById('loginForm').reset();
+            checkAuthSession();
+        }
+    }
+
+    async function handleLogout() {
+        if (confirm('Yakin ingin keluar sesi?')) {
+            await supabaseClient.auth.signOut();
+            checkAuthSession();
+        }
+    }
+
+    // Jalankan cek sesi pertama kali halaman dibuka
+    checkAuthSession();
 
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
@@ -1875,8 +1998,6 @@
             alert('Izin notifikasi ditolak. Kamu bisa mengubahnya di pengaturan browser.');
         }
     }
-
-    fetchSchedules();
 </script>
 
 </body>
