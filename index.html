@@ -17,7 +17,7 @@
 
     <style>
         :root {
-            --forceLowercase: false;
+            --forceLowercase: true;
             --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
@@ -40,7 +40,12 @@
             color: var(--text-main);
             margin: 0;
             padding: 12px;
-            text-transform: uppercase;
+            text-transform: var(--forceLowercase ? lowercase : uppercase);
+        }
+
+        /* Force lowercase global application if enabled */
+        body, input, select, textarea, button, h2, h3, h4, label, span, p {
+            text-transform: lowercase !important;
         }
 
         .container {
@@ -131,7 +136,6 @@
             padding: 4px 8px;
             font-size: 9px;
             cursor: pointer;
-            text-transform: uppercase;
         }
         .btn-logout:hover { background: #ff5555; color: #fff; }
 
@@ -154,6 +158,11 @@
             padding: 8px;
             border: 1px solid var(--border-color);
         }
+        .calendar-nav-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         .calendar-nav h3 {
             font-size: 16px;
             letter-spacing: 1px;
@@ -169,6 +178,16 @@
             cursor: pointer;
         }
         .calendar-nav button:hover { background: #ffffff; color: #000000; }
+        .btn-calendar-today {
+            background: #1a1a1a !important;
+            color: #4da6ff !important;
+            border: 1px solid #4da6ff !important;
+            font-size: 9px !important;
+            padding: 3px 6px !important;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-calendar-today:hover { background: #4da6ff !important; color: #000 !important; }
 
         .weekdays {
             display: grid;
@@ -266,6 +285,36 @@
         }
         .form-group { margin-bottom: 8px; }
         label { display: block; margin-bottom: 2px; font-weight: 600; font-size: 9px; color: var(--muted-gray); }
+        
+        .date-input-wrapper {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .date-input-wrapper input {
+            flex-grow: 1;
+        }
+        .btn-date-action {
+            background: #1a1a1a;
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 7px 10px;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        .btn-date-action:hover { background: #fff; color: #000; }
+        .btn-date-action.delete-mode {
+            color: #ff5555;
+            border-color: #ff5555;
+        }
+        .btn-date-action.delete-mode:hover {
+            background: #ff5555;
+            color: #fff;
+        }
+
         input, select, textarea {
             width: 100%;
             padding: 7px;
@@ -275,9 +324,8 @@
             border-radius: 2px;
             box-sizing: border-box;
             font-size: 11px;
-            text-transform: uppercase;
         }
-        select option { text-transform: uppercase; }
+        select option { text-transform: lowercase; }
         textarea { resize: vertical; min-height: 50px; white-space: pre-wrap; }
         input:focus, select:focus, textarea:focus { outline: 1px solid #ffffff; }
         
@@ -457,12 +505,12 @@
         }
         .agenda-content h4 { 
             margin: 0; font-size: 11px; font-weight: 600; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
         }
         .agenda-content p { 
             margin: 2px 0 0 0; font-size: 9px; opacity: 0.85; 
             display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
-            overflow: hidden; text-overflow: ellipsis; white-space: normal; word-break: break-all; text-transform: uppercase; 
+            overflow: hidden; text-overflow: ellipsis; white-space: normal; word-break: break-all; 
         }
         
         .agenda-actions {
@@ -505,6 +553,17 @@
             font-weight: bold;
         }
         .btn-delete:hover { background: #ff5555; color: white; }
+        .btn-order {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffcc00;
+            border: 1px solid #ffcc00;
+            padding: 3px 5px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: bold;
+        }
+        .btn-order:hover { background: #ffcc00; color: black; }
 
         .btn-overflow-more {
             display: block;
@@ -587,13 +646,11 @@
             margin: 6px 0;
             font-size: 11px;
             white-space: pre-wrap;
-            text-transform: uppercase;
         }
         .modal-body strong {
             color: var(--muted-gray);
             font-size: 9px;
             display: block;
-            text-transform: uppercase;
         }
 
         .editable-pill-container {
@@ -681,23 +738,23 @@
             <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
             <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
         </svg>
-        <h3>SYSTEM ACCESS</h3>
+        <h3>system access</h3>
         <div class="form-group" style="text-align: left;">
-            <label>Email Address</label>
+            <label>email address</label>
             <input type="email" id="authEmail" placeholder="your@email.com">
         </div>
         <div class="form-group" style="text-align: left; margin-bottom: 12px;">
-            <label>Password</label>
+            <label>password</label>
             <input type="password" id="authPassword" placeholder="••••••••">
         </div>
-        <button class="btn-submit" style="width: 100%; padding: 10px;" onclick="handleLogin()">Sign In to Vault</button>
+        <button class="btn-submit" style="width: 100%; padding: 10px;" onclick="handleLogin()">sign in to vault</button>
         <div id="authErrorMsg"></div>
     </div>
 </div>
 
 <div class="container">
     <div class="yorushika-header desktop-full-span">
-        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        <button class="btn-logout" onclick="handleLogout()">logout</button>
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
             <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
@@ -705,106 +762,113 @@
             <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
         </svg>
         <p class="jp-title-logo">ヨルシカ</p>
-        <span class="sub-tag">Music & Schedule Archive</span>
+        <span class="sub-tag">music & schedule archive</span>
     </div>
     
     <div class="desktop-calendar-column">
-        <h2>Calendar</h2>
+        <h2>calendar</h2>
         <div class="calendar-nav">
             <button onclick="changeMonth(-1)">◀</button>
-            <h3 id="monthYearDisplay"></h3>
+            <div class="calendar-nav-center">
+                <h3 id="monthYearDisplay"></h3>
+                <button class="btn-calendar-today" onclick="goToCurrentMonth()">today</button>
+            </div>
             <button onclick="changeMonth(1)">▶</button>
         </div>
 
         <div class="weekdays">
-            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            <div>sun</div><div>mon</div><div>tue</div><div>wed</div><div>thu</div><div>fri</div><div>sat</div>
         </div>
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
+    <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ create entry</button>
 
     <!-- Desktop Column: ALWAYS New Entry Form -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
-        <h4>+ Create Entry</h4>
+        <h4>+ create entry</h4>
         <div class="form-group">
-            <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
-            <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
+            <label>title (tip: use '10am', '.projectA' inside title)</label>
+            <input type="text" id="title" placeholder="e.g., spring thief jam 10am .blender">
         </div>
         <div class="form-group">
-            <label>Description / Note (Optional)</label>
-            <textarea id="description" placeholder="Short detail or sub-note..."></textarea>
+            <label>description / note (optional)</label>
+            <textarea id="description" placeholder="short detail or sub-note..."></textarea>
         </div>
         <div class="form-group">
-            <label>Type</label>
+            <label>type</label>
             <select id="type" onchange="handleTypeChange()">
-                <option value="Event">Event</option>
-                <option value="Task">Task (With checkmark)</option>
-                <option value="Birthday">Birthday (Recurring Yearly)</option>
-                <option value="Habit">Habit / Recurring</option>
+                <option value="Event">event</option>
+                <option value="Task">task (with checkmark)</option>
+                <option value="Birthday">birthday (recurring yearly)</option>
+                <option value="Habit">habit / recurring</option>
             </select>
         </div>
         <div class="form-group" id="dateGroup">
-            <label id="dateLabel">Date (Leave blank for Inbox)</label>
-            <input type="date" id="date">
+            <label id="dateLabel">date (leave blank for inbox)</label>
+            <div class="date-input-wrapper">
+                <input type="date" id="date" onchange="updateDateActionBtn('date', 'dateActionButton')">
+                <button type="button" id="dateActionButton" class="btn-date-action" onclick="handleDateActionBtn('date', 'dateActionButton')">today</button>
+            </div>
         </div>
         <div class="form-group" id="priorityGroup">
-            <label>Priority Tagging</label>
+            <label>priority tagging</label>
             <select id="priority">
-                <option value="personal">Personal (Mint Green)</option>
-                <option value="professional">Professional (Maroon)</option>
-                <option value="daily">Daily (Ink Charcoal)</option>
+                <option value="personal">personal (mint green)</option>
+                <option value="professional">professional (maroon)</option>
+                <option value="daily">daily (ink charcoal)</option>
             </select>
         </div>
         <div class="form-group" id="timeblockGroup">
-            <label>Timeblock Tagging</label>
+            <label>timeblock tagging</label>
             <select id="timeblock">
-                <option value="morning">3am - 9am (Golden Dawn)</option>
-                <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
-                <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                <option value="none" selected>none (slate grey)</option>
+                <option value="morning">3am - 9am (golden dawn)</option>
+                <option value="work">9am - 5pm (summer canopy / olive)</option>
+                <option value="night">5pm - 10pm (japanese indigo)</option>
             </select>
         </div>
         <div class="form-buttons">
-            <button class="btn-reset" onclick="resetForm()">Reset</button>
-            <button class="btn-submit" onclick="saveSchedule()">Save Entry</button>
+            <button class="btn-reset" onclick="resetForm()">reset</button>
+            <button class="btn-submit" onclick="saveSchedule()">save entry</button>
         </div>
     </div>
 
     <div class="desktop-agenda-column">
         <div class="agenda-list">
             <div class="agenda-header-row">
-                <h4>📋 Schedule</h4>
+                <h4>📋 schedule</h4>
                 <div class="agenda-controls">
                     <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
-                        <option value="timeblock">Sort: Timeblock</option>
-                        <option value="priority">Sort: Priority</option>
-                        <option value="type">Sort: Type</option>
+                        <option value="timeblock">sort: timeblock</option>
+                        <option value="priority">sort: priority</option>
+                        <option value="type">sort: type</option>
                     </select>
-                    <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+                    <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">show all</button>
                 </div>
             </div>
 
             <div class="archive-windows-nav">
                 <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
-                    🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                    🎂 birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
-                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
+                    🔁 habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
-                    🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
+                    🕰️ skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
                 </button>
                 <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">
-                    🏷️ Labels <span id="labelBadgeCount" class="nav-counter-badge">0</span>
+                    🏷️ labels <span id="labelBadgeCount" class="nav-counter-badge">0</span>
                 </button>
             </div>
 
-            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
+            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">no entries recorded yet.</div>
             <div id="dumplistContainer"></div>
         </div>
     </div>
 
-    <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
+    <div id="dbStatus" class="desktop-full-span">menghubungkan ke supabase cloud...</div>
 
     <div class="footer-tag desktop-full-span">
         <span>― 夜을歩く者のための記録 ―</span>
@@ -815,52 +879,56 @@
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <span id="modalFormHeaderTitle">Create Entry</span>
+            <span id="modalFormHeaderTitle">create entry</span>
             <button class="modal-close" onclick="closeFormModal()">×</button>
         </div>
         <div class="modal-scroll-body">
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
-                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
+                    <label>title (tip: use '10am', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., spring thief jam 10am .blender">
                 </div>
                 <div class="form-group">
-                    <label>Description / Note (Optional)</label>
-                    <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
+                    <label>description / note (optional)</label>
+                    <textarea id="m_description" placeholder="short detail or sub-note..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Type</label>
+                    <label>type</label>
                     <select id="m_type" onchange="m_handleTypeChange()">
-                        <option value="Event">Event</option>
-                        <option value="Task">Task (With checkmark)</option>
-                        <option value="Birthday">Birthday (Recurring Yearly)</option>
-                        <option value="Habit">Habit / Recurring</option>
+                        <option value="Event">event</option>
+                        <option value="Task">task (with checkmark)</option>
+                        <option value="Birthday">birthday (recurring yearly)</option>
+                        <option value="Habit">habit / recurring</option>
                     </select>
                 </div>
                 <div class="form-group" id="m_dateGroup">
-                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
-                    <input type="date" id="m_date">
+                    <label id="m_dateLabel">date (leave blank for inbox)</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="m_date" onchange="updateDateActionBtn('m_date', 'm_dateActionButton')">
+                        <button type="button" id="m_dateActionButton" class="btn-date-action" onclick="handleDateActionBtn('m_date', 'm_dateActionButton')">today</button>
+                    </div>
                 </div>
                 <div class="form-group" id="m_priorityGroup">
-                    <label>Priority Tagging</label>
+                    <label>priority tagging</label>
                     <select id="m_priority">
-                        <option value="personal">Personal (Mint Green)</option>
-                        <option value="professional">Professional (Maroon)</option>
-                        <option value="daily">Daily (Ink Charcoal)</option>
+                        <option value="personal">personal (mint green)</option>
+                        <option value="professional">professional (maroon)</option>
+                        <option value="daily">daily (ink charcoal)</option>
                     </select>
                 </div>
                 <div class="form-group" id="m_timeblockGroup">
-                    <label>Timeblock Tagging</label>
+                    <label>timeblock tagging</label>
                     <select id="m_timeblock">
-                        <option value="morning">3am - 9am (Golden Dawn)</option>
-                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
-                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                        <option value="none" selected>none (slate grey)</option>
+                        <option value="morning">3am - 9am (golden dawn)</option>
+                        <option value="work">9am - 5pm (summer canopy / olive)</option>
+                        <option value="night">5pm - 10pm (japanese indigo)</option>
                     </select>
                 </div>
                 <div class="form-buttons">
-                    <button class="btn-reset" onclick="m_resetForm()">Reset</button>
-                    <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button>
+                    <button class="btn-reset" onclick="m_resetForm()">reset</button>
+                    <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">save entry</button>
                 </div>
             </div>
         </div>
@@ -870,27 +938,31 @@
 <div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <span>🔁 Assign Habit to Schedule</span>
+            <span>🔁 assign habit to schedule</span>
             <button class="modal-close" onclick="closeAssignModal()">×</button>
         </div>
         <div class="modal-scroll-body">
             <div style="padding: 2px;">
                 <input type="hidden" id="assignEntryId">
                 <div class="form-group">
-                    <label>Target Date</label>
-                    <input type="date" id="assignDate">
+                    <label>target date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="assignDate" onchange="updateDateActionBtn('assignDate', 'assignDateActionButton')">
+                        <button type="button" id="assignDateActionButton" class="btn-date-action" onclick="handleDateActionBtn('assignDate', 'assignDateActionButton')">today</button>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Timeblock Tagging</label>
+                    <label>timeblock tagging</label>
                     <select id="assignTimeblock">
-                        <option value="morning">3am - 9am (Golden Dawn)</option>
-                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
-                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                        <option value="none" selected>none (slate grey)</option>
+                        <option value="morning">3am - 9am (golden dawn)</option>
+                        <option value="work">9am - 5pm (summer canopy / olive)</option>
+                        <option value="night">5pm - 10pm (japanese indigo)</option>
                     </select>
                 </div>
                 <div class="form-buttons">
-                    <button class="btn-reset" onclick="closeAssignModal()">Cancel</button>
-                    <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button>
+                    <button class="btn-reset" onclick="closeAssignModal()">cancel</button>
+                    <button class="btn-submit" onclick="executeAssignHabit()">confirm assign</button>
                 </div>
             </div>
         </div>
@@ -900,7 +972,7 @@
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <span id="modalTitleText">Entry Detail</span>
+            <span id="modalTitleText">entry detail</span>
             <button class="modal-close" onclick="closeDetailModal()">×</button>
         </div>
         <div class="modal-scroll-body">
@@ -912,7 +984,7 @@
 <div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header" id="directoryModalHeader">
-            <span id="directoryModalTitle">Directory</span>
+            <span id="directoryModalTitle">directory</span>
             <button class="modal-close" onclick="closeDirectoryModal()">×</button>
         </div>
         <div class="modal-scroll-body">
@@ -925,7 +997,6 @@
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
-    // Ubah persistSession menjadi true agar sesi login tersimpan di browser
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true },
         db: { schema: 'public' },
@@ -934,15 +1005,50 @@
 
     let schedules = [];
     let selectedFilterDate = null;
+    let isHabitOrderMode = false;
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
-    const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
+    const timeblockColors = { none: '#555555', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
     
-    const timeblockOrder = { morning: 1, work: 2, night: 3 };
+    // Timeblock order: 'none' (when matching today/specific date) gets highest priority, then morning, work, night
+    const timeblockOrder = { none: 0, morning: 1, work: 2, night: 3 };
     const priorityOrder = { professional: 1, daily: 2, personal: 3 };
     const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
 
     let currentDate = new Date();
+
+    function getTodayString() {
+        const nowLocal = new Date();
+        return `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+    }
+
+    function updateDateActionBtn(inputId, btnId) {
+        const inputVal = document.getElementById(inputId).value;
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        if (inputVal) {
+            btn.innerText = '×';
+            btn.classList.add('delete-mode');
+            btn.title = 'clear date';
+        } else {
+            btn.innerText = 'today';
+            btn.classList.remove('delete-mode');
+            btn.title = 'set to today';
+        }
+    }
+
+    function handleDateActionBtn(inputId, btnId) {
+        const input = document.getElementById(inputId);
+        const btn = document.getElementById(btnId);
+        if (!input || !btn) return;
+
+        if (input.value) {
+            input.value = '';
+        } else {
+            input.value = getTodayString();
+        }
+        updateDateActionBtn(inputId, btnId);
+    }
 
     // Fungsi Login & Logout Handlers
     async function handleLogin() {
@@ -951,11 +1057,11 @@
         const errorEl = document.getElementById('authErrorMsg');
 
         if (!email || !password) {
-            errorEl.innerText = 'Email and password required!';
+            errorEl.innerText = 'email and password required!';
             return;
         }
 
-        errorEl.innerText = 'Authenticating...';
+        errorEl.innerText = 'authenticating...';
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
         if (error) {
@@ -998,7 +1104,6 @@
         }
     }
 
-    // ESC key listener to close active modals
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             ['formModal', 'assignModal', 'detailModal', 'directoryModal'].forEach(modalId => {
@@ -1054,7 +1159,7 @@
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
             dateGrp.style.display = 'block';
-            dateLbl.innerText = 'Birthday Date (DD/MM)';
+            dateLbl.innerText = 'birthday date (dd/mm)';
             dateInput.type = 'date';
         } else if (typeVal === 'Habit') {
             priorityGrp.style.display = 'block';
@@ -1064,7 +1169,7 @@
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
             dateGrp.style.display = 'block';
-            dateLbl.innerText = 'Date (Leave blank for Inbox)';
+            dateLbl.innerText = 'date (leave blank for inbox)';
             dateInput.type = 'date';
         }
     }
@@ -1081,7 +1186,7 @@
             priorityGrp.style.display = 'none';
             timeblockGrp.style.display = 'none';
             dateGrp.style.display = 'block';
-            dateLbl.innerText = 'Birthday Date (DD/MM)';
+            dateLbl.innerText = 'birthday date (dd/mm)';
             dateInput.type = 'date';
         } else if (typeVal === 'Habit') {
             priorityGrp.style.display = 'block';
@@ -1091,14 +1196,14 @@
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
             dateGrp.style.display = 'block';
-            dateLbl.innerText = 'Date (Leave blank for Inbox)';
+            dateLbl.innerText = 'date (leave blank for inbox)';
             dateInput.type = 'date';
         }
     }
 
     async function fetchSchedules() {
         const statusEl = document.getElementById('dbStatus');
-        statusEl.innerText = 'Menghubungkan ke Supabase Cloud...';
+        statusEl.innerText = 'menghubungkan ke supabase cloud...';
         statusEl.style.color = '#e6e6e6';
 
         try {
@@ -1121,13 +1226,13 @@
                 throw error;
             }
 
-            statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
+            statusEl.innerText = '☁️ terhubung ke supabase cloud (live)';
             statusEl.style.color = '#55ff55';
             schedules = data || [];
             localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
         } catch (err) {
             console.warn('Supabase fetch error/timeout:', err);
-            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline / Cached Mode)';
+            statusEl.innerText = '⚠️ gagal terhubung ke cloud (offline / cached mode)';
             statusEl.style.color = '#ff5555';
             schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
         }
@@ -1137,8 +1242,7 @@
     }
 
     function updateArchiveCounters() {
-        const nowLocal = new Date();
-        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        const todayStr = getTodayString();
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const habitCount = schedules.filter(s => s.type === 'Habit').length;
@@ -1166,22 +1270,33 @@
 
     function sortItems(items) {
         const sortBy = document.getElementById('sortBySelect').value;
+        const todayStr = getTodayString();
+
         return [...items].sort((a, b) => {
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
 
+            // Rule: 'none' timeblock on today or specific date has higher priority over morning/work/night
+            const getEffectiveTbOrder = (item) => {
+                let tb = item.timeblock || 'none';
+                if (tb === 'none' && item.date && item.date >= todayStr) {
+                    return -1; // highest priority
+                }
+                return timeblockOrder[tb] ?? 2;
+            };
+
             if (sortBy === 'priority') {
                 let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
                 if (pDiff !== 0) return pDiff;
-                return (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                return getEffectiveTbOrder(a) - getEffectiveTbOrder(b);
             } else if (sortBy === 'type') {
                 let tDiff = (typeOrder[a.type] || 2) - (typeOrder[b.type] || 2);
                 if (tDiff !== 0) return tDiff;
-                let tbDiff = (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                let tbDiff = getEffectiveTbOrder(a) - getEffectiveTbOrder(b);
                 if (tbDiff !== 0) return tbDiff;
                 return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
             } else {
-                let tbDiff = (timeblockOrder[a.timeblock] || 2) - (timeblockOrder[b.timeblock] || 2);
+                let tbDiff = getEffectiveTbOrder(a) - getEffectiveTbOrder(b);
                 if (tbDiff !== 0) return tbDiff;
                 return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
             }
@@ -1192,7 +1307,7 @@
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
 
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
         document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
@@ -1203,8 +1318,7 @@
             gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
         }
 
-        const nowLocal = new Date();
-        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        const todayStr = getTodayString();
 
         for (let day = 1; day <= totalDays; day++) {
             const formattedMonth = String(month + 1).padStart(2, '0');
@@ -1226,10 +1340,10 @@
 
             let badgesHTML = '';
             daySchedules.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 
                 const isPast = s.date && s.date < todayStr;
                 const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
@@ -1256,9 +1370,16 @@
         renderCalendar();
     }
 
+    function goToCurrentMonth() {
+        currentDate = new Date();
+        renderCalendar();
+    }
+
     function handleGridCellClick(dateStr) {
         document.getElementById('date').value = dateStr;
+        updateDateActionBtn('date', 'dateActionButton');
         document.getElementById('m_date').value = dateStr;
+        updateDateActionBtn('m_date', 'm_dateActionButton');
         selectedFilterDate = dateStr;
         renderAgendaList();
     }
@@ -1273,8 +1394,9 @@
         document.getElementById('description').value = '';
         document.getElementById('type').value = 'Event';
         document.getElementById('date').value = '';
+        updateDateActionBtn('date', 'dateActionButton');
         document.getElementById('priority').value = 'personal';
-        document.getElementById('timeblock').value = 'morning';
+        document.getElementById('timeblock').value = 'none';
         handleTypeChange();
     }
 
@@ -1284,11 +1406,12 @@
         document.getElementById('m_description').value = '';
         document.getElementById('m_type').value = 'Event';
         document.getElementById('m_date').value = '';
+        updateDateActionBtn('m_date', 'm_dateActionButton');
         document.getElementById('m_priority').value = 'personal';
-        document.getElementById('m_timeblock').value = 'morning';
+        document.getElementById('m_timeblock').value = 'none';
         m_handleTypeChange();
-        document.getElementById('modalFormHeaderTitle').innerText = 'Create Entry';
-        document.getElementById('m_submitBtn').innerText = 'Save Entry';
+        document.getElementById('modalFormHeaderTitle').innerText = 'create entry';
+        document.getElementById('m_submitBtn').innerText = 'save entry';
     }
 
     function openFormModal() {
@@ -1317,17 +1440,17 @@
         }
 
         let priority = document.getElementById('priority').value;
-        let timeblock = type === 'Habit' ? 'morning' : document.getElementById('timeblock').value;
+        let timeblock = type === 'Habit' ? 'none' : document.getElementById('timeblock').value;
         let recurring = 'none';
 
         if (type === 'Birthday') {
             recurring = 'yearly';
             priority = 'personal';
-            timeblock = 'morning';
+            timeblock = 'none';
         }
 
         if (!rawInputTitle) {
-            alert('Title is required!');
+            alert('title is required!');
             return;
         }
 
@@ -1338,7 +1461,7 @@
             resetForm();
             fetchSchedules();
         } else {
-            alert('Failed to save entry: ' + (error.message || 'Unknown error'));
+            alert('failed to save entry: ' + (error.message || 'unknown error'));
         }
     }
 
@@ -1362,17 +1485,17 @@
         }
 
         let priority = document.getElementById('m_priority').value;
-        let timeblock = type === 'Habit' ? 'morning' : document.getElementById('m_timeblock').value;
+        let timeblock = type === 'Habit' ? 'none' : document.getElementById('m_timeblock').value;
         let recurring = 'none';
 
         if (type === 'Birthday') {
             recurring = 'yearly';
             priority = 'personal';
-            timeblock = 'morning';
+            timeblock = 'none';
         }
 
         if (!rawInputTitle) {
-            alert('Title is required!');
+            alert('title is required!');
             return;
         }
 
@@ -1441,13 +1564,14 @@
             } else {
                 document.getElementById('m_date').value = item.date || '';
             }
+            updateDateActionBtn('m_date', 'm_dateActionButton');
 
             document.getElementById('m_priority').value = item.priority;
-            document.getElementById('m_timeblock').value = item.timeblock;
+            document.getElementById('m_timeblock').value = item.timeblock || 'none';
             
             m_handleTypeChange();
-            document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
-            document.getElementById('m_submitBtn').innerText = 'Update Entry';
+            document.getElementById('modalFormHeaderTitle').innerText = 'edit / reschedule';
+            document.getElementById('m_submitBtn').innerText = 'update entry';
             showModal('formModal');
         }
     }
@@ -1457,10 +1581,10 @@
         hideModal('directoryModal');
         document.getElementById('assignEntryId').value = id;
         
-        const nowLocal = new Date();
-        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        const todayStr = getTodayString();
         document.getElementById('assignDate').value = todayStr;
-        document.getElementById('assignTimeblock').value = 'morning';
+        updateDateActionBtn('assignDate', 'assignDateActionButton');
+        document.getElementById('assignTimeblock').value = 'none';
 
         showModal('assignModal');
     }
@@ -1475,13 +1599,13 @@
         const targetTimeblock = document.getElementById('assignTimeblock').value;
 
         if (!targetDate) {
-            alert('Please select a target date!');
+            alert('please select a target date!');
             return;
         }
 
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) {
-            alert('Habit tidak ditemukan.');
+            alert('habit tidak ditemukan.');
             return;
         }
 
@@ -1504,7 +1628,7 @@
             fetchSchedules();
         } else {
             console.error('Supabase Error:', error);
-            alert('Failed to assign habit: ' + (error.message || 'Unknown error'));
+            alert('failed to assign habit: ' + (error.message || 'unknown error'));
         }
     }
 
@@ -1520,10 +1644,43 @@
 
     async function deleteSchedule(id, event) {
         event.stopPropagation();
-        if (confirm('Delete this entry?')) {
+        if (confirm('delete this entry?')) {
             const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
             if (!error) fetchSchedules();
         }
+    }
+
+    async function moveHabitOrder(id, direction, event) {
+        event.stopPropagation();
+        const habits = schedules.filter(s => s.type === 'Habit');
+        habits.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+
+        const index = habits.findIndex(h => String(h.id) === String(id));
+        if (index === -1) return;
+
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= habits.length) return;
+
+        // Swap titles or custom ordering (since order isn't a dedicated column yet, we swap titles/identifiers or handle UI re-render)
+        // To implement persistence for manual order, let's swap the titles between the two habits
+        let tempTitle = habits[index].title;
+        let tempDesc = habits[index].description;
+        let tempPriority = habits[index].priority;
+
+        habits[index].title = habits[targetIndex].title;
+        habits[index].description = habits[targetIndex].description;
+        habits[index].priority = habits[targetIndex].priority;
+
+        habits[targetIndex].title = tempTitle;
+        habits[targetIndex].description = tempDesc;
+        habits[targetIndex].priority = tempPriority;
+
+        // Update both in database
+        await supabaseClient.from('schedules').update({ title: habits[index].title, description: habits[index].description, priority: habits[index].priority }).eq('id', habits[index].id);
+        await supabaseClient.from('schedules').update({ title: habits[targetIndex].title, description: habits[targetIndex].description, priority: habits[targetIndex].priority }).eq('id', habits[targetIndex].id);
+
+        await fetchSchedules();
+        openDirectoryModal('habits');
     }
 
     async function removeTagFromItem(id, tagToRemove, event) {
@@ -1551,9 +1708,9 @@
 
         const parsed = parseTodoistTitle(item.title);
         let itemDesc = item.description ? item.description : '-';
-        let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
-        let itemTimeblock = (item.type === 'Birthday' || item.type === 'Habit') ? 'N/A' : item.timeblock;
-        let itemStatus = item.completed ? 'Completed' : 'Pending';
+        let itemPriority = item.type === 'Birthday' ? 'birthday' : item.priority;
+        let itemTimeblock = (item.type === 'Birthday' || item.type === 'Habit') ? 'n/a' : (item.timeblock || 'none');
+        let itemStatus = item.completed ? 'completed' : 'pending';
 
         let displayDate = item.date;
         if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
@@ -1566,27 +1723,27 @@
         let pillHTML = '';
         if (parsed.timeTags.length > 0) {
             parsed.timeTags.forEach(t => { 
-                pillHTML += `<span class="editable-pill time-pill">⏱️ ${t} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${t}', event)" title="Remove time">×</span></span>`; 
+                pillHTML += `<span class="editable-pill time-pill">⏱️ ${t} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${t}', event)" title="remove time">×</span></span>`; 
             });
         }
         if (parsed.labelTags.length > 0) {
             parsed.labelTags.forEach(l => {
-                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
+                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${l}', event)" title="remove label">×</span></span>`;
             });
         }
-        if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
+        if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">no tags / labels</span>';
 
         let detailTypeLabel = item.type;
         if (item.isHabitInstance) detailTypeLabel = 'Habit';
 
         document.getElementById('modalTitleText').innerText = `[${detailTypeLabel}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
-            <p><strong>Date</strong> ${displayDate ? displayDate : 'Habit / Master Inbox'}</p>
-            <p><strong>Description / Note</strong> ${itemDesc}</p>
-            <p><strong>Priority Tag</strong> ${itemPriority}</p>
-            <p><strong>Timeblock</strong> ${itemTimeblock}</p>
-            <p><strong>Status</strong> ${itemStatus}</p>
-            <p><strong>Discord-style Badges & Labels</strong></p>
+            <p><strong>date</strong> ${displayDate ? displayDate : 'habit / master inbox'}</p>
+            <p><strong>description / note</strong> ${itemDesc}</p>
+            <p><strong>priority tag</strong> ${itemPriority}</p>
+            <p><strong>timeblock</strong> ${itemTimeblock}</p>
+            <p><strong>status</strong> ${itemStatus}</p>
+            <p><strong>discord-style badges & labels</strong></p>
             <div class="editable-pill-container">${pillHTML}</div>
         `;
         showModal('detailModal');
@@ -1598,18 +1755,20 @@
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const modalHeaderEl = document.getElementById('directoryModalHeader');
-        const nowLocal = new Date();
-        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        const todayStr = getTodayString();
 
         let headerActionsHTML = '';
+        if (typeKey === 'habits') {
+            headerActionsHTML += `<button class="btn-order" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleHabitOrderMode()">${isHabitOrderMode ? 'done ordering' : 'edit order'}</button>`;
+        }
         if (typeKey === 'collections' && targetParam !== null) {
-            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← back</button>`;
         }
         headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
         let html = '';
         if (typeKey === 'birthdays') {
-            modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
+            modalTitle.innerText = '🎂 birthdays directory';
             let birthdays = schedules.filter(s => s.type === 'Birthday');
             
             birthdays.sort((a, b) => {
@@ -1622,79 +1781,76 @@
             });
 
             if (birthdays.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>';
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">no birthdays recorded.</div>';
             } else {
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'habits') {
-            modalTitle.innerText = '🔁 HABITS DIRECTORY';
-            const habits = schedules.filter(s => s.type === 'Habit');
-            if (habits.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
-            } else {
-                const priorityGroups = [
-                    { key: 'professional', label: 'Professional' },
-                    { key: 'daily', label: 'Daily' },
-                    { key: 'personal', label: 'Personal' }
-                ];
+            modalTitle.innerText = '🔁 habits directory';
+            let habits = schedules.filter(s => s.type === 'Habit');
+            
+            // Sort habits alphabetically by title (ascending)
+            habits.sort((a, b) => {
+                const titleA = parseTodoistTitle(a.title).cleanTitle;
+                const titleB = parseTodoistTitle(b.title).cleanTitle;
+                return titleA.localeCompare(titleB);
+            });
 
-                priorityGroups.forEach(group => {
-                    const groupItems = habits.filter(h => h.priority === group.key);
-                    if (groupItems.length > 0) {
-                        html += `<div class="section-category-box"><div class="section-category-title"><span>📌 ${group.label} Habits</span><span>[${groupItems.length}]</span></div>`;
-                        groupItems.forEach(s => {
-                            let solidBg = priorityColors[s.priority] || '#333';
-                            html += renderHabitCardHTML(s, solidBg);
-                        });
-                        html += `</div>`;
-                    }
+            if (habits.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">no habits recorded.</div>';
+            } else {
+                html += `<div class="section-category-box"><div class="section-category-title"><span>📌 all habits (alphabetical)</span><span>[${habits.length}]</span></div>`;
+                habits.forEach(s => {
+                    let solidBg = priorityColors[s.priority] || '#333';
+                    html += renderHabitCardHTML(s, solidBg);
                 });
+                html += `</div>`;
             }
         } else if (typeKey === 'skipped') {
-            modalTitle.innerText = '🕰️ SKIPPED TASKS';
+            modalTitle.innerText = '🕰️ skipped tasks';
             const skipped = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">no skipped past tasks. clean slate!</div>';
             } else {
                 skipped.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
         } else if (typeKey === 'today_overflow') {
-            modalTitle.innerText = '📌 TODAY (FULL LIST)';
+            modalTitle.innerText = '📌 today (full list)';
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
             todayItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'upcoming_overflow') {
-            modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
-            const tomorrow = new Date(nowLocal);
+            modalTitle.innerText = '🚀 upcoming (full list)';
+            const tomorrow = new Date(todayStr);
             tomorrow.setDate(tomorrow.getDate() + 1);
             const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
             const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
             upcomingItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'inbox_overflow') {
-            modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
+            modalTitle.innerText = '📥 inbox / dumplist (full list)';
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             inboxItems.forEach(s => {
-                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 html += renderCardHTML(s, bgStyle);
             });
         } else if (typeKey === 'collections') {
             if (!targetParam) {
-                modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
+                modalTitle.innerText = '🏷️ labels & collections';
                 let labelMap = {};
                 schedules.forEach(s => {
                     const parsed = parseTodoistTitle(s.title);
@@ -1705,28 +1861,28 @@
                 });
                 const keys = Object.keys(labelMap);
                 if (keys.length === 0) {
-                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found. Use .label in title.</div>';
+                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">no labels found. use .label in title.</div>';
                 } else {
                     keys.forEach(l => {
                         html += `
                             <div class="agenda-item" style="background: #141414; margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
                                 <div class="agenda-content">
                                     <h4>🏷️ ${l}</h4>
-                                    <p>Total items: ${labelMap[l].length}</p>
+                                    <p>total items: ${labelMap[l].length}</p>
                                 </div>
-                                <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                                <div class="agenda-actions"><span style="font-size:10px; color:#fff;">view →</span></div>
                             </div>
                         `;
                     });
                 }
             } else {
-                modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
+                modalTitle.innerText = `🏷️ label: ${targetParam}`;
                 const matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
                 matched.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
@@ -1737,10 +1893,21 @@
         showModal('directoryModal');
     }
 
-    function closeDirectoryModal() { hideModal('directoryModal'); }
+    function toggleHabitOrderMode() {
+        isHabitOrderMode = !isHabitOrderMode;
+        openDirectoryModal('habits');
+    }
+
+    function closeDirectoryModal() { 
+        isHabitOrderMode = false;
+        hideModal('directoryModal'); 
+    }
 
     function closeModal(event, modalId) {
-        if (event.target.id === modalId) { hideModal(modalId); }
+        if (event.target.id === modalId) { 
+            if (modalId === 'directoryModal') isHabitOrderMode = false;
+            hideModal(modalId); 
+        }
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
@@ -1754,7 +1921,7 @@
             displayDate = formatDateDDMM(s.date);
         }
 
-        let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock}`);
+        let tagDisplay = isBirthdayDirectory ? displayDate : (s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock || 'none'}`);
 
         const parsed = parseTodoistTitle(s.title);
         let pillsHTML = '';
@@ -1767,10 +1934,10 @@
         let finalCardBg = bgStyle;
 
         if (s.isHabitInstance) {
-            typePrefix = '[HABIT]';
-            finalCardBg = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+            typePrefix = '[habit]';
+            finalCardBg = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
         } else if (s.type === 'Habit') {
-            typePrefix = '[HABIT]';
+            typePrefix = '[habit]';
         }
 
         return `
@@ -1783,8 +1950,8 @@
                 </div>
                 <div class="agenda-actions">
                     ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
-                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
-                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">edit</button>
+                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">x</button>
                 </div>
             </div>
         `;
@@ -1796,18 +1963,30 @@
         parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
 
+        let actionButtonsHTML = '';
+        if (isHabitOrderMode) {
+            actionButtonsHTML = `
+                <button class="btn-order" onclick="moveHabitOrder('${s.id}', -1, event)">▲</button>
+                <button class="btn-order" onclick="moveHabitOrder('${s.id}', 1, event)">▼</button>
+            `;
+        } else {
+            actionButtonsHTML = `
+                <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">assign</button>
+                <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">edit</button>
+                <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">x</button>
+            `;
+        }
+
         return `
             <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
-                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    <h4>[habit] ${parsed.cleanTitle}</h4>
                     ${descHTML}
-                    <p>🏷️ Priority: ${s.priority}</p>
+                    <p>🏷️ priority: ${s.priority}</p>
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
-                    <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">Assign</button>
-                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
-                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                    ${actionButtonsHTML}
                 </div>
             </div>
         `;
@@ -1816,15 +1995,14 @@
     function renderAgendaList() {
         const container = document.getElementById('agendaContainer');
         const dumplistContainer = document.getElementById('dumplistContainer');
-        const nowLocal = new Date();
-        const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+        const todayStr = getTodayString();
 
-        const tomorrow = new Date(nowLocal);
+        const tomorrow = new Date(todayStr);
         tomorrow.setDate(tomorrow.getDate() + 1);
         const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
         if (schedules.length === 0) {
-            container.innerHTML = 'No entries recorded yet.';
+            container.innerHTML = 'no entries recorded yet.';
             dumplistContainer.innerHTML = '';
             return;
         }
@@ -1834,11 +2012,11 @@
             let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
             
             if (filteredItems.length === 0) {
-                container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;
+                container.innerHTML = `<div style="text-align: center; padding: 10px;">no entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;
             } else {
-                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filteredItems.length}]</span></div>`;
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 filtered date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filteredItems.length}]</span></div>`;
                 filteredItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
@@ -1854,26 +2032,26 @@
 
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
             if (todayItems.length > 0) {
-                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 today (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
                 const displayToday = todayItems.slice(0, 5);
                 displayToday.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
                 });
                 if (todayItems.length > 5) {
-                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                    htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in today...</button>`;
                 }
                 htmlMain += `</div>`;
             }
 
             const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
             if (upcomingItems.length > 0) {
-                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 upcoming (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
                 const displayUpcoming = upcomingItems.slice(0, 5);
                 displayUpcoming.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#333'})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
@@ -1885,18 +2063,44 @@
             }
 
             if (!htmlMain) {
-                htmlMain = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today or tomorrow. Click any date on calendar.</div>`;
+                htmlMain = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">no tasks scheduled for today or tomorrow. click any date on calendar.</div>`;
             }
             container.innerHTML = htmlMain;
 
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             if (inboxItems.length > 0) {
-                let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
+                let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 inbox / dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
                 displayInbox.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    // Dumplist card background: gradient from priority color to slate grey (none)
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors['none']})`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    inboxHTML += renderCardHTML(s, bgStyle);
+                    
+                    const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+                    let displayDate = s.date ? formatDateDDMM(s.date) : 'inbox';
+                    let tagDisplay = `${displayDate} | ${s.priority} / none`;
+                    const parsed = parseTodoistTitle(s.title);
+                    let pillsHTML = '';
+                    parsed.timeTags.forEach(t => { pillsHTML += `<span class="discord-pill time-pill">⏱️ ${t}</span>`; });
+                    parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+                    let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
+
+                    inboxHTML += `
+                        <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
+                            <div class="agenda-content">
+                                <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                                ${descHTML}
+                                <p>🏷️ ${tagDisplay}</p>
+                                ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                            </div>
+                            <div class="agenda-actions">
+                                <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">assign</button>
+                                ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                                <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">edit</button>
+                                <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">x</button>
+                            </div>
+                        </div>
+                    `;
                 });
                 if (inboxItems.length > 5) {
                     inboxHTML += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 5} more inbox items...</button>`;
@@ -1913,7 +2117,6 @@
         document.getElementById('formSectionContainer').style.display = 'block';
     }
 
-    // Jalankan pengecekan auth saat halaman dimuat
     checkAuthAndInit();
 </script>
 
