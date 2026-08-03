@@ -2,17 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yorushika Calendar // ヨルシカ</title>
-    
-    <!-- Favicon Standar untuk PC / Browser Desktop -->
     <link rel="icon" type="image/png" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
     
     <!-- PWA Manifest & Icons -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050505%22%2C%22theme_color%22%3A%22%23050505%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F2%2F27%2FYorushika_Logo.jpg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%2C%22purpose%22%3A%22any%20maskable%22%7D%5D%7D">
-    
-    <!-- Apple Touch Icon untuk iOS -->
-    <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/2/27/Yorushika_Logo.jpg">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23050505%22%2C%22theme_color%22%3A%22%23050505%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fyorushika.com%2Fstatic%2Fyorushika%2Fofficial%2Ffeature%2Ftour2022%2Fimages%2Fph_logo_PGWx6f7Q.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <link rel="apple-touch-icon" href="https://yorushika.com/static/yorushika/official/feature/tour2022/images/ph_logo_PGWx6f7Q.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,6 +17,8 @@
 
     <style>
         :root {
+            --forceLowercase: false;
+            --cleanSpacing: true;
             --main-font: 'Syne', sans-serif;
             --bg-pure: #050505;
             --card-bg: #0d0d0d;
@@ -37,86 +35,26 @@
             font-family: var(--main-font);
         }
 
-        html, body {
-            width: 100%;
-            overflow-x: hidden; /* Mencegah scroll horizontal liar */
+        body {
             background-color: var(--bg-pure);
             color: var(--text-main);
             margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
             padding: 12px;
             text-transform: uppercase;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
 
-        /* Mencegah auto-zoom di perangkat mobile saat fokus input (minimal font 16px) */
-        input, select, textarea {
-            font-size: 16px !important;
-        }
-        /* Mengembalikan ukuran teks internal form agar tetap proporsional */
-        @media (min-width: 768px) {
-            input, select, textarea {
-                font-size: 11px !important;
-            }
-        }
-
-        /* Container Login */
-        #authContainer {
-            width: 100%;
-            max-width: 400px;
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 2px;
-            border: 2px solid var(--border-color);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.95);
-            display: block;
-            margin: auto;
-        }
-
-        /* Container Aplikasi Utama (Disembunyikan sebelum login) */
-        #appContainer {
-            display: none;
-            width: 100%;
+        .container {
             max-width: 500px;
+            margin: auto;
             background: var(--card-bg);
             padding: 16px;
             border-radius: 2px;
             border: 2px solid var(--border-color);
             box-shadow: 0 10px 30px rgba(0,0,0,0.95);
-            box-sizing: border-box;
+            display: flex;
             flex-direction: column;
             gap: 16px;
-            margin: auto; /* Memastikan selalu berada di tengah secara horizontal */
         }
-
-        .auth-error {
-            color: #ff5555;
-            font-size: 10px;
-            margin-top: 8px;
-            text-align: center;
-            min-height: 15px;
-        }
-
-        .btn-logout {
-            background: #1a1a1a;
-            color: #ff5555;
-            border: 1px solid var(--border-color);
-            padding: 8px;
-            font-size: 10px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-            letter-spacing: 1px;
-            border-radius: 2px;
-        }
-        .btn-logout:hover { background: #ff5555; color: #ffffff; }
 
         .mobile-create-trigger {
             display: block;
@@ -132,35 +70,23 @@
             cursor: pointer;
             border-radius: 2px;
             margin-bottom: 4px;
-            box-sizing: border-box;
         }
         .mobile-create-trigger:hover { background: #e0e0e0; }
 
-        .btn-notify-trigger {
-            background: var(--discord-badge-bg);
-            color: #ffffff;
-            border: 1px solid var(--discord-badge-border);
-        }
-        .btn-notify-trigger:hover {
-            background: #2b2d31;
-        }
-
         @media (min-width: 1100px) {
-            #appContainer {
+            .container {
                 max-width: 1450px;
-                display: none; /* diatur via JS setelah login */
+                display: grid;
                 grid-template-columns: 420px 1fr 380px;
                 grid-template-rows: auto auto auto;
                 gap: 20px;
                 align-items: start;
-                margin-left: auto;
-                margin-right: auto;
             }
             .desktop-full-span { grid-column: span 3; }
             .desktop-agenda-column { grid-column: 1; grid-row: 2 / span 2; }
             .desktop-calendar-column { grid-column: 2; grid-row: 2 / span 2; }
             .desktop-form-column { grid-column: 3; grid-row: 2 / span 2; margin-top: 0 !important; display: block !important; }
-            .mobile-create-trigger.btn-create-only { display: none !important; }
+            .mobile-create-trigger { display: none !important; }
         }
         
         #dbStatus {
@@ -175,6 +101,7 @@
             text-align: center;
             border-bottom: 2px solid var(--border-color);
             padding-bottom: 12px;
+            position: relative;
         }
         .eye-logo-svg {
             width: 70px;
@@ -193,6 +120,20 @@
             color: var(--muted-gray);
             letter-spacing: 2px;
         }
+
+        .btn-logout {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #ff5555;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            font-size: 9px;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        .btn-logout:hover { background: #ff5555; color: #fff; }
 
         h2 { 
             text-align: center; 
@@ -255,7 +196,6 @@
             flex-direction: column;
             justify-content: space-between;
             overflow: hidden;
-            box-sizing: border-box;
         }
         .day-cell:hover { border-color: #ffffff; background: #111111; }
         .day-cell.today {
@@ -317,7 +257,6 @@
             border: 1px solid var(--border-color);
             border-radius: 2px;
             display: none;
-            box-sizing: border-box;
         }
         .form-section h4 {
             font-size: 15px;
@@ -335,6 +274,7 @@
             color: var(--text-main);
             border-radius: 2px;
             box-sizing: border-box;
+            font-size: 11px;
             text-transform: uppercase;
         }
         select option { text-transform: uppercase; }
@@ -375,7 +315,6 @@
             border: 1px solid var(--border-color);
             border-radius: 2px;
             margin-bottom: 12px;
-            box-sizing: border-box;
         }
         .agenda-header-row {
             display: flex;
@@ -499,7 +438,6 @@
             align-items: center;
             border: 1px solid rgba(255,255,255,0.25);
             cursor: pointer;
-            box-sizing: border-box;
         }
         .agenda-item:hover { border-color: #ffffff; }
         
@@ -534,19 +472,38 @@
             flex-shrink: 0;
         }
         .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; }
-        .btn-assign, .btn-edit, .btn-delete {
+        .btn-assign {
             background: rgba(0, 0, 0, 0.6);
+            color: #4da6ff;
+            border: 1px solid #4da6ff;
             padding: 3px 5px;
             border-radius: 2px;
             cursor: pointer;
             font-size: 8px;
             font-weight: bold;
         }
-        .btn-assign { color: #4da6ff; border: 1px solid #4da6ff; }
         .btn-assign:hover { background: #4da6ff; color: black; }
-        .btn-edit { color: #55ff55; border: 1px solid #55ff55; }
+        .btn-edit {
+            background: rgba(0, 0, 0, 0.6);
+            color: #55ff55;
+            border: 1px solid #55ff55;
+            padding: 3px 5px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: bold;
+        }
         .btn-edit:hover { background: #55ff55; color: black; }
-        .btn-delete { color: #ff5555; border: 1px solid #ff5555; padding: 3px 4px; }
+        .btn-delete {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ff5555;
+            border: 1px solid #ff5555;
+            padding: 3px 4px;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: bold;
+        }
         .btn-delete:hover { background: #ff5555; color: white; }
 
         .btn-overflow-more {
@@ -560,7 +517,6 @@
             text-align: center;
             cursor: pointer;
             margin-top: 4px;
-            box-sizing: border-box;
         }
         .btn-overflow-more:hover { background: #262626; border-color: #fff; }
 
@@ -665,6 +621,44 @@
         }
         .editable-pill .remove-pill:hover { color: #ff6b6b; }
 
+        /* Login Wall Overlay Styles */
+        #authOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(5, 5, 5, 0.96);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+        .auth-box {
+            background: var(--card-bg);
+            border: 2px solid #ffffff;
+            width: 100%;
+            max-width: 380px;
+            padding: 24px;
+            border-radius: 2px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.95);
+            text-align: center;
+        }
+        .auth-box h3 {
+            color: #fff;
+            font-size: 18px;
+            letter-spacing: 2px;
+            margin: 10px 0 15px 0;
+        }
+        #authErrorMsg {
+            font-size: 10px;
+            color: #ff5555;
+            margin-top: 8px;
+            min-height: 15px;
+        }
+
         .footer-tag {
             text-align: center;
             font-size: 11px;
@@ -678,36 +672,32 @@
 </head>
 <body>
 
-<!-- KOTAK LOGIN SUPABASE -->
-<div id="authContainer">
-    <div class="yorushika-header" style="margin-bottom: 15px;">
-        <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+<!-- Login Wall Overlay -->
+<div id="authOverlay" style="display: none;">
+    <div class="auth-box">
+        <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="width: 50px; height: 25px; margin: 0 auto 10px auto; display: block;">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
             <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
             <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
             <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
         </svg>
-        <p class="jp-title-logo">ヨルシカ</p>
-        <span class="sub-tag">Secure Login Required</span>
+        <h3>SYSTEM ACCESS</h3>
+        <div class="form-group" style="text-align: left;">
+            <label>Email Address</label>
+            <input type="email" id="authEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 12px;">
+            <label>Password</label>
+            <input type="password" id="authPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-submit" style="width: 100%; padding: 10px;" onclick="handleLogin()">Sign In to Vault</button>
+        <div id="authErrorMsg"></div>
     </div>
-    
-    <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-            <label for="authEmail">Email</label>
-            <input type="email" id="authEmail" required placeholder="name@domain.com">
-        </div>
-        <div class="form-group">
-            <label for="authPassword">Password</label>
-            <input type="password" id="authPassword" required placeholder="••••••••">
-        </div>
-        <div class="auth-error" id="authErrorMsg"></div>
-        <button type="submit" class="mobile-create-trigger" style="margin-top: 10px;">Login System</button>
-    </form>
 </div>
 
-<!-- KONTEN UTAMA APLIKASI -->
-<div class="container" id="appContainer">
+<div class="container">
     <div class="yorushika-header desktop-full-span">
+        <button class="btn-logout" onclick="handleLogout()">Logout</button>
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
             <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
@@ -717,18 +707,13 @@
         <p class="jp-title-logo">ヨルシカ</p>
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
-
-    <!-- Tombol Logout di Atas -->
-    <div class="desktop-full-span">
-        <button class="btn-logout" onclick="handleLogout()">🔒 Logout Session</button>
-    </div>
     
     <div class="desktop-calendar-column">
         <h2>Calendar</h2>
         <div class="calendar-nav">
-            <button onclick="changeMonth(-1)" aria-label="Previous Month">◀</button>
+            <button onclick="changeMonth(-1)">◀</button>
             <h3 id="monthYearDisplay"></h3>
-            <button onclick="changeMonth(1)" aria-label="Next Month">▶</button>
+            <button onclick="changeMonth(1)">▶</button>
         </div>
 
         <div class="weekdays">
@@ -737,22 +722,21 @@
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <button class="mobile-create-trigger btn-create-only desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
-    <button class="mobile-create-trigger btn-notify-trigger desktop-full-span" onclick="requestNotificationPermission()">🔔 Aktifkan Push Notification</button>
+    <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
-    <!-- Desktop Column: Form Entry -->
+    <!-- Desktop Column: ALWAYS New Entry Form -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4>+ Create Entry</h4>
         <div class="form-group">
-            <label for="title">Title (Tip: Use '07.15am', '2.30pm', '.projectA')</label>
-            <input type="text" id="title" placeholder="e.g., Spring Thief jam 07.15am .blender">
+            <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+            <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
         </div>
         <div class="form-group">
-            <label for="description">Description / Note (Optional)</label>
+            <label>Description / Note (Optional)</label>
             <textarea id="description" placeholder="Short detail or sub-note..."></textarea>
         </div>
         <div class="form-group">
-            <label for="type">Type</label>
+            <label>Type</label>
             <select id="type" onchange="handleTypeChange()">
                 <option value="Event">Event</option>
                 <option value="Task">Task (With checkmark)</option>
@@ -761,11 +745,11 @@
             </select>
         </div>
         <div class="form-group" id="dateGroup">
-            <label id="dateLabel" for="date">Date (Leave blank for Inbox)</label>
+            <label id="dateLabel">Date (Leave blank for Inbox)</label>
             <input type="date" id="date">
         </div>
         <div class="form-group" id="priorityGroup">
-            <label for="priority">Priority Tagging</label>
+            <label>Priority Tagging</label>
             <select id="priority">
                 <option value="personal">Personal (Mint Green)</option>
                 <option value="professional">Professional (Maroon)</option>
@@ -773,7 +757,7 @@
             </select>
         </div>
         <div class="form-group" id="timeblockGroup">
-            <label for="timeblock">Timeblock Tagging</label>
+            <label>Timeblock Tagging</label>
             <select id="timeblock">
                 <option value="morning">3am - 9am (Golden Dawn)</option>
                 <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -791,7 +775,7 @@
             <div class="agenda-header-row">
                 <h4>📋 Schedule</h4>
                 <div class="agenda-controls">
-                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()" aria-label="Sort options">
+                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
                         <option value="timeblock">Sort: Timeblock</option>
                         <option value="priority">Sort: Priority</option>
                         <option value="type">Sort: Type</option>
@@ -827,7 +811,7 @@
     </div>
 </div>
 
-<!-- Modal Form: Mobile Create & Edit -->
+<!-- Modal Form: Used for Create (Mobile) & Edit (Desktop & Mobile) -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -838,15 +822,15 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label for="m_title">Title (Tip: Use '07.15am', '2.30pm', '.projectA')</label>
-                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 07.15am .blender">
+                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
                 </div>
                 <div class="form-group">
-                    <label for="m_description">Description / Note (Optional)</label>
+                    <label>Description / Note (Optional)</label>
                     <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="m_type">Type</label>
+                    <label>Type</label>
                     <select id="m_type" onchange="m_handleTypeChange()">
                         <option value="Event">Event</option>
                         <option value="Task">Task (With checkmark)</option>
@@ -855,11 +839,11 @@
                     </select>
                 </div>
                 <div class="form-group" id="m_dateGroup">
-                    <label id="m_dateLabel" for="m_date">Date (Leave blank for Inbox)</label>
+                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
                     <input type="date" id="m_date">
                 </div>
                 <div class="form-group" id="m_priorityGroup">
-                    <label for="m_priority">Priority Tagging</label>
+                    <label>Priority Tagging</label>
                     <select id="m_priority">
                         <option value="personal">Personal (Mint Green)</option>
                         <option value="professional">Professional (Maroon)</option>
@@ -867,7 +851,7 @@
                     </select>
                 </div>
                 <div class="form-group" id="m_timeblockGroup">
-                    <label for="m_timeblock">Timeblock Tagging</label>
+                    <label>Timeblock Tagging</label>
                     <select id="m_timeblock">
                         <option value="morning">3am - 9am (Golden Dawn)</option>
                         <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -893,11 +877,11 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="assignEntryId">
                 <div class="form-group">
-                    <label for="assignDate">Target Date</label>
+                    <label>Target Date</label>
                     <input type="date" id="assignDate">
                 </div>
                 <div class="form-group">
-                    <label for="assignTimeblock">Timeblock Tagging</label>
+                    <label>Timeblock Tagging</label>
                     <select id="assignTimeblock">
                         <option value="morning">3am - 9am (Golden Dawn)</option>
                         <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
@@ -941,21 +925,15 @@
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
-    let supabaseClient;
-    try {
-        supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true, autoRefreshToken: true },
-            db: { schema: 'public' },
-            global: { headers: { 'x-client-info': 'yorushika-calendar' } }
-        });
-    } catch (e) {
-        console.error('Supabase initialization failed:', e);
-    }
+    // Ubah persistSession menjadi true agar sesi login tersimpan di browser
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true },
+        db: { schema: 'public' },
+        global: { headers: { 'x-client-info': 'yorushika-calendar' } }
+    });
 
     let schedules = [];
     let selectedFilterDate = null;
-    let currentOpenDirectoryKey = null;
-    let currentOpenDirectoryTarget = null;
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
@@ -966,70 +944,61 @@
 
     let currentDate = new Date();
 
-    // -------------------------------------------------------------
-    // AUTHENTICATION LOGIC (SUPABASE AUTH)
-    // -------------------------------------------------------------
-    async function checkAuthSession() {
-        if (!supabaseClient) return;
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-            document.getElementById('authContainer').style.display = 'none';
-            document.getElementById('appContainer').style.display = (window.innerWidth >= 1100) ? 'grid' : 'flex';
-            document.body.style.display = 'block';
-            fetchSchedules();
-        } else {
-            document.getElementById('authContainer').style.display = 'block';
-            document.getElementById('appContainer').style.display = 'none';
-            document.body.style.display = 'flex';
-        }
-    }
-
-    async function handleLogin(e) {
-        e.preventDefault();
+    // Fungsi Login & Logout Handlers
+    async function handleLogin() {
         const email = document.getElementById('authEmail').value;
         const password = document.getElementById('authPassword').value;
-        const errorMsgEl = document.getElementById('authErrorMsg');
+        const errorEl = document.getElementById('authErrorMsg');
 
-        errorMsgEl.innerText = 'Authenticating...';
+        if (!email || !password) {
+            errorEl.innerText = 'Email and password required!';
+            return;
+        }
 
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password
-        });
+        errorEl.innerText = 'Authenticating...';
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
         if (error) {
-            errorMsgEl.innerText = 'Login Failed: ' + error.message;
+            errorEl.innerText = error.message;
         } else {
-            errorMsgEl.innerText = '';
-            document.getElementById('loginForm').reset();
-            checkAuthSession();
+            errorEl.innerText = '';
+            document.getElementById('authOverlay').style.display = 'none';
+            fetchSchedules();
         }
     }
 
     async function handleLogout() {
-        if (confirm('Yakin ingin keluar sesi?')) {
-            await supabaseClient.auth.signOut();
-            checkAuthSession();
+        await supabaseClient.auth.signOut();
+        document.getElementById('authEmail').value = '';
+        document.getElementById('authPassword').value = '';
+        document.getElementById('authOverlay').style.display = 'flex';
+    }
+
+    async function checkAuthAndInit() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            document.getElementById('authOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('authOverlay').style.display = 'none';
+            fetchSchedules();
         }
     }
 
-    checkAuthSession();
-
     function showModal(modalId) {
         const modal = document.getElementById(modalId);
-        if (!modal) return;
         modal.style.display = 'flex';
-        requestAnimationFrame(() => { modal.classList.add('active'); });
+        setTimeout(() => { modal.classList.add('active'); }, 10);
     }
 
     function hideModal(modalId) {
         const modal = document.getElementById(modalId);
-        if (modal && modal.classList.contains('active')) {
+        if (modal) {
             modal.classList.remove('active');
             setTimeout(() => { modal.style.display = 'none'; }, 300);
         }
     }
 
+    // ESC key listener to close active modals
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             ['formModal', 'assignModal', 'detailModal', 'directoryModal'].forEach(modalId => {
@@ -1044,7 +1013,7 @@
     function parseTodoistTitle(rawTitle) {
         if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
 
-        const timeRegex = /\b(\d{1,2}(?:\.\d{2}|:\d{2})?\s*(?:am|pm)|\d{1,2}(?:\.\d{2}|:\d{2}))\b/gi;
+        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
         const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
 
         let timeTags = [];
@@ -1132,15 +1101,6 @@
         statusEl.innerText = 'Menghubungkan ke Supabase Cloud...';
         statusEl.style.color = '#e6e6e6';
 
-        if (!supabaseClient) {
-            statusEl.innerText = '⚠️ Supabase Client gagal dimuat (Offline Mode)';
-            statusEl.style.color = '#ff5555';
-            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
-            updateArchiveCounters();
-            renderCalendar();
-            return;
-        }
-
         try {
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000);
@@ -1153,7 +1113,13 @@
 
             clearTimeout(timeoutId);
 
-            if (error) throw error;
+            if (error) {
+                if (error.code === 'PGRST301' || error.message.includes('JWT')) {
+                    handleLogout();
+                    return;
+                }
+                throw error;
+            }
 
             statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
             statusEl.style.color = '#55ff55';
@@ -1168,11 +1134,6 @@
 
         updateArchiveCounters();
         renderCalendar();
-
-        const directoryModalEl = document.getElementById('directoryModal');
-        if (directoryModalEl && directoryModalEl.classList.contains('active')) {
-            openDirectoryModal(currentOpenDirectoryKey, currentOpenDirectoryTarget, true);
-        }
     }
 
     function updateArchiveCounters() {
@@ -1204,9 +1165,7 @@
     }
 
     function sortItems(items) {
-        const sortBySelect = document.getElementById('sortBySelect');
-        const sortBy = sortBySelect ? sortBySelect.value : 'timeblock';
-        
+        const sortBy = document.getElementById('sortBySelect').value;
         return [...items].sort((a, b) => {
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
@@ -1234,8 +1193,7 @@
         const month = currentDate.getMonth();
 
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        const monthYearDisplay = document.getElementById('monthYearDisplay');
-        if (monthYearDisplay) monthYearDisplay.innerText = `${monthNames[month]} ${year}`;
+        document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
@@ -1289,8 +1247,7 @@
             `;
         }
 
-        const daysGrid = document.getElementById('daysGrid');
-        if (daysGrid) daysGrid.innerHTML = gridHTML;
+        document.getElementById('daysGrid').innerHTML = gridHTML;
         renderAgendaList();
     }
 
@@ -1369,12 +1326,12 @@
             timeblock = 'morning';
         }
 
-        if (!rawInputTitle.trim()) {
+        if (!rawInputTitle) {
             alert('Title is required!');
             return;
         }
 
-        const newEntry = { title: rawInputTitle.trim(), description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+        const newEntry = { title: rawInputTitle, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
         const { error } = await supabaseClient.from('schedules').insert([newEntry]);
         
         if (!error) {
@@ -1414,12 +1371,12 @@
             timeblock = 'morning';
         }
 
-        if (!rawInputTitle.trim()) {
+        if (!rawInputTitle) {
             alert('Title is required!');
             return;
         }
 
-        let finalTitleToSave = rawInputTitle.trim();
+        let finalTitleToSave = rawInputTitle;
 
         if (id) {
             const existingItem = schedules.find(s => String(s.id) === String(id));
@@ -1637,12 +1594,7 @@
 
     function closeDetailModal() { hideModal('detailModal'); }
 
-    function openDirectoryModal(typeKey, targetParam = null, isLiveRefresh = false) {
-        if (!isLiveRefresh) {
-            currentOpenDirectoryKey = typeKey;
-            currentOpenDirectoryTarget = targetParam;
-        }
-
+    function openDirectoryModal(typeKey, targetParam = null) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const modalHeaderEl = document.getElementById('directoryModalHeader');
@@ -1700,7 +1652,7 @@
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
-            const skipped = sortItems(schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed));
+            const skipped = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
             } else {
@@ -1712,46 +1664,34 @@
         } else if (typeKey === 'today_overflow') {
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
             const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
-            if (todayItems.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No entries for today.</div>';
-            } else {
-                todayItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle);
-                });
-            }
+            todayItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                html += renderCardHTML(s, bgStyle);
+            });
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
             const tomorrow = new Date(nowLocal);
             tomorrow.setDate(tomorrow.getDate() + 1);
             const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
             const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
-            if (upcomingItems.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No upcoming entries.</div>';
-            } else {
-                upcomingItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    html += renderCardHTML(s, bgStyle);
-                });
-            }
+            upcomingItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                html += renderCardHTML(s, bgStyle);
+            });
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
-            if (inboxItems.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Inbox is empty.</div>';
-            } else {
-                inboxItems.forEach(s => {
-                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                    html += renderCardHTML(s, bgStyle);
-                });
-            }
+            inboxItems.forEach(s => {
+                let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                html += renderCardHTML(s, bgStyle);
+            });
         } else if (typeKey === 'collections') {
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
@@ -1781,42 +1721,26 @@
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                const matched = sortItems(schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam)));
-                if (matched.length === 0) {
-                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No items found with this label.</div>';
-                } else {
-                    matched.forEach(s => {
-                        let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                        if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
-                        if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
-                        if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
-                        html += renderCardHTML(s, bgStyle);
-                    });
-                }
+                const matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
+                matched.forEach(s => {
+                    let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
+                    if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
+                    if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock] || '#333'})`;
+                    html += renderCardHTML(s, bgStyle);
+                });
             }
         }
 
-        if (modalHeaderEl) modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
-        if (modalContent) modalContent.innerHTML = html;
-        if (!isLiveRefresh) {
-            showModal('directoryModal');
-        }
+        modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
+        modalContent.innerHTML = html;
+        showModal('directoryModal');
     }
 
-    function closeDirectoryModal() { 
-        currentOpenDirectoryKey = null;
-        currentOpenDirectoryTarget = null;
-        hideModal('directoryModal'); 
-    }
+    function closeDirectoryModal() { hideModal('directoryModal'); }
 
     function closeModal(event, modalId) {
-        if (event.target.id === modalId) { 
-            if (modalId === 'directoryModal') {
-                currentOpenDirectoryKey = null;
-                currentOpenDirectoryTarget = null;
-            }
-            hideModal(modalId); 
-        }
+        if (event.target.id === modalId) { hideModal(modalId); }
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
@@ -1858,7 +1782,7 @@
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
-                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)" aria-label="Toggle task completion">` : ''}
+                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
@@ -1900,14 +1824,13 @@
         const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
 
         if (schedules.length === 0) {
-            if (container) container.innerHTML = 'No entries recorded yet.';
-            if (dumplistContainer) dumplistContainer.innerHTML = '';
+            container.innerHTML = 'No entries recorded yet.';
+            dumplistContainer.innerHTML = '';
             return;
         }
 
         if (selectedFilterDate) {
-            const clearFilterBtn = document.getElementById('clearFilterBtn');
-            if (clearFilterBtn) clearFilterBtn.style.display = 'inline-block';
+            document.getElementById('clearFilterBtn').style.display = 'inline-block';
             let filteredItems = sortItems(schedules.filter(s => s.date === selectedFilterDate));
             
             if (filteredItems.length === 0) {
@@ -1923,10 +1846,9 @@
                 html += `</div>`;
                 container.innerHTML = html;
             }
-            if (dumplistContainer) dumplistContainer.innerHTML = '';
+            dumplistContainer.innerHTML = '';
         } else {
-            const clearFilterBtn = document.getElementById('clearFilterBtn');
-            if (clearFilterBtn) clearFilterBtn.style.display = 'none';
+            document.getElementById('clearFilterBtn').style.display = 'none';
             
             let htmlMain = '';
 
@@ -1965,7 +1887,7 @@
             if (!htmlMain) {
                 htmlMain = `<div style="text-align: center; padding: 12px; font-style: italic; color: var(--muted-gray);">No tasks scheduled for today or tomorrow. Click any date on calendar.</div>`;
             }
-            if (container) container.innerHTML = htmlMain;
+            container.innerHTML = htmlMain;
 
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             if (inboxItems.length > 0) {
@@ -1980,47 +1902,19 @@
                     inboxHTML += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 5} more inbox items...</button>`;
                 }
                 inboxHTML += `</div>`;
-                if (dumplistContainer) dumplistContainer.innerHTML = inboxHTML;
+                dumplistContainer.innerHTML = inboxHTML;
             } else {
-                if (dumplistContainer) dumplistContainer.innerHTML = '';
+                dumplistContainer.innerHTML = '';
             }
         }
     }
 
     if (window.innerWidth >= 1100) {
-        const formContainer = document.getElementById('formSectionContainer');
-        if (formContainer) formContainer.style.display = 'block';
+        document.getElementById('formSectionContainer').style.display = 'block';
     }
 
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('ServiceWorker registered with scope:', reg.scope))
-                .catch(err => console.error('ServiceWorker registration failed:', err));
-        });
-    }
-
-    async function requestNotificationPermission() {
-        if (!('Notification' in window)) {
-            alert('Browser kamu tidak mendukung Push Notification.');
-            return;
-        }
-
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            alert('Notifikasi berhasil diaktifkan! 🎉');
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.ready.then(reg => {
-                    reg.showNotification('Yorushika Calendar', {
-                        body: 'Push Notification resmi diaktifkan!',
-                        icon: 'https://upload.wikimedia.org/wikipedia/commons/2/27/Yorushika_Logo.jpg'
-                    });
-                });
-            }
-        } else if (permission === 'denied') {
-            alert('Izin notifikasi ditolak. Kamu bisa mengubahnya di pengaturan browser.');
-        }
-    }
+    // Jalankan pengecekan auth saat halaman dimuat
+    checkAuthAndInit();
 </script>
 
 </body>
