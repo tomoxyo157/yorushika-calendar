@@ -634,8 +634,8 @@
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4>+ Create Entry</h4>
         <div class="form-group">
-            <label for="title">Title (Tip: Use '10am', '.projectA' inside title)</label>
-            <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
+            <label for="title">Title (Tip: Use '07.15am', '2.30pm', '.projectA')</label>
+            <input type="text" id="title" placeholder="e.g., Spring Thief jam 07.15am .blender">
         </div>
         <div class="form-group">
             <label for="description">Description / Note (Optional)</label>
@@ -728,8 +728,8 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label for="m_title">Title (Tip: Use '10am', '.projectA' inside title)</label>
-                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
+                    <label for="m_title">Title (Tip: Use '07.15am', '2.30pm', '.projectA')</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 07.15am .blender">
                 </div>
                 <div class="form-group">
                     <label for="m_description">Description / Note (Optional)</label>
@@ -831,7 +831,6 @@
     const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
-    // Perbaikan: Tambahkan penanganan error inisialisasi client yang aman
     let supabaseClient;
     try {
         supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -883,10 +882,12 @@
         }
     });
 
+    // Fungsi yang diperbarui untuk membaca format jam titik (07.15, 2.30pm) maupun format lama
     function parseTodoistTitle(rawTitle) {
         if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
 
-        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
+        // Regex diperbarui: Mendukung jam dengan titik (07.15, 7.15am, 2.30pm), titik dua (07:15), dan jam absolut (7am, 10pm)
+        const timeRegex = /\b(\d{1,2}(?:\.\d{2}|:\d{2})?\s*(?:am|pm)|\d{1,2}(?:\.\d{2}|:\d{2}))\b/gi;
         const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
 
         let timeTags = [];
