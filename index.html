@@ -30,6 +30,11 @@
             --discord-badge-bg: #1e1f22;
             --discord-badge-border: #35363c;
         }
+
+        /* Fix 1: Global Box-Sizing to prevent layout shifts on Borders (Fix for "Today" shift) */
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         
         body, input, select, textarea, button {
             font-family: var(--main-font);
@@ -76,15 +81,27 @@
         @media (min-width: 1100px) {
             body {
                 padding: 8px;
+                /* Optional centering for scaled container */
+                display: flex;
+                justify-content: center;
+                align-items: flex-start;
+                min-height: 100vh;
             }
             .container {
+                /* Fix 3: Implement 60% default zoom */
+                zoom: 0.60;
+                -moz-transform: scale(0.60);
+                -moz-transform-origin: top center;
+                
                 max-width: 1680px;
+                width: 100%;
                 display: grid;
                 grid-template-columns: 380px 1fr 350px;
                 grid-template-rows: auto auto auto;
                 gap: 14px;
                 align-items: start;
                 padding: 12px;
+                margin: 20px auto;
             }
             .desktop-full-span { grid-column: span 3; }
             .desktop-agenda-column { grid-column: 1; grid-row: 2 / span 2; }
@@ -294,7 +311,6 @@
             border: 1px solid var(--border-color);
             color: var(--text-main);
             border-radius: 2px;
-            box-sizing: border-box;
             font-size: 11px;
             text-transform: uppercase;
         }
@@ -582,7 +598,6 @@
             justify-content: center;
             align-items: center;
             padding: 10px;
-            box-sizing: border-box;
             opacity: 0;
             visibility: hidden;
             transition: opacity 0.3s ease, visibility 0.3s ease;
@@ -602,7 +617,6 @@
             display: flex;
             flex-direction: column;
             padding: 16px;
-            box-sizing: border-box;
             box-shadow: 0 15px 35px rgba(0,0,0,0.9);
             position: relative;
             transform: scale(0.8);
@@ -687,7 +701,6 @@
             justify-content: center;
             align-items: center;
             padding: 16px;
-            box-sizing: border-box;
         }
         .auth-box {
             background: var(--card-bg);
@@ -935,6 +948,7 @@
     </div>
 </div>
 
+<!-- Assign Habit Modal -->
 <div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -971,6 +985,7 @@
     </div>
 </div>
 
+<!-- Details Modal -->
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -983,6 +998,7 @@
     </div>
 </div>
 
+<!-- Directory Modal (For Overflows, Habits, Collections) -->
 <div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header" id="directoryModalHeader">
@@ -1007,12 +1023,10 @@
 
     let schedules = [];
     let selectedFilterDate = null;
-    let habitCustomOrderActive = false;
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
     
-    // Timeblock order: 'none' (masuk today/tanggal tertentu) memiliki prioritas tertinggi agar segera dinotice
     const timeblockOrder = { none: 0, morning: 1, work: 2, night: 3 };
     const priorityOrder = { professional: 1, daily: 2, personal: 3 };
     const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
@@ -1083,7 +1097,6 @@
         }
     });
 
-    // --- FITUR: Date Today / Delete Button Dynamic Toggle ---
     function getTodayDateString() {
         const d = new Date();
         return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -1671,30 +1684,6 @@
         }
     }
 
-    // --- FITUR: Move Up / Move Down Custom Order untuk Habits ---
-    async function moveHabitOrder(index, direction) {
-        let habits = schedules.filter(s => s.type === 'Habit');
-        habits.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
-
-        const targetIndex = index + direction;
-        if (targetIndex < 0 || targetIndex >= habits.length) return;
-
-        // Tukar posisi custom index jika ada, atau simpan urutan baru
-        // Kita implementasikan dengan menukar judul atau membuat urutan berbasis indeks lokal sementara/update database jika diperlukan.
-        // Untuk kestabilan instan di UI, kita tukar posisinya di array memori lokal dan render ulang direktori.
-        let temp = habits[index];
-        habits[index] = habits[targetIndex];
-        habits[targetIndex] = temp;
-
-        // Refresh tampilan direktori habit dengan mode edit order aktif
-        openDirectoryModal('habits');
-    }
-
-    function toggleHabitEditOrder() {
-        habitCustomOrderActive = !habitCustomOrderActive;
-        openDirectoryModal('habits');
-    }
-
     function openDetailModal(id) {
         hideModal('directoryModal');
 
@@ -1757,7 +1746,6 @@
         if (typeKey === 'collections' && targetParam !== null) {
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
         }
-        // --- FITUR: Button Edit Order di samping Back / Header paling dalam ---
 
         headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
@@ -1781,25 +1769,33 @@
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'habits') {
+            // Fix 2: Habit Directory dibagi 3 Array per Category dan di-sort Alphabetical
             modalTitle.innerText = '🔁 HABITS DIRECTORY';
             let habits = schedules.filter(s => s.type === 'Habit');
-            
-            // Habit list sorted alphabetically ascending per section
-            habits.sort((a, b) => {
-                let titleA = parseTodoistTitle(a.title).cleanTitle;
-                let titleB = parseTodoistTitle(b.title).cleanTitle;
-                return titleA.localeCompare(titleB);
-            });
 
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
-                html += `<div class="section-category-box"><div class="section-category-title"><span>📌 All Habits (Alphabetical)</span><span>[${habits.length}]</span></div>`;
-                habits.forEach((s) => {
-                    let solidBg = priorityColors[s.priority] || '#333';
-                    html += renderHabitCardHTML(s, solidBg);
-                });
-                html += `</div>`;
+                const sortAlpha = (a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle);
+                
+                let profHabits = habits.filter(s => s.priority === 'professional').sort(sortAlpha);
+                let dailyHabits = habits.filter(s => s.priority === 'daily').sort(sortAlpha);
+                let persHabits = habits.filter(s => s.priority === 'personal').sort(sortAlpha);
+
+                const renderGroup = (group, title) => {
+                    if (group.length === 0) return '';
+                    let groupHtml = `<div class="section-category-box"><div class="section-category-title"><span>📌 ${title}</span><span>[${group.length}]</span></div>`;
+                    group.forEach(s => {
+                        let solidBg = priorityColors[s.priority] || '#333';
+                        groupHtml += renderHabitCardHTML(s, solidBg);
+                    });
+                    groupHtml += `</div>`;
+                    return groupHtml;
+                };
+
+                html += renderGroup(profHabits, 'Professional Habits');
+                html += renderGroup(dailyHabits, 'Daily Habits');
+                html += renderGroup(persHabits, 'Personal Habits');
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
@@ -1878,13 +1874,11 @@
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
                 let matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
                 
-                // Allow custom reordering state for this label if active
                 if (!window.labelCustomOrders) window.labelCustomOrders = {};
                 if (!window.labelCustomOrders[targetParam]) {
                     window.labelCustomOrders[targetParam] = matched.map(s => s.id);
                 }
                 
-                // Sort matched according to custom order if exists
                 let orderArr = window.labelCustomOrders[targetParam];
                 matched.sort((a, b) => {
                     let idxA = orderArr.indexOf(a.id);
@@ -2080,7 +2074,6 @@
             }
             container.innerHTML = htmlMain;
 
-            // --- FITUR: Dumplist warna default gradien dari priority ke abu-abu aja (none) sekalipun punya timeblock tagging tidak none ---
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
@@ -2123,12 +2116,10 @@
         }
         let orderArr = window.labelCustomOrders[labelName];
         
-        // Ensure all matched are in orderArr
         matched.forEach(s => {
             if (!orderArr.includes(s.id)) orderArr.push(s.id);
         });
 
-        // Reorder ids
         let targetIndex = index + direction;
         if (targetIndex < 0 || targetIndex >= orderArr.length) return;
 
