@@ -139,19 +139,25 @@
             letter-spacing: 2px;
         }
 
-        .btn-logout {
+        .header-actions-right {
             position: absolute;
             top: 0;
             right: 0;
+            display: flex;
+            gap: 4px;
+        }
+        .btn-logout, .btn-ics {
             background: #1a1a1a;
-            color: #ff5555;
             border: 1px solid var(--border-color);
             padding: 4px 8px;
             font-size: 9px;
             cursor: pointer;
             text-transform: uppercase;
         }
+        .btn-logout { color: #ff5555; }
         .btn-logout:hover { background: #ff5555; color: #fff; }
+        .btn-ics { color: #4da6ff; }
+        .btn-ics:hover { background: #4da6ff; color: #000; }
 
         h2 { 
             text-align: center; 
@@ -758,7 +764,10 @@
 
 <div class="container">
     <div class="yorushika-header desktop-full-span">
-        <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        <div class="header-actions-right">
+            <button class="btn-ics" onclick="exportFullICS()" title="Export .ics Calendar">.ICS</button>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
             <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
             <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
@@ -1798,26 +1807,47 @@
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
-                let tagMap = {};
+                // Grouping habits by priority first, then sub-sectioning by tag
+                let priorityGroups = { professional: {}, daily: {}, personal: {} };
+
                 habits.forEach(s => {
+                    let p = s.priority || 'personal';
+                    if (!priorityGroups[p]) priorityGroups[p] = {};
+                    
                     let firstTag = getFirstHabitLabel(s.title);
-                    if (!tagMap[firstTag]) tagMap[firstTag] = [];
-                    tagMap[firstTag].push(s);
+                    if (!priorityGroups[p][firstTag]) priorityGroups[p][firstTag] = [];
+                    priorityGroups[p][firstTag].push(s);
                 });
 
-                let sortedTags = Object.keys(tagMap).sort((a, b) => a.localeCompare(b));
+                let priorityOrderKeys = ['professional', 'daily', 'personal'];
+                let hasHabitsContent = false;
 
-                sortedTags.forEach(tag => {
-                    let group = tagMap[tag];
-                    group.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+                priorityOrderKeys.forEach(pKey => {
+                    let tagsObj = priorityGroups[pKey];
+                    let tagKeys = Object.keys(tagsObj).sort((a, b) => a.localeCompare(b));
 
-                    html += `<div class="section-category-box"><div class="section-category-title"><span>🏷️ .${tag}</span><span>[${group.length}]</span></div>`;
-                    group.forEach(s => {
-                        let solidBg = priorityColors[s.priority] || '#333';
-                        html += renderHabitCardHTML(s, solidBg);
-                    });
-                    html += `</div>`;
+                    if (tagKeys.length > 0) {
+                        hasHabitsContent = true;
+                        html += `<div class="section-category-box" style="border-color: ${priorityColors[pKey] || '#262626'};"><div class="section-category-title" style="color: #fff; font-weight:bold;"><span>⭐ PRIORITY: ${pKey.toUpperCase()}</span></div>`;
+                        
+                        tagKeys.forEach(tag => {
+                            let group = tagsObj[tag];
+                            group.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+
+                            html += `<div style="margin-left: 6px; margin-bottom: 8px;"><div style="font-size: 10px; color: var(--muted-gray); margin-bottom: 4px; border-bottom: 1px dotted var(--border-color);">🏷️ .${tag} [${group.length}]</div>`;
+                            group.forEach(s => {
+                                let solidBg = priorityColors[s.priority] || '#333';
+                                html += renderHabitCardHTML(s, solidBg);
+                            });
+                            html += `</div>`;
+                        });
+                        html += `</div>`;
+                    }
                 });
+
+                if (!hasHabitsContent) {
+                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
+                }
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS & HABITS';
@@ -1938,6 +1968,87 @@
 
     function closeModal(event, modalId) {
         if (event.target.id === modalId) { hideModal(modalId); }
+    }
+
+    // Full ics export function generating 1 calendar file with proper tags for GCal & others
+    function exportFullICS() {
+        if (!schedules || schedules.length === 0) {
+            alert('Tidak ada jadwal untuk diekspor.');
+            return;
+        }
+
+        let icsLines = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//Yorushika Calendar//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH'
+        ];
+
+        const formatDateToICS = (dateStr, isBirthday = false) => {
+            if (!dateStr) return null;
+            let clean = dateStr;
+            if (isBirthday && clean.includes('-')) {
+                let parts = clean.split('-');
+                let currentYear = new Date().getFullYear();
+                clean = `${currentYear}-${parts[1]}-${parts[2]}`;
+            }
+            return clean.replace(/-/g, '');
+        };
+
+        schedules.forEach(s => {
+            if (!s.date && s.type !== 'Birthday') return; // Skip items without date
+
+            let isBday = (s.type === 'Birthday');
+            let dStr = formatDateToICS(s.date, isBday);
+            if (!dStr) return;
+
+            let parsed = parseTodoistTitle(s.title);
+            let prefixType = `[${s.type}]`;
+            if (s.isHabitInstance) prefixType = '[HABIT]';
+            
+            let summary = `${prefixType} ${parsed.cleanTitle}`;
+            let description = s.description ? s.description.replace(/\n/g, '\\n') : '';
+            if (parsed.labelTags.length > 0) {
+                description += `\\nTags: ` + parsed.labelTags.map(l => '.' + l).join(' ');
+            }
+
+            icsLines.push('BEGIN:VEVENT');
+            icsLines.push(`UID:yorushika-${s.id}-${Date.now()}@calendar`);
+            icsLines.push(`DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`);
+            
+            if (isBday || s.recurring === 'yearly') {
+                icsLines.push(`DTSTART;VALUE=DATE:${dStr}`);
+                let nextDay = new Date(s.date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                let nextDayStr = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
+                icsLines.push(`DTEND;VALUE=DATE:${nextDayStr}`);
+                icsLines.push('RRULE:FREQ=YEARLY');
+            } else {
+                icsLines.push(`DTSTART;VALUE=DATE:${dStr}`);
+                let nextDay = new Date(s.date);
+                nextDay.setDate(nextDay.getDate() + 1);
+                let nextDayStr = `${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`;
+                icsLines.push(`DTEND;VALUE=DATE:${nextDayStr}`);
+            }
+
+            icsLines.push(`SUMMARY:${summary}`);
+            if (description) {
+                icsLines.push(`DESCRIPTION:${description}`);
+            }
+            icsLines.push('END:VEVENT');
+        });
+
+        icsLines.push('END:VCALENDAR');
+
+        const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'yorushika_calendar_vault.ics');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
