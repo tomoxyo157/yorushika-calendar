@@ -31,7 +31,6 @@
             --discord-badge-border: #35363c;
         }
 
-        /* Fix 1: Global Box-Sizing to prevent layout shifts on Borders (Fix for "Today" shift) */
         *, *::before, *::after {
             box-sizing: border-box;
         }
@@ -81,14 +80,12 @@
         @media (min-width: 1100px) {
             body {
                 padding: 8px;
-                /* Optional centering for scaled container */
                 display: flex;
                 justify-content: center;
                 align-items: flex-start;
                 min-height: 100vh;
             }
             .container {
-                /* Fix 3: Implement 60% default zoom */
                 zoom: 0.60;
                 -moz-transform: scale(0.60);
                 -moz-transform-origin: top center;
@@ -688,7 +685,6 @@
         }
         .editable-pill .remove-pill:hover { color: #ff6b6b; }
 
-        /* Login Wall Overlay Styles */
         #authOverlay {
             position: fixed;
             top: 0;
@@ -738,7 +734,6 @@
 </head>
 <body>
 
-<!-- Login Wall Overlay -->
 <div id="authOverlay" style="display: none;">
     <div class="auth-box">
         <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="width: 50px; height: 25px; margin: 0 auto 10px auto; display: block;">
@@ -793,7 +788,6 @@
 
     <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
 
-    <!-- Desktop Column: ALWAYS New Entry Form -->
     <div class="form-section desktop-form-column" id="formSectionContainer">
         <h4>+ Create Entry</h4>
         <div class="form-group">
@@ -886,7 +880,6 @@
     </div>
 </div>
 
-<!-- Modal Form: Used for Create (Mobile) & Edit (Desktop & Mobile) -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -948,7 +941,6 @@
     </div>
 </div>
 
-<!-- Assign Habit Modal -->
 <div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -985,7 +977,6 @@
     </div>
 </div>
 
-<!-- Details Modal -->
 <div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -998,7 +989,6 @@
     </div>
 </div>
 
-<!-- Directory Modal (For Overflows, Habits, Collections) -->
 <div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header" id="directoryModalHeader">
@@ -1155,6 +1145,15 @@
         return { cleanTitle, timeTags, labelTags };
     }
 
+    // Helper khusus Habit: Jika ada 2+ label, hanya ambil yg pertama, sisanya diabaikan
+    function getFirstHabitLabel(rawTitle) {
+        const parsed = parseTodoistTitle(rawTitle);
+        if (parsed.labelTags.length > 0) {
+            return parsed.labelTags[0];
+        }
+        return 'general';
+    }
+
     function formatDateDDMM(dateStr) {
         if (!dateStr) return '';
         if (dateStr.includes('-')) {
@@ -1219,6 +1218,23 @@
         }
     }
 
+    async function autoDeleteOldHistory(dataItems) {
+        const now = new Date();
+        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        const oneYearAgoStr = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}-${String(oneYearAgo.getDate()).padStart(2, '0')}`;
+
+        const expiredIds = dataItems
+            .filter(s => s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit')
+            .map(s => s.id);
+
+        if (expiredIds.length > 0) {
+            console.log(`Auto-deleting ${expiredIds.length} expired items older than 1 year...`);
+            await supabaseClient.from('schedules').delete().in('id', expiredIds);
+            return dataItems.filter(s => !expiredIds.includes(s.id));
+        }
+        return dataItems;
+    }
+
     async function fetchSchedules() {
         const statusEl = document.getElementById('dbStatus');
         statusEl.innerText = 'Menghubungkan ke Supabase Cloud...';
@@ -1246,7 +1262,9 @@
 
             statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)';
             statusEl.style.color = '#55ff55';
-            schedules = data || [];
+            
+            let rawData = data || [];
+            schedules = await autoDeleteOldHistory(rawData);
             localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
         } catch (err) {
             console.warn('Supabase fetch error/timeout:', err);
@@ -1265,7 +1283,9 @@
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const habitCount = schedules.filter(s => s.type === 'Habit').length;
-        const skippedCount = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed).length;
+        
+        // Skipped: Termasuk Task biasa & Habit instance masa lalu yang belum complete
+        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
         schedules.forEach(s => {
@@ -1362,7 +1382,7 @@
                 if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
                 
                 const isPast = s.date && s.date < todayStr;
-                const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && s.type === 'Task' ? 'completed-badge' : '');
+                const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && (s.type === 'Task' || s.isHabitInstance) ? 'completed-badge' : '');
                 
                 const parsed = parseTodoistTitle(s.title);
                 badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${parsed.cleanTitle}</div>`;
@@ -1744,9 +1764,15 @@
 
         let headerActionsHTML = '';
         if (typeKey === 'collections' && targetParam !== null) {
+            // Urutan sesuai permintaan: [Back] -> [Edit Order / Done] -> [Close x]
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
+            
+            if (window.labelEditOrderActive && window.labelEditOrderActive === targetParam) {
+                headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">Done</button>`;
+            } else {
+                headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">Edit Order</button>`;
+            }
         }
-
         headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
         let html = '';
@@ -1769,39 +1795,42 @@
                 birthdays.forEach(s => { html += renderCardHTML(s, 'var(--birthday-strawberry)', true); });
             }
         } else if (typeKey === 'habits') {
-            // Fix 2: Habit Directory dibagi 3 Array per Category dan di-sort Alphabetical
             modalTitle.innerText = '🔁 HABITS DIRECTORY';
             let habits = schedules.filter(s => s.type === 'Habit');
 
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
-                const sortAlpha = (a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle);
-                
-                let profHabits = habits.filter(s => s.priority === 'professional').sort(sortAlpha);
-                let dailyHabits = habits.filter(s => s.priority === 'daily').sort(sortAlpha);
-                let persHabits = habits.filter(s => s.priority === 'personal').sort(sortAlpha);
+                // Subsectioning berdasarkan Discord-style tag pertama (diambil dari getFirstHabitLabel)
+                let tagMap = {};
+                habits.forEach(s => {
+                    let firstTag = getFirstHabitLabel(s.title);
+                    if (!tagMap[firstTag]) tagMap[firstTag] = [];
+                    tagMap[firstTag].push(s);
+                });
 
-                const renderGroup = (group, title) => {
-                    if (group.length === 0) return '';
-                    let groupHtml = `<div class="section-category-box"><div class="section-category-title"><span>📌 ${title}</span><span>[${group.length}]</span></div>`;
+                // Sort keys secara alfabetis
+                let sortedTags = Object.keys(tagMap).sort((a, b) => a.localeCompare(b));
+
+                sortedTags.forEach(tag => {
+                    let group = tagMap[tag];
+                    // Sort items dalam group secara alfabetis berdasarkan clean title
+                    group.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+
+                    html += `<div class="section-category-box"><div class="section-category-title"><span>🏷️ .${tag}</span><span>[${group.length}]</span></div>`;
                     group.forEach(s => {
                         let solidBg = priorityColors[s.priority] || '#333';
-                        groupHtml += renderHabitCardHTML(s, solidBg);
+                        html += renderHabitCardHTML(s, solidBg);
                     });
-                    groupHtml += `</div>`;
-                    return groupHtml;
-                };
-
-                html += renderGroup(profHabits, 'Professional Habits');
-                html += renderGroup(dailyHabits, 'Daily Habits');
-                html += renderGroup(persHabits, 'Personal Habits');
+                    html += `</div>`;
+                });
             }
         } else if (typeKey === 'skipped') {
-            modalTitle.innerText = '🕰️ SKIPPED TASKS';
-            const skipped = schedules.filter(s => s.type === 'Task' && !s.isHabitInstance && s.date && s.date < todayStr && !s.completed);
+            modalTitle.innerText = '🕰️ SKIPPED TASKS & HABITS';
+            // Mencakup task biasa & habit instance yang lewat tanggalnya dan belum selesai
+            const skipped = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
             if (skipped.length === 0) {
-                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past tasks. Clean slate!</div>';
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>';
             } else {
                 skipped.forEach(s => {
                     let tbKey = s.timeblock || 'none';
@@ -1888,12 +1917,6 @@
                     return idxA - idxB;
                 });
 
-                if (window.labelEditOrderActive && window.labelEditOrderActive === targetParam) {
-                    headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">Done</button>`;
-                } else {
-                    headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">Edit Order</button>`;
-                }
-
                 matched.forEach((s, idx) => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -1925,7 +1948,8 @@
     }
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
-        const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+        const isPast = s.date && s.date < getTodayDateString();
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
@@ -1955,6 +1979,8 @@
             typePrefix = '[HABIT]';
         }
 
+        let showCheckbox = (s.type === 'Task' || s.isHabitInstance);
+
         return `
             <div class="${itemClass}" style="background: ${finalCardBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
@@ -1964,7 +1990,7 @@
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
-                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
@@ -2098,7 +2124,6 @@
         document.getElementById('formSectionContainer').style.display = 'block';
     }
 
-
     function toggleLabelEditOrder(labelName) {
         if (!window.labelEditOrderActive || window.labelEditOrderActive !== labelName) {
             window.labelEditOrderActive = labelName;
@@ -2131,7 +2156,8 @@
     }
 
     function renderCardHTMLWithReorder(s, bgStyle, reorderBtns) {
-        const itemClass = s.completed ? 'agenda-item completed-item' : 'agenda-item';
+        const isPast = s.date && s.date < getTodayDateString();
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
@@ -2151,6 +2177,7 @@
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
         let typePrefix = `[${s.type}]`;
         if (s.isHabitInstance) typePrefix = '[HABIT]';
+        let showCheckbox = (s.type === 'Task' || s.isHabitInstance);
 
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
@@ -2162,7 +2189,7 @@
                 </div>
                 <div class="agenda-actions">
                     ${reorderBtns}
-                    ${s.type === 'Task' ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
