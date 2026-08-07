@@ -1145,7 +1145,6 @@
         return { cleanTitle, timeTags, labelTags };
     }
 
-    // Helper khusus Habit: Jika ada 2+ label, hanya ambil yg pertama, sisanya diabaikan
     function getFirstHabitLabel(rawTitle) {
         const parsed = parseTodoistTitle(rawTitle);
         if (parsed.labelTags.length > 0) {
@@ -1284,7 +1283,6 @@
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const habitCount = schedules.filter(s => s.type === 'Habit').length;
         
-        // Skipped: Termasuk Task biasa & Habit instance masa lalu yang belum complete
         const skippedCount = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
@@ -1764,7 +1762,6 @@
 
         let headerActionsHTML = '';
         if (typeKey === 'collections' && targetParam !== null) {
-            // Urutan sesuai permintaan: [Back] -> [Edit Order / Done] -> [Close x]
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
             
             if (window.labelEditOrderActive && window.labelEditOrderActive === targetParam) {
@@ -1801,7 +1798,6 @@
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
-                // Subsectioning berdasarkan Discord-style tag pertama (diambil dari getFirstHabitLabel)
                 let tagMap = {};
                 habits.forEach(s => {
                     let firstTag = getFirstHabitLabel(s.title);
@@ -1809,12 +1805,10 @@
                     tagMap[firstTag].push(s);
                 });
 
-                // Sort keys secara alfabetis
                 let sortedTags = Object.keys(tagMap).sort((a, b) => a.localeCompare(b));
 
                 sortedTags.forEach(tag => {
                     let group = tagMap[tag];
-                    // Sort items dalam group secara alfabetis berdasarkan clean title
                     group.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
 
                     html += `<div class="section-category-box"><div class="section-category-title"><span>🏷️ .${tag}</span><span>[${group.length}]</span></div>`;
@@ -1827,7 +1821,6 @@
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS & HABITS';
-            // Mencakup task biasa & habit instance yang lewat tanggalnya dan belum selesai
             const skipped = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>';
