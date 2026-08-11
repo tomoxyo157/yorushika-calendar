@@ -1298,6 +1298,7 @@
         
         let allLabels = new Set();
         schedules.forEach(s => {
+            if (s.type === 'Habit') return; // Label habits tak perlu masuk label list
             const parsed = parseTodoistTitle(s.title);
             parsed.labelTags.forEach(l => allLabels.add(l));
         });
@@ -1809,7 +1810,6 @@
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
             } else {
-                // Grouping habits by priority first, then sub-sectioning by tag
                 let priorityGroups = { professional: {}, daily: {}, personal: {} };
 
                 habits.forEach(s => {
@@ -1890,7 +1890,7 @@
             });
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && parseTodoistTitle(s.title).labelTags.length === 0));
             inboxItems.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -1902,6 +1902,7 @@
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
                 let labelMap = {};
                 schedules.forEach(s => {
+                    if (s.type === 'Habit') return; // Label habits tak perlu masuk label list
                     const parsed = parseTodoistTitle(s.title);
                     parsed.labelTags.forEach(l => {
                         if (!labelMap[l]) labelMap[l] = [];
@@ -1972,7 +1973,6 @@
         if (event.target.id === modalId) { hideModal(modalId); }
     }
 
-    // Full ics export function generating 1 calendar file with proper tags for GCal & others
     function exportFullICS() {
         if (!schedules || schedules.length === 0) {
             alert('Tidak ada jadwal untuk diekspor.');
@@ -1999,7 +1999,7 @@
         };
 
         schedules.forEach(s => {
-            if (!s.date && s.type !== 'Birthday') return; // Skip items without date
+            if (!s.date && s.type !== 'Birthday') return;
 
             let isBday = (s.type === 'Birthday');
             let dStr = formatDateToICS(s.date, isBday);
@@ -2206,7 +2206,8 @@
             }
             container.innerHTML = htmlMain;
 
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit'));
+            // FIX: Dumplist cards with labels won't enter dump list (they appear in label list like assigned projects)
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && parseTodoistTitle(s.title).labelTags.length === 0));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
