@@ -1298,7 +1298,7 @@
         
         let allLabels = new Set();
         schedules.forEach(s => {
-            if (s.type === 'Habit') return; // Label habits tak perlu masuk label list
+            if (s.type === 'Habit' || s.isHabitInstance) return; // Label habits & habit instances tak perlu masuk label list
             const parsed = parseTodoistTitle(s.title);
             parsed.labelTags.forEach(l => allLabels.add(l));
         });
@@ -1890,7 +1890,7 @@
             });
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && parseTodoistTitle(s.title).labelTags.length === 0));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
             inboxItems.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -1902,7 +1902,7 @@
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
                 let labelMap = {};
                 schedules.forEach(s => {
-                    if (s.type === 'Habit') return; // Label habits tak perlu masuk label list
+                    if (s.type === 'Habit' || s.isHabitInstance) return; // Label habits & habit instances tak perlu masuk label list
                     const parsed = parseTodoistTitle(s.title);
                     parsed.labelTags.forEach(l => {
                         if (!labelMap[l]) labelMap[l] = [];
@@ -1927,7 +1927,7 @@
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                let matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(targetParam));
+                let matched = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.includes(targetParam));
                 
                 if (!window.labelCustomOrders) window.labelCustomOrders = {};
                 if (!window.labelCustomOrders[targetParam]) {
@@ -2207,7 +2207,7 @@
             container.innerHTML = htmlMain;
 
             // FIX: Dumplist cards with labels won't enter dump list (they appear in label list like assigned projects)
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && parseTodoistTitle(s.title).labelTags.length === 0));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
@@ -2241,7 +2241,7 @@
     }
 
     function moveLabelItemOrder(labelName, index, direction) {
-        let matched = schedules.filter(s => parseTodoistTitle(s.title).labelTags.includes(labelName));
+        let matched = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.includes(labelName));
         if (!window.labelCustomOrders) window.labelCustomOrders = {};
         if (!window.labelCustomOrders[labelName]) {
             window.labelCustomOrders[labelName] = matched.map(s => s.id);
