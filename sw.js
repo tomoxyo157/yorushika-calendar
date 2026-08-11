@@ -1,47 +1,31 @@
-self.addEventListener('push', function (event) {
-    let data = {
-        title: 'Yorushika Calendar',
-        body: 'Ada pengingat baru untukmu!',
-        icon: 'https://upload.wikimedia.org/wikipedia/commons/2/27/Yorushika_Logo.jpg',
-        url: '/'
-    };
+const CACHE_NAME = 'zen-gantt-v1';
+const ASSETS_TO_CACHE = ['/', '/index.html', './index.html'];
 
-    if (event.data) {
-        try {
-            data = event.data.json();
-        } catch (e) {
-            data.body = event.data.text();
-        }
-    }
+self.addEventListener('install', (event) => {
+    event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS_TO_CACHE)));
+});
 
-    const options = {
-        body: data.body,
-        icon: data.icon || 'https://upload.wikimedia.org/wikipedia/commons/2/27/Yorushika_Logo.jpg',
-        data: {
-            url: data.url || '/'
-        }
-    };
-
+self.addEventListener('activate', (event) => {
     event.waitUntil(
-        self.registration.showNotification(data.title, options)
+        caches.keys().then((cacheNames) => {
+            return Promise.all(cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name)));
+        })
     );
 });
 
-self.addEventListener('notificationclick', function (event) {
-    event.notification.close();
-    const targetUrl = event.notification.data.url || '/';
-
-    event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windowClients) {
-            for (let i = 0; i < windowClients.length; i++) {
-                let client = windowClients[i];
-                if (client.url === targetUrl && 'focus' in client) {
-                    return client.focus();
-                }
-            }
-            if (clients.openWindow) {
-                return clients.openWindow(targetUrl);
-            }
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    if (event.request.method !== 'GET' || url.hostname.includes('supabase.co')) {
+        return event.respondWith(fetch(event.request));
+    }
+    event.respondWith(
+        caches.match(event.request).then((cachedResponse) => {
+            return cachedResponse || fetch(event.request).then((response) => {
+                if (!response || response.status !== 200 || response.type !== 'basic') return response;
+                const responseToCache = response.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+                return response;
+            });
         })
     );
 });
