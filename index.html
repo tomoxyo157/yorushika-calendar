@@ -28,6 +28,7 @@
             --text-main: #e6e6e6;
             --muted-gray: #737373;
             --birthday-strawberry: #ff4d6d;
+            --deadline-crimson: #ff2a2a;
             --habit-badge-bg: #3a506b;
             --discord-badge-bg: #1e1f22;
             --discord-badge-border: #35363c;
@@ -812,6 +813,7 @@
         <div class="form-group">
             <label>Type</label>
             <select id="type" onchange="handleTypeChange()">
+                <option value="Deadline">Deadline (Crimson Red)</option>
                 <option value="Event">Event</option>
                 <option value="Task">Task (With checkmark)</option>
                 <option value="Birthday">Birthday (Recurring Yearly)</option>
@@ -911,6 +913,7 @@
                 <div class="form-group">
                     <label>Type</label>
                     <select id="m_type" onchange="m_handleTypeChange()">
+                        <option value="Deadline">Deadline (Crimson Red)</option>
                         <option value="Event">Event</option>
                         <option value="Task">Task (With checkmark)</option>
                         <option value="Birthday">Birthday (Recurring Yearly)</option>
@@ -955,7 +958,7 @@
 <div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
-            <span>🔁 Assign Habit to Schedule</span>
+            <span>🔁 Assign / Re-assign Habit</span>
             <button class="modal-close" onclick="closeAssignModal()">×</button>
         </div>
         <div class="modal-scroll-body">
@@ -1030,7 +1033,8 @@
     
     const timeblockOrder = { none: 0, morning: 1, work: 2, night: 3 };
     const priorityOrder = { professional: 1, daily: 2, personal: 3 };
-    const typeOrder = { Task: 1, Event: 2, Habit: 3, Birthday: 4 };
+    // Hierarki urutan tipe: Deadline = 1 (paling atas)
+    const typeOrder = { Deadline: 1, Task: 2, Event: 3, Habit: 4, Birthday: 5 };
 
     let currentDate = new Date();
 
@@ -1192,6 +1196,12 @@
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'none';
             dateGrp.style.display = 'none';
+        } else if (typeVal === 'Deadline') {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'block';
+            dateGrp.style.display = 'block';
+            dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)';
+            dateInput.type = 'date';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
@@ -1219,6 +1229,12 @@
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'none';
             dateGrp.style.display = 'none';
+        } else if (typeVal === 'Deadline') {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'block';
+            dateGrp.style.display = 'block';
+            dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)';
+            dateInput.type = 'date';
         } else {
             priorityGrp.style.display = 'block';
             timeblockGrp.style.display = 'block';
@@ -1294,13 +1310,14 @@
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const habitCount = schedules.filter(s => s.type === 'Habit').length;
         
-        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
+        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
         schedules.forEach(s => {
-            if (s.type === 'Habit' || s.isHabitInstance) return; // Label habits & habit instances tak perlu masuk label list
+            if (s.type === 'Habit' || s.isHabitInstance) return;
             const parsed = parseTodoistTitle(s.title);
             parsed.labelTags.forEach(l => allLabels.add(l));
+            if (s.type === 'Deadline') allLabels.add('deadline');
         });
 
         document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
@@ -1330,7 +1347,7 @@
                 let tbB = b.timeblock || 'none';
                 return (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
             } else if (sortBy === 'type') {
-                let tDiff = (typeOrder[a.type] || 2) - (typeOrder[b.type] || 2);
+                let tDiff = (typeOrder[a.type] || 3) - (typeOrder[b.type] || 3);
                 if (tDiff !== 0) return tDiff;
                 let tbA = a.timeblock || 'none';
                 let tbB = b.timeblock || 'none';
@@ -1387,12 +1404,13 @@
             daySchedules.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                 if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
                 
                 const isPast = s.date && s.date < todayStr;
-                const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && (s.type === 'Task' || s.isHabitInstance) ? 'completed-badge' : '');
+                const completedClass = (s.completed && isPast) ? 'completed-badge' : (s.completed && (s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance) ? 'completed-badge' : '');
                 
                 const parsed = parseTodoistTitle(s.title);
                 badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${bgStyle};">${parsed.cleanTitle}</div>`;
@@ -1640,6 +1658,7 @@
         hideModal('assignModal');
     }
 
+    // LOGIKA PEMBARUAN (UPDATE HABIT - 1 CARD = 1 ACTIVITY)
     async function executeAssignHabit() {
         const id = document.getElementById('assignEntryId').value;
         const targetDate = document.getElementById('assignDate').value;
@@ -1656,19 +1675,14 @@
             return;
         }
 
-        const newHabitInstance = {
-            title: masterHabit.title,
-            description: masterHabit.description || '',
-            type: 'Task',
-            date: targetDate,
-            priority: masterHabit.priority,
-            timeblock: targetTimeblock,
-            recurring: 'none',
-            isHabitInstance: true,
-            completed: false
-        };
-
-        const { error } = await supabaseClient.from('schedules').insert([newHabitInstance]);
+        // UPDATE tanggal & timeblock pada kartu habit yang sudah ada (Tidak menduplikasi card)
+        const { error } = await supabaseClient
+            .from('schedules')
+            .update({
+                date: targetDate,
+                timeblock: targetTimeblock
+            })
+            .eq('id', id);
 
         if (!error) {
             closeAssignModal();
@@ -1740,9 +1754,17 @@
                 pillHTML += `<span class="editable-pill time-pill">⏱️ ${t} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${t}', event)" title="Remove time">×</span></span>`; 
             });
         }
+
+        // Tipe Deadline / Tag Deadline: Uneditable & Pinned Visual (Tanpa Tombol Silang)
+        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) {
+            pillHTML += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`;
+        }
+
         if (parsed.labelTags.length > 0) {
             parsed.labelTags.forEach(l => {
-                pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
+                if (l.toLowerCase() !== 'deadline') {
+                    pillHTML += `<span class="editable-pill label-pill">🏷️ ${l} <span class="remove-pill" onclick="removeTagFromItem('${item.id}', '${l}', event)" title="Remove label">×</span></span>`;
+                }
             });
         }
         if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
@@ -1853,13 +1875,14 @@
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS & HABITS';
-            const skipped = schedules.filter(s => (s.type === 'Task' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
+            const skipped = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
             if (skipped.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>';
             } else {
                 skipped.forEach(s => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     html += renderCardHTML(s, bgStyle);
                 });
             }
@@ -1869,6 +1892,7 @@
             todayItems.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                 if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -1883,6 +1907,7 @@
             upcomingItems.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                 if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -1894,6 +1919,7 @@
             inboxItems.forEach(s => {
                 let tbKey = s.timeblock || 'none';
                 let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                 if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                 html += renderCardHTML(s, bgStyle);
             });
@@ -1901,23 +1927,44 @@
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
                 let labelMap = {};
+                
                 schedules.forEach(s => {
-                    if (s.type === 'Habit' || s.isHabitInstance) return; // Label habits & habit instances tak perlu masuk label list
+                    if (s.type === 'Habit' || s.isHabitInstance) return;
                     const parsed = parseTodoistTitle(s.title);
-                    parsed.labelTags.forEach(l => {
+                    
+                    let tags = [...parsed.labelTags];
+                    // Auto-Tagging Deadline
+                    if (s.type === 'Deadline' && !tags.includes('deadline')) {
+                        tags.push('deadline');
+                    }
+
+                    tags.forEach(l => {
                         if (!labelMap[l]) labelMap[l] = [];
                         labelMap[l].push(s);
                     });
                 });
-                const keys = Object.keys(labelMap);
+
+                let keys = Object.keys(labelMap);
+
+                // Auto-Pinned System: Tag 'deadline' otomatis berada di baris paling atas
+                keys.sort((a, b) => {
+                    if (a.toLowerCase() === 'deadline') return -1;
+                    if (b.toLowerCase() === 'deadline') return 1;
+                    return a.localeCompare(b);
+                });
+
                 if (keys.length === 0) {
                     html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found. Use .label in title.</div>';
                 } else {
                     keys.forEach(l => {
+                        const isDeadline = (l.toLowerCase() === 'deadline');
+                        const cardBg = isDeadline ? 'background: var(--deadline-crimson); border-color: #ff5555;' : 'background: #141414;';
+                        const pinnedBadge = isDeadline ? '<span style="font-size: 8px; background: #000000; color: #ffffff; padding: 1px 4px; border-radius: 2px; margin-left: 4px;">📌 PINNED</span>' : '';
+
                         html += `
-                            <div class="agenda-item" style="background: #141414; margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
+                            <div class="agenda-item" style="${cardBg} margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
                                 <div class="agenda-content">
-                                    <h4>🏷️ ${l}</h4>
+                                    <h4>🏷️ ${l} ${pinnedBadge}</h4>
                                     <p>Total items: ${labelMap[l].length}</p>
                                 </div>
                                 <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
@@ -1927,7 +1974,12 @@
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                let matched = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.includes(targetParam));
+                let matched = schedules.filter(s => {
+                    if (s.type === 'Habit' || s.isHabitInstance) return false;
+                    const parsed = parseTodoistTitle(s.title);
+                    if (targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline') return true;
+                    return parsed.labelTags.includes(targetParam);
+                });
                 
                 if (!window.labelCustomOrders) window.labelCustomOrders = {};
                 if (!window.labelCustomOrders[targetParam]) {
@@ -1946,6 +1998,7 @@
                 matched.forEach((s, idx) => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     if (s.isHabitInstance) bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
@@ -2055,7 +2108,7 @@
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false) {
         const isPast = s.date && s.date < getTodayDateString();
-        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
@@ -2083,9 +2136,11 @@
             finalCardBg = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
         } else if (s.type === 'Habit') {
             typePrefix = '[HABIT]';
+        } else if (s.type === 'Deadline') {
+            finalCardBg = `var(--deadline-crimson)`;
         }
 
-        let showCheckbox = (s.type === 'Task' || s.isHabitInstance);
+        let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance);
 
         return `
             <div class="${itemClass}" style="background: ${finalCardBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
@@ -2104,22 +2159,28 @@
         `;
     }
 
+    // HABIT LIST (1 CARD = 1 ACTIVITY) WITH RE-ASSIGN STATUS
     function renderHabitCardHTML(s, solidBg) {
         const parsed = parseTodoistTitle(s.title);
         let pillsHTML = '';
         parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
 
+        // Status Tombol otomatis berubah menjadi "Re-assign" jika habit sudah memiliki tanggal
+        const assignBtnText = s.date ? 'Re-assign' : 'Assign';
+        const assignedDateInfo = s.date ? `<p>📅 Date: ${formatDateDDMM(s.date)}</p>` : '';
+
         return `
             <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
                 <div class="agenda-content">
                     <h4>[HABIT] ${parsed.cleanTitle}</h4>
                     ${descHTML}
+                    ${assignedDateInfo}
                     <p>🏷️ Priority: ${s.priority}</p>
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
-                    <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">Assign</button>
+                    <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
@@ -2154,6 +2215,7 @@
                 filteredItems.forEach(s => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     html += renderCardHTML(s, bgStyle);
@@ -2174,6 +2236,7 @@
                 displayToday.forEach(s => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
@@ -2191,6 +2254,7 @@
                 displayUpcoming.forEach(s => {
                     let tbKey = s.timeblock || 'none';
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     if (s.type === 'Habit') bgStyle = `var(--habit-badge-bg)`;
                     htmlMain += renderCardHTML(s, bgStyle);
@@ -2206,13 +2270,13 @@
             }
             container.innerHTML = htmlMain;
 
-            // FIX: Dumplist cards with labels won't enter dump list (they appear in label list like assigned projects)
             const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
             if (inboxItems.length > 0) {
                 let inboxHTML = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 Inbox / Dumplist</span><span>[${inboxItems.length}]</span></div>`;
                 const displayInbox = inboxItems.slice(0, 5);
                 displayInbox.forEach(s => {
                     let bgStyle = `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors['none']})`;
+                    if (s.type === 'Deadline') bgStyle = `var(--deadline-crimson)`;
                     if (s.type === 'Birthday') bgStyle = `var(--birthday-strawberry)`;
                     inboxHTML += renderCardHTML(s, bgStyle);
                 });
@@ -2264,7 +2328,7 @@
 
     function renderCardHTMLWithReorder(s, bgStyle, reorderBtns) {
         const isPast = s.date && s.date < getTodayDateString();
-        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
         let displayDate = s.date;
         if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
@@ -2284,7 +2348,7 @@
         let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
         let typePrefix = `[${s.type}]`;
         if (s.isHabitInstance) typePrefix = '[HABIT]';
-        let showCheckbox = (s.type === 'Task' || s.isHabitInstance);
+        let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.isHabitInstance);
 
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
