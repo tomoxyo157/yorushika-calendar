@@ -1313,7 +1313,7 @@
         
         let allLabels = new Set();
         schedules.forEach(s => {
-            if (s.type === 'Habit' && !s.date) return;
+            if (s.type === 'Habit' || s.isHabitInstance) return;
             const parsed = parseTodoistTitle(s.title);
             parsed.labelTags.forEach(l => allLabels.add(l));
             if (s.type === 'Deadline') allLabels.add('deadline');
@@ -1978,7 +1978,7 @@
                 let labelMap = {};
                 
                 schedules.forEach(s => {
-                    if (s.type === 'Habit' && !s.date) return;
+                    if (s.type === 'Habit' || s.isHabitInstance) return;
                     const parsed = parseTodoistTitle(s.title);
                     
                     let tags = [...parsed.labelTags];
@@ -2022,7 +2022,7 @@
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
                 let matched = schedules.filter(s => {
-                    if (s.type === 'Habit' && !s.date) return false;
+                    if (s.type === 'Habit' || s.isHabitInstance) return false;
                     const parsed = parseTodoistTitle(s.title);
                     if (targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline') return true;
                     return parsed.labelTags.includes(targetParam);
