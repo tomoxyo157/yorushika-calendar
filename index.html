@@ -581,6 +581,18 @@
             font-weight: 600;
         }
         .btn-assign:hover { background: #4da6ff; color: black; }
+        .btn-archive-habit {
+            background: rgba(0, 0, 0, 0.45);
+            color: #d9a441;
+            border: 1px solid #d9a441;
+            padding: 3px 6px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .btn-archive-habit:hover { background: #d9a441; color: black; }
         .btn-edit {
             background: rgba(0, 0, 0, 0.45);
             color: #7fdb7f;
@@ -1335,7 +1347,7 @@
         const todayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
 
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
-        const habitCount = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance).length;
+        const habitCount = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed).length;
         
         const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
         
@@ -1819,6 +1831,8 @@
         let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
         let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
         let itemStatus = item.completed ? 'Completed' : 'Pending';
+        const isHabitMaster = (item.type === 'Habit' && !item.isHabitInstance);
+        if (isHabitMaster) itemStatus = item.completed ? 'Archived (Habits Bin)' : 'Active';
 
         let displayDate = item.date;
         if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
@@ -1851,6 +1865,12 @@
         let detailTypeLabel = item.type;
         if (item.isHabitInstance) detailTypeLabel = 'Habit Instance';
 
+        let heatmapHTML = '';
+        if (isHabitMaster) {
+            const accentColor = priorityColors[item.priority] || '#7a9c72';
+            heatmapHTML = buildHabitHeatmapHTML(item.title, accentColor);
+        }
+
         document.getElementById('modalTitleText').innerText = `[${detailTypeLabel}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate ? displayDate : 'Habit (Idle / Master Pool)'}</p>
@@ -1858,6 +1878,7 @@
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
             <p><strong>Status</strong> ${itemStatus}</p>
+            ${heatmapHTML}
             <p><strong>Discord-style Badges & Labels</strong></p>
             <div class="editable-pill-container">${pillHTML}</div>
         `;
@@ -1882,6 +1903,10 @@
             } else {
                 headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">Edit Order</button>`;
             }
+        } else if (typeKey === 'habits') {
+            headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`;
+        } else if (typeKey === 'habits_bin') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits')">← Back</button>`;
         }
         headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
@@ -1906,7 +1931,7 @@
             }
         } else if (typeKey === 'habits') {
             modalTitle.innerText = '🔁 HABITS DIRECTORY';
-            let habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance);
+            let habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed);
 
             if (habits.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
@@ -1937,7 +1962,7 @@
                             let group = tagsObj[tag];
                             group.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
 
-                            html += `<div style="margin-left: 6px; margin-bottom: 8px;"><div style="font-size: 10px; color: var(--muted-gray); margin-bottom: 4px; border-bottom: 1px dotted var(--border-color);">🏷️ .${tag} [${group.length}]</div>`;
+                            html += `<div style="margin-left: 6px; margin-bottom: 8px;"><div style="font-size: 10px; color: var(--muted-gray); margin-bottom: 4px; border-bottom: 1px solid var(--border-color);">🏷️ .${tag} [${group.length}]</div>`;
                             group.forEach(s => {
                                 let solidBg = priorityColors[s.priority] || '#333';
                                 html += renderHabitCardHTML(s, solidBg);
@@ -1951,6 +1976,19 @@
                 if (!hasHabitsContent) {
                     html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded.</div>';
                 }
+            }
+        } else if (typeKey === 'habits_bin') {
+            modalTitle.innerText = '🗑️ HABITS BIN';
+            let archivedHabits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && s.completed === true);
+
+            if (archivedHabits.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>';
+            } else {
+                archivedHabits.sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+                archivedHabits.forEach(s => {
+                    let solidBg = priorityColors[s.priority] || '#333';
+                    html += renderHabitBinCardHTML(s, solidBg);
+                });
             }
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS & HABITS';
@@ -2276,10 +2314,126 @@
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                 </div>
                 <div class="agenda-actions">
+                    <button class="btn-archive-habit" onclick="archiveHabit('${s.id}', event)" title="Move to Habits Bin">✓</button>
                     <button class="btn-assign" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
+            </div>
+        `;
+    }
+
+    function renderHabitBinCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+        let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
+
+        return `
+            <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px; opacity: 0.7;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    ${descHTML}
+                    <p>🏷️ Priority: ${s.priority}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                </div>
+                <div class="agenda-actions">
+                    <button class="btn-assign" onclick="restoreHabit('${s.id}', event)" title="Restore to active Habits">Restore</button>
+                    <button class="btn-delete" onclick="deleteHabitPermanent('${s.id}', event)" title="Delete permanently">X</button>
+                </div>
+            </div>
+        `;
+    }
+
+    async function archiveHabit(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Move this habit to the Habits Bin? It will stop appearing in the active list, but its history stays intact.')) return;
+        const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
+        if (!error) {
+            await fetchSchedules();
+            openDirectoryModal('habits');
+        } else {
+            alert('Failed to archive habit: ' + error.message);
+        }
+    }
+
+    async function restoreHabit(id, event) {
+        if (event) event.stopPropagation();
+        const { error } = await supabaseClient.from('schedules').update({ completed: false }).eq('id', id);
+        if (!error) {
+            await fetchSchedules();
+            openDirectoryModal('habits_bin');
+        } else {
+            alert('Failed to restore habit: ' + error.message);
+        }
+    }
+
+    async function deleteHabitPermanent(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Delete this habit permanently? This cannot be undone.')) return;
+        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (!error) {
+            await fetchSchedules();
+            openDirectoryModal('habits_bin');
+        } else {
+            alert('Failed to delete habit: ' + error.message);
+        }
+    }
+
+    function buildHabitHeatmapHTML(habitTitle, accentColor) {
+        const completedDates = new Set(
+            schedules
+                .filter(x => x.isHabitInstance && x.completed === true && x.title === habitTitle && x.date)
+                .map(x => x.date)
+        );
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const totalWeeks = 53;
+        const totalDays = totalWeeks * 7;
+
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+
+        const startDate = new Date(endOfWeek);
+        startDate.setDate(endOfWeek.getDate() - totalDays + 1);
+
+        const monthShortNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        let cellsHTML = '';
+        let monthLabelsHTML = '';
+        let lastMonth = null;
+        let doneCount = 0;
+
+        for (let col = 0; col < totalWeeks; col++) {
+            const colStartDate = new Date(startDate);
+            colStartDate.setDate(startDate.getDate() + col * 7);
+            const monthNum = colStartDate.getMonth();
+            if (monthNum !== lastMonth) {
+                monthLabelsHTML += `<div style="grid-column: ${col + 1}; grid-row: 1; font-size: 8px; color: var(--muted-gray);">${monthShortNames[monthNum]}</div>`;
+                lastMonth = monthNum;
+            }
+
+            for (let row = 0; row < 7; row++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + col * 7 + row);
+                const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+                const isFuture = cellDate > today;
+                const isFilled = completedDates.has(dateStr);
+                if (isFilled) doneCount++;
+
+                let cellStyle = 'background: var(--card-bg); border: 1px solid var(--border-color);';
+                if (isFilled) cellStyle = `background: ${accentColor}; border: 1px solid rgba(0,0,0,0.25);`;
+                if (isFuture) cellStyle = 'background: transparent; border: 1px solid var(--border-color); opacity: 0.3;';
+
+                cellsHTML += `<div title="${dateStr}${isFilled ? ' — done' : ''}" style="grid-column: ${col + 1}; grid-row: ${row + 2}; aspect-ratio: 1; border-radius: 2px; ${cellStyle}"></div>`;
+            }
+        }
+
+        return `
+            <div style="color: var(--muted-gray); font-size: 10px; margin: 8px 0 4px 0;">Contribution Heatmap (Past Year) — ${doneCount} done</div>
+            <div style="display: grid; grid-template-columns: repeat(${totalWeeks}, 1fr); grid-template-rows: 9px repeat(7, 1fr); gap: 1.5px; padding: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px;">
+                ${monthLabelsHTML}
+                ${cellsHTML}
             </div>
         `;
     }
