@@ -2398,42 +2398,38 @@
         const startDate = new Date(endOfWeek);
         startDate.setDate(endOfWeek.getDate() - totalDays + 1);
 
-        const monthShortNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-        let cellsHTML = '';
-        let monthLabelsHTML = '';
-        let lastMonth = null;
+        const pitch = 10;
+        const dotRadius = 3.3;
+        const svgWidth = totalWeeks * pitch;
+        const svgHeight = 7 * pitch;
+
+        let dotsHTML = '';
         let doneCount = 0;
 
         for (let col = 0; col < totalWeeks; col++) {
-            const colStartDate = new Date(startDate);
-            colStartDate.setDate(startDate.getDate() + col * 7);
-            const monthNum = colStartDate.getMonth();
-            if (monthNum !== lastMonth) {
-                monthLabelsHTML += `<div style="grid-column: ${col + 1}; grid-row: 1; font-size: 8px; color: var(--muted-gray);">${monthShortNames[monthNum]}</div>`;
-                lastMonth = monthNum;
-            }
-
             for (let row = 0; row < 7; row++) {
                 const cellDate = new Date(startDate);
                 cellDate.setDate(startDate.getDate() + col * 7 + row);
+                if (cellDate > today) continue;
+
                 const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
-                const isFuture = cellDate > today;
                 const isFilled = completedDates.has(dateStr);
                 if (isFilled) doneCount++;
 
-                let cellStyle = 'background: var(--card-bg); border: 1px solid var(--border-color);';
-                if (isFilled) cellStyle = `background: ${accentColor}; border: 1px solid rgba(0,0,0,0.25);`;
-                if (isFuture) cellStyle = 'background: transparent; border: 1px solid var(--border-color); opacity: 0.3;';
+                const cx = col * pitch + pitch / 2;
+                const cy = row * pitch + pitch / 2;
+                const fillColor = isFilled ? accentColor : 'var(--border-color)';
 
-                cellsHTML += `<div title="${dateStr}${isFilled ? ' — done' : ''}" style="grid-column: ${col + 1}; grid-row: ${row + 2}; aspect-ratio: 1; border-radius: 2px; ${cellStyle}"></div>`;
+                dotsHTML += `<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="${fillColor}"><title>${dateStr}${isFilled ? ' — done' : ''}</title></circle>`;
             }
         }
 
         return `
             <div style="color: var(--muted-gray); font-size: 10px; margin: 8px 0 4px 0;">Contribution Heatmap (Past Year) — ${doneCount} done</div>
-            <div style="display: grid; grid-template-columns: repeat(${totalWeeks}, 1fr); grid-template-rows: 9px repeat(7, 1fr); gap: 1.5px; padding: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px;">
-                ${monthLabelsHTML}
-                ${cellsHTML}
+            <div style="background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+                <svg viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">
+                    ${dotsHTML}
+                </svg>
             </div>
         `;
     }
