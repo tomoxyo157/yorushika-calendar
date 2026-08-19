@@ -1,340 +1,1392 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Yorushika Calendar // ヨルシカ</title><link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/whiteyoru.png"><link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22displayf%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D"><link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/blackyoru.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>:root{--main-font:'EB Garamond',serif;--bg-pure:#141413;--card-bg:#1c1c1a;--border-color:#2a2a27;--text-main:#e3ded8;--muted-gray:#8c877d;--accent-color:#b5b0a4;--shadow-md:0 8px 24px rgba(0,0,0,0.4);--birthday-strawberry:#ff4d6d;--deadline-crimson:#ff2a2a;--discord-badge-bg:#1e1f22;--discord-badge-border:#35363c}*,*::before,*::after{box-sizing:border-box;transition:background-color .15s ease,border-color .15s ease,color .15s ease,opacity .15s ease}body,input,select,textarea,button{font-family:var(--main-font)}body{background-color:var(--bg-pure);color:var(--text-main);margin:0;padding:14px;text-transform:lowercase;font-size:15px;-webkit-font-smoothing:antialiased}.container{max-width:500px;margin:auto;background:var(--card-bg);padding:18px;border-radius:14px;border:1px solid var(--border-color);box-shadow:var(--shadow-md);display:flex;flex-direction:column;gap:16px}.mobile-create-trigger{display:block;width:100%;background:var(--text-main);color:var(--bg-pure);border:none;padding:11px;text-align:center;font-weight:600;font-size:13px;letter-spacing:.5px;cursor:pointer;border-radius:7px;margin-bottom:2px}.mobile-create-trigger:hover{opacity:.82}@media(min-width:1100px){body{padding:8px;display:flex;justify-content:center;align-items:flex-start;min-height:100vh}.container{zoom:.60;-moz-transform:scale(.60);-moz-transform-origin:top center;max-width:1680px;width:100%;display:grid;grid-template-columns:380px 1fr 350px;grid-template-rows:auto auto auto;gap:14px;align-items:start;padding:12px;margin:20px auto}.desktop-full-span{grid-column:span 3}.desktop-agenda-column{grid-column:1;grid-row:2/span 2}.desktop-calendar-column{grid-column:2;grid-row:2/span 2}.desktop-form-column{grid-column:3;grid-row:2/span 2;margin-top:0!important;display:block!important}.mobile-create-trigger{display:none!important}}#dbStatus{font-size:12px;text-align:center;padding:6px;border:1px solid var(--border-color);border-radius:7px;background:var(--bg-pure);color:var(--muted-gray)}.yorushika-header{text-align:center;border-bottom:1px solid var(--border-color);padding-bottom:14px;position:relative}.eye-logo-svg{width:66px;height:33px;fill:var(--text-main);margin-bottom:8px}.jp-title-logo{font-size:25px;font-weight:500;letter-spacing:3px;color:var(--text-main);margin:0}.sub-tag{font-size:10px;color:var(--muted-gray);letter-spacing:1.5px;font-style:italic}.header-actions-right{position:absolute;top:0;right:0;display:flex;gap:5px}.btn-logout,.btn-ics{background:transparent;border:1px solid var(--border-color);padding:4px 9px;font-size:10px;cursor:pointer;border-radius:5px}.btn-logout{color:#ff8585;border-color:rgba(255,85,85,.35)}.btn-logout:hover{background:rgba(255,85,85,.15);border-color:#f55}.btn-ics{color:#6fb3e0;border-color:rgba(77,166,255,.35)}.btn-ics:hover{background:rgba(77,166,255,.15);border-color:#4da6ff}h2{text-align:center;color:var(--text-main);font-size:22px;font-weight:500;letter-spacing:1px;margin:0 0 12px;border-bottom:1px solid var(--border-color);padding-bottom:8px}.calendar-nav{display:grid;grid-template-columns:45px 1fr auto;align-items:center;margin-bottom:10px;background:var(--bg-pure);border-radius:8px;padding:6px 8px;border:1px solid var(--border-color)}.calendar-nav h3{font-size:15px;font-weight:500;letter-spacing:.5px;margin:0;color:var(--text-main);text-align:center}.calendar-nav button,.btn-today-kalender{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);border-radius:5px;padding:4px 12px;font-size:14px;cursor:pointer}.calendar-nav button:hover,.btn-today-kalender:hover{background:var(--border-color)}.calendar-nav-actions{display:flex;gap:4px;align-items:center}.btn-today-kalender{padding:4px 8px;font-size:10px}.weekdays{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-weight:600;font-size:10px;color:var(--muted-gray);margin-bottom:5px;letter-spacing:.5px}.days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.day-cell{height:68px;background:var(--bg-pure);border:1px solid var(--border-color);border-radius:6px;padding:3px 4px;font-size:9px;cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}.day-cell:hover{border-color:var(--accent-color);background:var(--card-bg)}.day-cell.today{border:1px solid var(--text-main);background:var(--card-bg)}.day-cell.today .day-number{color:var(--text-main);text-decoration:underline}.day-number{font-weight:600;color:var(--muted-gray);font-size:13px}.badges-container{max-height:45px;overflow:hidden;display:flex;flex-direction:column;gap:2px}.mini-badge{font-size:8px;color:#fff;padding:1px 4px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border:1px solid rgba(255,255,255,.15)}.mini-badge.completed-badge{opacity:.35;text-decoration:line-through}.pill-badges-wrap{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}.discord-pill{background:var(--discord-badge-bg);border:1px solid var(--discord-badge-border);color:#b5bac1;font-size:8px;padding:1px 6px;border-radius:10px;letter-spacing:.5px;display:inline-flex;align-items:center;gap:3px}.discord-pill.time-pill{color:#f2f3f5;border-color:#4e5058}.discord-pill.label-pill{color:#dbdee1}.form-section{background:var(--bg-pure);padding:14px;border:1px solid var(--border-color);border-radius:10px;display:none}.form-section h4{font-size:15px;font-weight:500;letter-spacing:.5px;color:var(--text-main);margin:0 0 12px}.form-group{margin-bottom:10px}label{display:block;margin-bottom:3px;font-weight:600;font-size:10px;color:var(--muted-gray);letter-spacing:.3px}input,select,textarea{width:100%;padding:8px;background:var(--card-bg);border:1px solid var(--border-color);color:var(--text-main);border-radius:6px;font-size:13px}.date-input-wrapper{display:flex;gap:4px;align-items:center}.date-input-wrapper input[type="date"]{flex-grow:1}.btn-today-input,.btn-delete-input{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);border-radius:6px;padding:8px 10px;font-size:10px;cursor:pointer;font-weight:600;white-space:nowrap}.btn-today-input:hover{background:var(--border-color)}.btn-delete-input{color:#ff8585}.btn-delete-input:hover{background:rgba(255,85,85,.15);border-color:#f55}select option{text-transform:lowercase;background:var(--card-bg)}textarea{resize:vertical;min-height:54px;white-space:pre-wrap;line-height:1.5}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent-color)}.form-buttons{display:flex;gap:8px;margin-top:12px}.btn-submit{flex:2;background:var(--text-main);color:var(--bg-pure);border:none;padding:9px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px}.btn-submit:hover{opacity:.85}.btn-reset{flex:1;background:transparent;color:var(--muted-gray);border:1px solid var(--border-color);padding:9px;border-radius:6px;font-weight:600;cursor:pointer;font-size:12px}.btn-reset:hover{background:var(--border-color);color:var(--text-main)}.agenda-list{background:var(--bg-pure);padding:14px;border:1px solid var(--border-color);border-radius:10px;margin-bottom:12px}.agenda-header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;border-bottom:1px solid var(--border-color);padding-bottom:6px}.agenda-list h4{font-size:15px;font-weight:500;letter-spacing:.5px;color:var(--text-main);margin:0}.agenda-controls{display:flex;gap:6px;align-items:center}.sort-select{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);border-radius:5px;font-size:11px;padding:3px 5px;cursor:pointer;width:auto}.btn-clear-filter{background:var(--card-bg);color:#ff8585;border:1px solid var(--border-color);border-radius:5px;font-size:10px;padding:3px 7px;cursor:pointer}.btn-clear-filter:hover{background:rgba(255,85,85,.15);border-color:#f55}.archive-windows-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:10px}.btn-window-trigger{background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);border-radius:6px;padding:6px 2px;font-size:8px;cursor:pointer;text-align:center;font-weight:600}.btn-window-trigger:hover{background:var(--border-color)}.nav-counter-badge{background:var(--text-main);color:var(--bg-pure);font-size:8px;font-weight:700;padding:1px 5px;border-radius:10px;margin-left:2px;display:inline-block;vertical-align:middle}.btn-window-trigger:hover .nav-counter-badge{background:var(--bg-pure);color:var(--text-main)}.nav-counter-badge.red-alert{background:#ff4d6d;color:#fff}.btn-window-trigger:hover .nav-counter-badge.red-alert{background:#fff;color:#ff4d6d}.dumplist-box,.section-category-box{background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;padding:9px;margin-top:10px}.section-category-box{margin-bottom:9px;margin-top:0}.dumplist-title,.section-category-title{font-size:12px;color:var(--muted-gray);margin-bottom:7px;border-bottom:1px solid var(--border-color);padding-bottom:4px;display:flex;justify-content:space-between}.section-category-title{color:var(--text-main);padding-bottom:5px}.agenda-item{padding:9px;border-radius:6px;margin-bottom:6px;color:#fff;display:flex;justify-content:space-between;align-items:center;border:1px solid rgba(255,255,255,.15);cursor:pointer}.agenda-item:hover{border-color:rgba(255,255,255,.5)}.agenda-item.completed-item{opacity:.35!important}.agenda-item.completed-item .agenda-content h4,.agenda-item.completed-item .agenda-content p{text-decoration:line-through!important}.agenda-content{flex-grow:1;overflow:hidden;padding-right:8px}.agenda-content h4{margin:0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.agenda-content p{margin:3px 0 0;font-size:10px;opacity:.85;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;text-overflow:ellipsis;white-space:normal;word-break:break-all}.agenda-actions{display:flex;align-items:center;gap:5px;flex-shrink:0}.agenda-actions input[type="checkbox"]{width:14px;height:14px;cursor:pointer;accent-color:var(--text-main)}.btn-assign{background:rgba(0,0,0,.45);color:#6fb3e0;border:1px solid #6fb3e0;padding:3px 6px;border-radius:5px;cursor:pointer;font-size:8px;font-weight:600}.btn-assign:hover{background:#4da6ff;color:#000}.btn-reassign{background:rgba(0,0,0,.5);color:#d8b4fe;border:1px solid #c084fc;padding:3px 6px;border-radius:5px;cursor:pointer;font-size:8px;font-weight:600}.btn-reassign:hover{background:#c084fc;color:#000}.btn-archive-habit{background:rgba(0,0,0,.45);color:#d9a441;border:1px solid #d9a441;padding:3px 6px;border-radius:5px;cursor:pointer;font-size:9px;font-weight:700;line-height:1}.btn-archive-habit:hover{background:#d9a441;color:#000}.btn-edit{background:rgba(0,0,0,.45);color:#7fdb7f;border:1px solid #7fdb7f;padding:3px 6px;border-radius:5px;cursor:pointer;font-size:8px;font-weight:600}.btn-edit:hover{background:#5f5;color:#000}.btn-delete{background:rgba(0,0,0,.45);color:#ff8585;border:1px solid #ff8585;padding:3px 5px;border-radius:5px;cursor:pointer;font-size:8px;font-weight:600}.btn-delete:hover{background:#f55;color:#fff}.btn-overflow-more{display:block;width:100%;background:var(--card-bg);color:var(--text-main);border:1px solid var(--border-color);border-radius:6px;padding:6px;font-size:10px;text-align:center;cursor:pointer;margin-top:5px}.btn-overflow-more:hover{background:var(--border-color)}.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(10,10,9,.75);z-index:1000;justify-content:center;align-items:center;padding:10px;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility .3s ease}.modal-overlay.active{opacity:1;visibility:visible}.modal-card{background:var(--card-bg);border:1px solid var(--border-color);width:100%;max-width:440px;max-height:80vh;display:flex;flex-direction:column;padding:20px;border-radius:12px;box-shadow:var(--shadow-md);position:relative;transform:scale(.92);transition:transform .25s cubic-bezier(.175,.885,.32,1.275)}.modal-overlay.active .modal-card{transform:scale(1)}.modal-header{font-size:15px;font-weight:500;color:var(--text-main);border-bottom:1px solid var(--border-color);padding-bottom:8px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}.modal-scroll-body{overflow-y:auto;max-height:calc(80vh - 60px);padding-right:4px}.modal-close{background:none;border:none;color:var(--muted-gray);font-size:19px;cursor:pointer;line-height:1}.modal-close:hover{color:#ff8585}.modal-body p{margin:7px 0;font-size:12px;white-space:pre-wrap}.modal-body strong{color:var(--muted-gray);font-size:10px;display:block}.editable-pill-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.editable-pill{background:#2b2d31;border:1px solid #383a40;color:#f2f3f5;font-size:9px;padding:2px 7px;border-radius:10px;display:inline-flex;align-items:center;gap:5px}.editable-pill .remove-pill{cursor:pointer;color:#ed4245;font-weight:700;font-size:10px}.editable-pill .remove-pill:hover{color:#ff6b6b}#authOverlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(20,20,19,.96);z-index:9999;display:flex;justify-content:center;align-items:center;padding:16px}.auth-box{background:var(--card-bg);border:1px solid var(--border-color);width:100%;max-width:380px;padding:28px;border-radius:14px;box-shadow:var(--shadow-md);text-align:center}.auth-box h3{color:var(--text-main);font-size:18px;font-weight:500;letter-spacing:1.5px;margin:12px 0 16px}#authErrorMsg{font-size:11px;color:#ff8585;margin-top:8px;min-height:15px}.footer-tag{text-align:center;font-size:12px;font-style:italic;color:var(--muted-gray);margin-top:8px;border-top:1px solid var(--border-color);padding-top:10px;letter-spacing:1px}.drag-handle{cursor:grab;user-select:none;display:flex;align-items:center;justify-content:center;padding:0 8px;font-size:16px;color:var(--muted-gray)}.drag-handle:active{cursor:grabbing}</style></head><body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yorushika Calendar // ヨルシカ</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/whiteyoru.png">
+    
+    <!-- PWA Manifest & Mobile Icons -->
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22displayf%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/blackyoru.png">
 
-<div id="authOverlay" style="display:none"><div class="auth-box"><svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="width:50px;height:25px;margin:0 auto 10px;display:block"><circle cx="100" cy="50" r="38" fill="none" stroke="#fff" stroke-width="8"/><path d="M100 18Q112 50 100 82Q88 50 100 18Z" fill="#fff"/><path d="M20 50Q60 20 90 32L90 68Q60 80 20 50Z" fill="#fff"/><path d="M180 50Q140 20 110 32L110 68Q140 80 180 50Z" fill="#fff"/></svg><h3>SYSTEM ACCESS</h3><div class="form-group" style="text-align:left"><label>Email Address</label><input type="email" id="authEmail" placeholder="your@email.com"></div><div class="form-group" style="text-align:left;margin-bottom:12px"><label>Password</label><input type="password" id="authPassword" placeholder="••••••••"></div><button class="btn-submit" style="width:100%;padding:10px" onclick="handleLogin()">Sign In to Vault</button><div id="authErrorMsg"></div></div></div>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<div class="container"><div class="yorushika-header desktop-full-span"><div class="header-actions-right"><button class="btn-ics" onclick="exportFullICS()" title="Export .ics Calendar">.ICS</button> <button class="btn-logout" onclick="handleLogout()">Logout</button></div><svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"><circle cx="100" cy="50" r="38" fill="none" stroke="#fff" stroke-width="8"/><path d="M100 18Q112 50 100 82Q88 50 100 18Z" fill="#fff"/><path d="M20 50Q60 20 90 32L90 68Q60 80 20 50Z" fill="#fff"/><path d="M180 50Q140 20 110 32L110 68Q140 80 180 50Z" fill="#fff"/></svg><p class="jp-title-logo">ヨルシカ</p><span class="sub-tag">Music & Schedule Archive</span></div>
+    <style>
+        :root {
+            --main-font: 'EB Garamond', serif;
+            --bg-pure: #141413;
+            --card-bg: #1c1c1a;
+            --border-color: #2a2a27;
+            --text-main: #e3ded8;
+            --muted-gray: #8c877d;
+            --accent-color: #b5b0a4;
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+            --birthday-strawberry: #ff4d6d;
+            --deadline-crimson: #ff2a2a;
+            --discord-badge-bg: #1e1f22;
+            --discord-badge-border: #35363c;
+        }
 
-<div class="desktop-calendar-column"><h2>Calendar</h2><div class="calendar-nav"><button onclick="changeMonth(-1)">◀</button><h3 id="monthYearDisplay"></h3><div class="calendar-nav-actions"><button class="btn-today-kalender" onclick="jumpToCurrentMonth()">Today</button> <button onclick="changeMonth(1)">▶</button></div></div><div class="weekdays"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div><div class="days-grid" id="daysGrid"></div></div>
+        *, *::before, *::after { box-sizing: border-box; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
+        body, input, select, textarea, button { font-family: var(--main-font); }
+        body { background-color: var(--bg-pure); color: var(--text-main); margin: 0; padding: 14px; text-transform: lowercase; font-size: 15px; -webkit-font-smoothing: antialiased; }
 
-<button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
+        .container { max-width: 500px; margin: auto; background: var(--card-bg); padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 16px; }
 
-<div class="form-section desktop-form-column" id="formSectionContainer"><h4>+ Create Entry</h4><div class="form-group"><label>Title (Tip: Use '10am', '.projectA')</label><input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender"></div><div class="form-group"><label>Description / Note (Optional)</label><textarea id="description" placeholder="Short detail or sub-note..."></textarea></div><div class="form-group"><label>Type</label><select id="type" onchange="handleTypeChange()"><option value="Task">Task (With checkmark)</option><option value="Event">Event</option><option value="Deadline">Deadline (Crimson Red)</option><option value="Habit">Habit / Recurring</option><option value="Birthday">Birthday (Recurring Yearly)</option></select></div><div class="form-group" id="dateGroup"><label id="dateLabel">Date (Leave blank for Inbox)</label><div class="date-input-wrapper"><input type="date" id="date" oninput="checkDateInputState('date','dateTodayBtnContainer')"> <span id="dateTodayBtnContainer"><button type="button" class="btn-today-input" onclick="setTodayDate('date','dateTodayBtnContainer')">Today</button></span></div></div><div class="form-group" id="priorityGroup"><label>Priority Tagging</label><select id="priority"><option value="personal">Personal (Mint Green)</option><option value="professional">Professional (Maroon)</option><option value="daily">Daily (Ink Charcoal)</option></select></div><div class="form-group" id="timeblockGroup"><label>Timeblock Tagging</label><select id="timeblock"><option value="none">None (Slate Grey - Default)</option><option value="morning">3am - 9am (Golden Dawn)</option><option value="work">9am - 5pm (Summer Canopy / Olive)</option><option value="night">5pm - 10pm (Japanese Indigo)</option></select></div><div class="form-buttons"><button class="btn-reset" onclick="resetForm()">Reset</button> <button class="btn-submit" onclick="saveSchedule()">Save Entry</button></div></div>
+        .mobile-create-trigger { display: block; width: 100%; background: var(--text-main); color: var(--bg-pure); border: none; padding: 11px; text-align: center; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; border-radius: 7px; margin-bottom: 2px; }
+        .mobile-create-trigger:hover { opacity: 0.82; }
 
-<div class="desktop-agenda-column"><div class="agenda-list"><div class="agenda-header-row"><h4>📋 Schedule</h4><div class="agenda-controls"><select id="sortBySelect" class="sort-select" onchange="renderAgendaList()"><option value="timeblock">Sort: Timeblock</option><option value="priority">Sort: Priority</option><option value="type">Sort: Type</option></select> <button id="clearFilterBtn" class="btn-clear-filter" style="display:none" onclick="clearDateFilter()">Show All</button></div></div><div class="archive-windows-nav"><button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span></button> <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span></button> <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span></button> <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">🏷️ Labels <span id="labelBadgeCount" class="nav-counter-badge">0</span></button></div><div id="agendaContainer" style="font-size:11px;color:var(--muted-gray)">No entries recorded yet.</div><div id="dumplistContainer"></div></div></div>
+        @media (min-width: 1100px) {
+            body { padding: 8px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+            .container { zoom: 0.60; -moz-transform: scale(0.60); -moz-transform-origin: top center; max-width: 1680px; width: 100%; display: grid; grid-template-columns: 380px 1fr 350px; grid-template-rows: auto auto auto; gap: 14px; align-items: start; padding: 12px; margin: 20px auto; }
+            .desktop-full-span { grid-column: span 3; }
+            .desktop-agenda-column { grid-column: 1; grid-row: 2 / span 2; }
+            .desktop-calendar-column { grid-column: 2; grid-row: 2 / span 2; }
+            .desktop-form-column { grid-column: 3; grid-row: 2 / span 2; margin-top: 0 !important; display: block !important; }
+            .mobile-create-trigger { display: none !important; }
+        }
+        
+        #dbStatus { font-size: 12px; text-align: center; padding: 6px; border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-pure); color: var(--muted-gray); }
+        
+        .yorushika-header { text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; position: relative; }
+        .eye-logo-svg { width: 66px; height: 33px; fill: var(--text-main); margin-bottom: 8px; }
+        .jp-title-logo { font-size: 25px; font-weight: 500; letter-spacing: 3px; color: var(--text-main); margin: 0; }
+        .sub-tag { font-size: 10px; color: var(--muted-gray); letter-spacing: 1.5px; font-style: italic; }
 
-<div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div><div class="footer-tag desktop-full-span"><span>― 夜을歩く者のための記録 ―</span></div></div>
+        .header-actions-right { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
+        .btn-logout, .btn-ics { background: transparent; border: 1px solid var(--border-color); padding: 4px 9px; font-size: 10px; cursor: pointer; border-radius: 5px; }
+        .btn-logout { color: #ff8585; border-color: rgba(255,85,85,0.35); }
+        .btn-logout:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+        .btn-ics { color: #6fb3e0; border-color: rgba(77,166,255,0.35); }
+        .btn-ics:hover { background: rgba(77,166,255,0.15); border-color: #4da6ff; }
 
-<div class="modal-overlay" id="formModal" onclick="closeModalEvent(event,'formModal')"><div class="modal-card" onclick="event.stopPropagation()"><div class="modal-header"><span id="modalFormHeaderTitle">Create Entry</span> <button class="modal-close" onclick="triggerClose('formModal')">×</button></div><div class="modal-scroll-body"><div style="padding:2px"><input type="hidden" id="m_editEntryId"><div class="form-group"><label>Title (Tip: Use '10am', '.projectA')</label><input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender"></div><div class="form-group"><label>Description / Note (Optional)</label><textarea id="m_description" placeholder="Short detail or sub-note..."></textarea></div><div class="form-group"><label>Type</label><select id="m_type" onchange="m_handleTypeChange()"><option value="Task">Task (With checkmark)</option><option value="Event">Event</option><option value="Deadline">Deadline (Crimson Red)</option><option value="Habit">Habit / Recurring</option><option value="Birthday">Birthday (Recurring Yearly)</option></select></div><div class="form-group" id="m_dateGroup"><label id="m_dateLabel">Date (Leave blank for Inbox)</label><div class="date-input-wrapper"><input type="date" id="m_date" oninput="checkDateInputState('m_date','m_dateTodayBtnContainer')"> <span id="m_dateTodayBtnContainer"><button type="button" class="btn-today-input" onclick="setTodayDate('m_date','m_dateTodayBtnContainer')">Today</button></span></div></div><div class="form-group" id="m_priorityGroup"><label>Priority Tagging</label><select id="m_priority"><option value="personal">Personal (Mint Green)</option><option value="professional">Professional (Maroon)</option><option value="daily">Daily (Ink Charcoal)</option></select></div><div class="form-group" id="m_timeblockGroup"><label>Timeblock Tagging</label><select id="m_timeblock"><option value="none">None (Slate Grey - Default)</option><option value="morning">3am - 9am (Golden Dawn)</option><option value="work">9am - 5pm (Summer Canopy / Olive)</option><option value="night">5pm - 10pm (Japanese Indigo)</option></select></div><div class="form-buttons"><button class="btn-reset" onclick="m_resetForm()">Reset</button> <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button></div></div></div></div></div>
+        h2 { text-align: center; color: var(--text-main); font-size: 22px; font-weight: 500; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        
+        .calendar-nav { display: grid; grid-template-columns: 45px 1fr auto; align-items: center; margin-bottom: 10px; background: var(--bg-pure); border-radius: 8px; padding: 6px 8px; border: 1px solid var(--border-color); }
+        .calendar-nav h3 { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; margin: 0; color: var(--text-main); text-align: center; }
+        .calendar-nav button, .btn-today-kalender { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; padding: 4px 12px; font-size: 14px; cursor: pointer; }
+        .calendar-nav button:hover, .btn-today-kalender:hover { background: var(--border-color); }
+        .calendar-nav-actions { display: flex; gap: 4px; align-items: center; }
+        .btn-today-kalender { padding: 4px 8px; font-size: 10px; }
 
-<div class="modal-overlay" id="assignModal" onclick="closeModalEvent(event,'assignModal')"><div class="modal-card" onclick="event.stopPropagation()"><div class="modal-header"><span>🔁 Assign / Re-assign Habit</span> <button class="modal-close" onclick="triggerClose('assignModal')">×</button></div><div class="modal-scroll-body"><div style="padding:2px"><input type="hidden" id="assignEntryId"><div class="form-group"><label>Target Date</label><div class="date-input-wrapper"><input type="date" id="assignDate" oninput="checkDateInputState('assignDate','assignDateTodayBtnContainer')"> <span id="assignDateTodayBtnContainer"><button type="button" class="btn-today-input" onclick="setTodayDate('assignDate','assignDateTodayBtnContainer')">Today</button></span></div></div><div class="form-group"><label>Timeblock Tagging</label><select id="assignTimeblock"><option value="none">None (Slate Grey - Default)</option><option value="morning">3am - 9am (Golden Dawn)</option><option value="work">9am - 5pm (Summer Canopy / Olive)</option><option value="night">5pm - 10pm (Japanese Indigo)</option></select></div><div class="form-buttons"><button class="btn-reset" onclick="triggerClose('assignModal')">Cancel</button> <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button></div></div></div></div></div>
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 10px; color: var(--muted-gray); margin-bottom: 5px; letter-spacing: 0.5px; }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .day-cell { height: 68px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 4px; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+        .day-cell:hover { border-color: var(--accent-color); background: var(--card-bg); }
+        .day-cell.today { border: 1px solid var(--text-main); background: var(--card-bg); }
+        .day-cell.today .day-number { color: var(--text-main); text-decoration: underline; }
+        .day-number { font-weight: 600; color: var(--muted-gray); font-size: 13px; }
+        
+        .badges-container { max-height: 45px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+        .mini-badge { font-size: 8px; color: #ffffff; padding: 1px 4px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid rgba(255,255,255,0.15); }
+        .mini-badge.completed-badge { opacity: 0.35; text-decoration: line-through; }
 
-<div class="modal-overlay" id="detailModal" onclick="closeModalEvent(event,'detailModal')"><div class="modal-card" onclick="event.stopPropagation()"><div class="modal-header"><span id="modalTitleText">Entry Detail</span> <button class="modal-close" onclick="triggerClose('detailModal')">×</button></div><div class="modal-scroll-body"><div class="modal-body" id="modalBodyContent"></div></div></div></div>
+        .pill-badges-wrap { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 3px; }
+        .discord-pill { background: var(--discord-badge-bg); border: 1px solid var(--discord-badge-border); color: #b5bac1; font-size: 8px; padding: 1px 6px; border-radius: 10px; letter-spacing: 0.5px; display: inline-flex; align-items: center; gap: 3px; }
+        .discord-pill.time-pill { color: #f2f3f5; border-color: #4e5058; }
+        .discord-pill.label-pill { color: #dbdee1; }
 
-<div class="modal-overlay" id="directoryModal" onclick="closeModalEvent(event,'directoryModal')"><div class="modal-card" onclick="event.stopPropagation()"><div class="modal-header" id="directoryModalHeader"><span id="directoryModalTitle">Directory</span> <button class="modal-close" onclick="triggerClose('directoryModal')">×</button></div><div class="modal-scroll-body"><div id="directoryModalContent" style="font-size:11px"></div></div></div></div>
+        .form-section { background: var(--bg-pure); padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; display: none; }
+        .form-section h4 { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; color: var(--text-main); margin: 0 0 12px 0; }
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 10px; color: var(--muted-gray); letter-spacing: 0.3px; }
+        input, select, textarea { width: 100%; padding: 8px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 13px; }
+        
+        .date-input-wrapper { display: flex; gap: 4px; align-items: center; }
+        .date-input-wrapper input[type="date"] { flex-grow: 1; }
+        .btn-today-input, .btn-delete-input { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; font-size: 10px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+        .btn-today-input:hover { background: var(--border-color); }
+        .btn-delete-input { color: #ff8585; }
+        .btn-delete-input:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+
+        select option { text-transform: lowercase; background: var(--card-bg); }
+        textarea { resize: vertical; min-height: 54px; white-space: pre-wrap; line-height: 1.5; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-color); }
+        
+        .form-buttons { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-submit { flex: 2; background: var(--text-main); color: var(--bg-pure); border: none; padding: 9px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-submit:hover { opacity: 0.85; }
+        .btn-reset { flex: 1; background: transparent; color: var(--muted-gray); border: 1px solid var(--border-color); padding: 9px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-reset:hover { background: var(--border-color); color: var(--text-main); }
+
+        .agenda-list { background: var(--bg-pure); padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; margin-bottom: 12px; }
+        .agenda-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .agenda-list h4 { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; color: var(--text-main); margin: 0; }
+        .agenda-controls { display: flex; gap: 6px; align-items: center; }
+        .sort-select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; font-size: 11px; padding: 3px 5px; cursor: pointer; width: auto; }
+        .btn-clear-filter { background: var(--card-bg); color: #ff8585; border: 1px solid var(--border-color); border-radius: 5px; font-size: 10px; padding: 3px 7px; cursor: pointer; }
+        .btn-clear-filter:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+
+        .archive-windows-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+        .btn-window-trigger { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 2px; font-size: 8px; cursor: pointer; text-align: center; font-weight: 600; }
+        .btn-window-trigger:hover { background: var(--border-color); }
+        .nav-counter-badge { background: var(--text-main); color: var(--bg-pure); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 10px; margin-left: 2px; display: inline-block; vertical-align: middle; }
+        .btn-window-trigger:hover .nav-counter-badge { background: var(--bg-pure); color: var(--text-main); }
+        .nav-counter-badge.red-alert { background: #ff4d6d; color: #ffffff; }
+        .btn-window-trigger:hover .nav-counter-badge.red-alert { background: #ffffff; color: #ff4d6d; }
+
+        .dumplist-box, .section-category-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px; margin-top: 10px; }
+        .section-category-box { margin-bottom: 9px; margin-top: 0; }
+        .dumplist-title, .section-category-title { font-size: 12px; color: var(--muted-gray); margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .section-category-title { color: var(--text-main); padding-bottom: 5px; }
+        
+        .agenda-item { padding: 9px; border-radius: 6px; margin-bottom: 6px; color: white; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; }
+        .agenda-item:hover { border-color: rgba(255,255,255,0.5); }
+        .agenda-item.completed-item { opacity: 0.35 !important; }
+        .agenda-item.completed-item .agenda-content h4, .agenda-item.completed-item .agenda-content p { text-decoration: line-through !important; }
+        
+        .agenda-content { flex-grow: 1; overflow: hidden; padding-right: 8px; }
+        .agenda-content h4 { margin: 0; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .agenda-content p { margin: 3px 0 0 0; font-size: 10px; opacity: 0.85; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; white-space: normal; word-break: break-all; }
+        
+        .agenda-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+        .agenda-actions input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; accent-color: var(--text-main); }
+        .btn-assign { background: rgba(0, 0, 0, 0.45); color: #6fb3e0; border: 1px solid #6fb3e0; padding: 3px 6px; border-radius: 5px; cursor: pointer; font-size: 8px; font-weight: 600; }
+        .btn-assign:hover { background: #4da6ff; color: black; }
+        
+        .btn-reassign { background: rgba(0, 0, 0, 0.5); color: #d8b4fe; border: 1px solid #c084fc; padding: 3px 6px; border-radius: 5px; cursor: pointer; font-size: 8px; font-weight: 600; }
+        .btn-reassign:hover { background: #c084fc; color: black; }
+        
+        .btn-archive-habit { background: rgba(0, 0, 0, 0.45); color: #d9a441; border: 1px solid #d9a441; padding: 3px 6px; border-radius: 5px; cursor: pointer; font-size: 9px; font-weight: 700; line-height: 1; }
+        .btn-archive-habit:hover { background: #d9a441; color: black; }
+        .btn-edit { background: rgba(0, 0, 0, 0.45); color: #7fdb7f; border: 1px solid #7fdb7f; padding: 3px 6px; border-radius: 5px; cursor: pointer; font-size: 8px; font-weight: 600; }
+        .btn-edit:hover { background: #55ff55; color: black; }
+        .btn-delete { background: rgba(0, 0, 0, 0.45); color: #ff8585; border: 1px solid #ff8585; padding: 3px 5px; border-radius: 5px; cursor: pointer; font-size: 8px; font-weight: 600; }
+        .btn-delete:hover { background: #ff5555; color: white; }
+
+        .btn-overflow-more { display: block; width: 100%; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; font-size: 10px; text-align: center; cursor: pointer; margin-top: 5px; }
+        .btn-overflow-more:hover { background: var(--border-color); }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 9, 0.75); z-index: 1000; justify-content: center; align-items: center; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 440px; max-height: 80vh; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; box-shadow: var(--shadow-md); position: relative; transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-header { font-size: 15px; font-weight: 500; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .modal-scroll-body { overflow-y: auto; max-height: calc(80vh - 60px); padding-right: 4px; }
+        .modal-close { background: none; border: none; color: var(--muted-gray); font-size: 19px; cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: #ff8585; }
+        .modal-body p { margin: 7px 0; font-size: 12px; white-space: pre-wrap; }
+        .modal-body strong { color: var(--muted-gray); font-size: 10px; display: block; }
+
+        .editable-pill-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .editable-pill { background: #2b2d31; border: 1px solid #383a40; color: #f2f3f5; font-size: 9px; padding: 2px 7px; border-radius: 10px; display: inline-flex; align-items: center; gap: 5px; }
+        .editable-pill .remove-pill { cursor: pointer; color: #ed4245; font-weight: bold; font-size: 10px; }
+        .editable-pill .remove-pill:hover { color: #ff6b6b; }
+
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 20, 19, 0.96); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; }
+        .auth-box { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 380px; padding: 28px; border-radius: 14px; box-shadow: var(--shadow-md); text-align: center; }
+        .auth-box h3 { color: var(--text-main); font-size: 18px; font-weight: 500; letter-spacing: 1.5px; margin: 12px 0 16px 0; }
+        #authErrorMsg { font-size: 11px; color: #ff8585; margin-top: 8px; min-height: 15px; }
+
+        .footer-tag { text-align: center; font-size: 12px; font-style: italic; color: var(--muted-gray); margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 10px; letter-spacing: 1px; }
+
+        .drag-handle { cursor: grab; user-select: none; display: flex; align-items: center; justify-content: center; padding: 0 8px; font-size: 16px; color: var(--muted-gray); }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
+</head>
+<body>
+
+<div id="authOverlay" style="display: none;">
+    <div class="auth-box">
+        <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" style="width: 50px; height: 25px; margin: 0 auto 10px auto; display: block;">
+            <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
+            <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
+            <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
+            <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
+        </svg>
+        <h3>SYSTEM ACCESS</h3>
+        <div class="form-group" style="text-align: left;">
+            <label>Email Address</label>
+            <input type="email" id="authEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 12px;">
+            <label>Password</label>
+            <input type="password" id="authPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-submit" style="width: 100%; padding: 10px;" onclick="handleLogin()">Sign In to Vault</button>
+        <div id="authErrorMsg"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="yorushika-header desktop-full-span">
+        <div class="header-actions-right">
+            <button class="btn-ics" onclick="exportFullICS()" title="Export .ics Calendar">.ICS</button>
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
+        <svg class="eye-logo-svg" viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
+            <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
+            <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
+            <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
+        </svg>
+        <p class="jp-title-logo">ヨルシカ</p>
+        <span class="sub-tag">Music & Schedule Archive</span>
+    </div>
+    
+    <div class="desktop-calendar-column">
+        <h2>Calendar</h2>
+        <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">◀</button>
+            <h3 id="monthYearDisplay"></h3>
+            <div class="calendar-nav-actions">
+                <button class="btn-today-kalender" onclick="jumpToCurrentMonth()">Today</button>
+                <button onclick="changeMonth(1)">▶</button>
+            </div>
+        </div>
+
+        <div class="weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="days-grid" id="daysGrid"></div>
+    </div>
+
+    <button class="mobile-create-trigger desktop-full-span" onclick="openFormModal()">+ Create Entry</button>
+
+    <div class="form-section desktop-form-column" id="formSectionContainer">
+        <h4>+ Create Entry</h4>
+        <div class="form-group">
+            <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+            <input type="text" id="title" placeholder="e.g., Spring Thief jam 10am .blender">
+        </div>
+        <div class="form-group">
+            <label>Description / Note (Optional)</label>
+            <textarea id="description" placeholder="Short detail or sub-note..."></textarea>
+        </div>
+        <div class="form-group">
+            <label>Type</label>
+            <select id="type" onchange="handleTypeChange()">
+                <option value="Task">Task (With checkmark)</option>
+                <option value="Event">Event</option>
+                <option value="Deadline">Deadline (Crimson Red)</option>
+                <option value="Habit">Habit / Recurring</option>
+                <option value="Birthday">Birthday (Recurring Yearly)</option>
+            </select>
+        </div>
+        <div class="form-group" id="dateGroup">
+            <label id="dateLabel">Date (Leave blank for Inbox)</label>
+            <div class="date-input-wrapper">
+                <input type="date" id="date" oninput="checkDateInputState('date', 'dateTodayBtnContainer')">
+                <span id="dateTodayBtnContainer">
+                    <button type="button" class="btn-today-input" onclick="setTodayDate('date', 'dateTodayBtnContainer')">Today</button>
+                </span>
+            </div>
+        </div>
+        <div class="form-group" id="priorityGroup">
+            <label>Priority Tagging</label>
+            <select id="priority">
+                <option value="personal">Personal (Mint Green)</option>
+                <option value="professional">Professional (Maroon)</option>
+                <option value="daily">Daily (Ink Charcoal)</option>
+            </select>
+        </div>
+        <div class="form-group" id="timeblockGroup">
+            <label>Timeblock Tagging</label>
+            <select id="timeblock">
+                <option value="none">None (Slate Grey - Default)</option>
+                <option value="morning">3am - 9am (Golden Dawn)</option>
+                <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                <option value="night">5pm - 10pm (Japanese Indigo)</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button class="btn-reset" onclick="resetForm()">Reset</button>
+            <button class="btn-submit" onclick="saveSchedule()">Save Entry</button>
+        </div>
+    </div>
+
+    <div class="desktop-agenda-column">
+        <div class="agenda-list">
+            <div class="agenda-header-row">
+                <h4>📋 Schedule</h4>
+                <div class="agenda-controls">
+                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
+                        <option value="timeblock">Sort: Timeblock</option>
+                        <option value="priority">Sort: Priority</option>
+                        <option value="type">Sort: Type</option>
+                    </select>
+                    <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+                </div>
+            </div>
+
+            <div class="archive-windows-nav">
+                <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
+                    🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
+                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
+                    🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">
+                    🏷️ Labels <span id="labelBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+            </div>
+
+            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
+            <div id="dumplistContainer"></div>
+        </div>
+    </div>
+
+    <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
+
+    <div class="footer-tag desktop-full-span">
+        <span>― 夜을歩く者のための記録 ―</span>
+    </div>
+</div>
+
+<!-- Modal Templates -->
+<div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalFormHeaderTitle">Create Entry</span>
+            <button class="modal-close" onclick="closeFormModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="m_editEntryId">
+                <div class="form-group">
+                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
+                </div>
+                <div class="form-group">
+                    <label>Description / Note (Optional)</label>
+                    <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="m_type" onchange="m_handleTypeChange()">
+                        <option value="Task">Task (With checkmark)</option>
+                        <option value="Event">Event</option>
+                        <option value="Deadline">Deadline (Crimson Red)</option>
+                        <option value="Habit">Habit / Recurring</option>
+                        <option value="Birthday">Birthday (Recurring Yearly)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="m_dateGroup">
+                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="m_date" oninput="checkDateInputState('m_date', 'm_dateTodayBtnContainer')">
+                        <span id="m_dateTodayBtnContainer">
+                            <button type="button" class="btn-today-input" onclick="setTodayDate('m_date', 'm_dateTodayBtnContainer')">Today</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group" id="m_priorityGroup">
+                    <label>Priority Tagging</label>
+                    <select id="m_priority">
+                        <option value="personal">Personal (Mint Green)</option>
+                        <option value="professional">Professional (Maroon)</option>
+                        <option value="daily">Daily (Ink Charcoal)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="m_timeblockGroup">
+                    <label>Timeblock Tagging</label>
+                    <select id="m_timeblock">
+                        <option value="none">None (Slate Grey - Default)</option>
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="m_resetForm()">Reset</button>
+                    <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span>🔁 Assign / Re-assign Habit</span>
+            <button class="modal-close" onclick="closeAssignModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="assignEntryId">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="assignDate" oninput="checkDateInputState('assignDate', 'assignDateTodayBtnContainer')">
+                        <span id="assignDateTodayBtnContainer">
+                            <button type="button" class="btn-today-input" onclick="setTodayDate('assignDate', 'assignDateTodayBtnContainer')">Today</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Timeblock Tagging</label>
+                    <select id="assignTimeblock">
+                        <option value="none">None (Slate Grey - Default)</option>
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="closeAssignModal()">Cancel</button>
+                    <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalTitleText">Entry Detail</span>
+            <button class="modal-close" onclick="closeDetailModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div class="modal-body" id="modalBodyContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header" id="directoryModalHeader">
+            <span id="directoryModalTitle">Directory</span>
+            <button class="modal-close" onclick="closeDirectoryModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div id="directoryModalContent" style="font-size: 11px;"></div>
+        </div>
+    </div>
+</div>
 
 <script>
-const SUPABASE_URL='https://movcjscdntwckaslnumn.supabase.co';
-const SUPABASE_KEY='sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true},db:{schema:'public'},global:{headers:{'x-client-info':'yorushika-calendar'}}});
-let schedules=[],selectedFilterDate=null,currentOpenDirectory={key:null,param:null};
-let modalStack=[],dirSubViewStack=[];
-const priorityColors={personal:'#7a9c72',professional:'#800020',daily:'#3b3b3b'},timeblockColors={none:'#2a2a2a',morning:'#8c6d36',work:'#4f5d2f',night:'#1b263b'};
-const timeblockOrder={none:0,morning:1,work:2,night:3},priorityOrder={professional:1,daily:2,personal:3},typeOrder={Deadline:1,Task:2,Event:3,Habit:4,Birthday:5};
-let currentDate=new Date();
-
-function getBgStyle(s){if(s.type==='Deadline')return 'var(--deadline-crimson)';if(s.type==='Birthday')return 'var(--birthday-strawberry)';let tb=s.timeblock||'none';return `linear-gradient(135deg, ${priorityColors[s.priority]||'#333'}, ${timeblockColors[tb]||'#2a2a2a'})`}
-function getDisplayDate(s){if(s.type==='Birthday'&&s.date&&s.date.includes('-')){const p=s.date.split('-');if(p.length===3)return `${p[2]}/${p[1]}`}return formatDateDDMM(s.date)}
-
-window.addEventListener('popstate',(e)=>{
-    if(dirSubViewStack.length>0&&modalStack[modalStack.length-1]==='directoryModal'){
-        let prev=dirSubViewStack.pop(); renderDir(prev.key,prev.param); return;
-    }
-    if(modalStack.length>0){let top=modalStack.pop();hideModalUI(top)}
-});
-window.addEventListener('keydown',(e)=>{
-    const isInput=['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName);
-    if(e.key==='Escape'||(e.key==='Backspace'&&!isInput)){
-        if(modalStack.length>0){e.preventDefault();history.back()}
-    }
-});
-
-function showModal(id){
-    const m=document.getElementById(id);
-    if(!m.classList.contains('active')){
-        m.style.zIndex=1000+modalStack.length; m.style.display='flex';
-        setTimeout(()=>{m.classList.add('active')},10);
-        modalStack.push(id); history.pushState({modalId:id},"");
-    }
-}
-function hideModalUI(id){
-    const m=document.getElementById(id);
-    if(m&&m.classList.contains('active')){m.classList.remove('active');setTimeout(()=>{m.style.display='none'},300)}
-    if(id==='directoryModal'){currentOpenDirectory={key:null,param:null};window.labelEditOrderActive=null;dirSubViewStack=[];}
-}
-function triggerClose(id){
-    if(id==='directoryModal'&&dirSubViewStack.length>0) history.go(-(dirSubViewStack.length+1)); else history.back();
-}
-function closeModalEvent(e,id){if(e.target.id===id)triggerClose(id);}
-
-async function handleLogin(){
-    const em=document.getElementById('authEmail').value,pw=document.getElementById('authPassword').value,el=document.getElementById('authErrorMsg');
-    if(!em||!pw)return el.innerText='Email and password required!';
-    el.innerText='Authenticating...';
-    const{error}=await supabaseClient.auth.signInWithPassword({email:em,password:pw});
-    if(error)el.innerText=error.message;else{el.innerText='';document.getElementById('authOverlay').style.display='none';fetchSchedules()}
-}
-async function handleLogout(){
-    await supabaseClient.auth.signOut(); document.getElementById('authEmail').value='';document.getElementById('authPassword').value='';
-    document.getElementById('authOverlay').style.display='flex';
-}
-async function checkAuthAndInit(){
-    const{data:{session}}=await supabaseClient.auth.getSession();
-    if(!session)document.getElementById('authOverlay').style.display='flex';else{document.getElementById('authOverlay').style.display='none';fetchSchedules()}
-}
-
-const getTodayDateString=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
-function setTodayDate(inId,ctId){document.getElementById(inId).value=getTodayDateString();checkDateInputState(inId,ctId)}
-function clearDateInput(inId,ctId){document.getElementById(inId).value='';checkDateInputState(inId,ctId)}
-function checkDateInputState(inId,ctId){
-    const i=document.getElementById(inId),c=document.getElementById(ctId); if(!i||!c)return;
-    c.innerHTML=i.value?`<button type="button" class="btn-delete-input" onclick="clearDateInput('${inId}','${ctId}')">×</button>`:`<button type="button" class="btn-today-input" onclick="setTodayDate('${inId}','${ctId}')">Today</button>`;
-}
-function resetDateButtonState(inId,ctId){const c=document.getElementById(ctId);if(c)c.innerHTML=`<button type="button" class="btn-today-input" onclick="setTodayDate('${inId}','${ctId}')">Today</button>`;}
-
-function parseTodoistTitle(rt){
-    if(!rt)return{cleanTitle:'',timeTags:[],labelTags:[]};
-    const tR=/\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi,lR=/\B(\.[a-zA-Z0-9_-]+)/g;
-    let t=[],l=[],m; while((m=tR.exec(rt))!==null)t.push(m[1].toLowerCase()); while((m=lR.exec(rt))!==null)l.push(m[1].substring(1));
-    return{cleanTitle:rt.replace(tR,'').replace(lR,'').replace(/\s+/g,' ').trim(),timeTags:t,labelTags:l};
-}
-function getFirstHabitLabel(rt){const p=parseTodoistTitle(rt);return p.labelTags.length>0?p.labelTags[0]:'general'}
-function formatDateDDMM(d){if(!d)return'';if(d.includes('-')){const p=d.split('-');if(p.length===3)return`${p[2]}/${p[1]}`;if(p.length===2)return`${p[1]}/${p[0]}`}return d}
-function sharedTypeChangeLogic(px=''){
-    const t=document.getElementById(px+'type').value,p=document.getElementById(px+'priorityGroup'),tb=document.getElementById(px+'timeblockGroup'),dG=document.getElementById(px+'dateGroup'),dL=document.getElementById(px+'dateLabel'),dI=document.getElementById(px+'date');
-    if(t==='Birthday'){p.style.display='none';tb.style.display='none';dG.style.display='block';dL.innerText='Birthday Date (DD/MM)';dI.type='date'}
-    else if(t==='Habit'){p.style.display='block';tb.style.display='none';dG.style.display='none'}
-    else if(t==='Deadline'){p.style.display='block';tb.style.display='block';dG.style.display='block';dL.innerText='Deadline Date';dI.type='date'}
-    else{p.style.display='block';tb.style.display='block';dG.style.display='block';dL.innerText='Date (Leave blank for Inbox)';dI.type='date'}
-}
-function handleTypeChange(){sharedTypeChangeLogic('')} function m_handleTypeChange(){sharedTypeChangeLogic('m_')}
-
-async function autoDeleteOldHistory(arr){
-    const n=new Date(),y=new Date(n.getFullYear()-1,n.getMonth(),n.getDate()),ys=`${y.getFullYear()}-${String(y.getMonth()+1).padStart(2,'0')}-${String(y.getDate()).padStart(2,'0')}`;
-    const e=arr.filter(s=>s.date&&s.date<ys&&s.type!=='Birthday'&&s.type!=='Habit').map(s=>s.id);
-    if(e.length>0){await supabaseClient.from('schedules').delete().in('id',e);return arr.filter(s=>!e.includes(s.id))} return arr;
-}
-async function fetchSchedules(){
-    const sEl=document.getElementById('dbStatus');sEl.innerText='Menghubungkan ke Supabase Cloud...';sEl.style.color='#e6e6e6';
-    try{
-        const c=new AbortController(),tId=setTimeout(()=>c.abort(),6000);
-        const{data,error}=await supabaseClient.from('schedules').select('*').order('date',{ascending:true,nullsFirst:false}).abortSignal(c.signal);
-        clearTimeout(tId); if(error){if(error.code==='PGRST301'||error.message.includes('JWT')){handleLogout();return}throw error}
-        sEl.innerText='☁️ Terhubung ke Supabase Cloud (Live)';sEl.style.color='#5f5'; schedules=await autoDeleteOldHistory(data||[]); localStorage.setItem('y_scheds',JSON.stringify(schedules));
-    }catch(e){sEl.innerText='⚠️ Offline / Cached Mode';sEl.style.color='#f55';schedules=JSON.parse(localStorage.getItem('y_scheds'))||[]}
-    updateArchiveCounters();renderCalendar();
-    if(currentOpenDirectory.key&&document.getElementById('directoryModal').classList.contains('active')) renderDir(currentOpenDirectory.key,currentOpenDirectory.param);
-}
-function updateArchiveCounters(){
-    const ts=getTodayDateString(),bc=schedules.filter(s=>s.type==='Birthday').length,hc=schedules.filter(s=>s.type==='Habit'&&!s.isHabitInstance&&!s.completed).length,sc=schedules.filter(s=>(s.type==='Task'||s.type==='Deadline'||s.type==='Habit'||s.isHabitInstance)&&s.date&&s.date<ts&&!s.completed).length;
-    let aL=new Set(); schedules.forEach(s=>{if(s.type==='Habit'||s.isHabitInstance)return;parseTodoistTitle(s.title).labelTags.forEach(l=>aL.add(l));if(s.type==='Deadline')aL.add('deadline')});
-    document.getElementById('birthdayBadgeCount').innerText=bc; document.getElementById('habitBadgeCount').innerText=hc;
-    const sb=document.getElementById('skippedBadgeCount'); sb.innerText=sc; sc>0?sb.classList.add('red-alert'):sb.classList.remove('red-alert');
-    document.getElementById('labelBadgeCount').innerText=aL.size;
-}
-function sortItems(arr){
-    const sb=document.getElementById('sortBySelect').value;
-    return[...arr].sort((a,b)=>{
-        if(a.completed&&!b.completed)return 1; if(!a.completed&&b.completed)return -1;
-        let tA=a.timeblock||'none',tB=b.timeblock||'none';
-        if(sb==='priority'){let pD=(priorityOrder[a.priority]||2)-(priorityOrder[b.priority]||2);return pD!==0?pD:(timeblockOrder[tA]??2)-(timeblockOrder[tB]??2)}
-        if(sb==='type'){let tD=(typeOrder[a.type]||3)-(typeOrder[b.type]||3);if(tD!==0)return tD;let tbD=(timeblockOrder[tA]??2)-(timeblockOrder[tB]??2);return tbD!==0?tbD:(priorityOrder[a.priority]||2)-(priorityOrder[b.priority]||2)}
-        let tbD=(timeblockOrder[tA]??2)-(timeblockOrder[tB]??2);return tbD!==0?tbD:(priorityOrder[a.priority]||2)-(priorityOrder[b.priority]||2);
-    })
-}
-function renderCalendar(){
-    const y=currentDate.getFullYear(),m=currentDate.getMonth(),mN=["January","February","March","April","May","June","July","August","September","October","November","December"];
-    document.getElementById('monthYearDisplay').innerText=`${mN[m]} ${y}`;
-    let g='',ts=getTodayDateString(),fD=new Date(y,m,1).getDay(),tD=new Date(y,m+1,0).getDate();
-    for(let i=0;i<fD;i++)g+=`<div class="day-cell" style="background:transparent;border-color:transparent;cursor:default"></div>`;
-    for(let d=1;d<=tD;d++){
-        const fm=String(m+1).padStart(2,'0'),fd=String(d).padStart(2,'0'),ds=`${y}-${fm}-${fd}`;
-        let dS=sortItems(schedules.filter(s=>{if(!s.date)return false;if(s.date===ds)return true;if(s.type==='Birthday'||s.recurring==='yearly')return s.date.split('-')[1]===fm&&s.date.split('-')[2]===fd;return false}));
-        let bH=''; dS.forEach(s=>{const cC=(s.completed&&(s.date<ts||s.type==='Task'||s.type==='Deadline'||s.type==='Habit'||s.isHabitInstance))?'completed-badge':'';bH+=`<div class="mini-badge ${cC}" style="background:${getBgStyle(s)}">${parseTodoistTitle(s.title).cleanTitle}</div>`});
-        g+=`<div class="day-cell ${ds===ts?'today':''}" onclick="handleGridCellClick('${ds}')"><span class="day-number">${d}</span><div class="badges-container">${bH}</div></div>`;
-    }
-    document.getElementById('daysGrid').innerHTML=g; renderAgendaList();
-}
-function changeMonth(d){currentDate.setMonth(currentDate.getMonth()+d);renderCalendar()} function jumpToCurrentMonth(){currentDate=new Date();renderCalendar()}
-function handleGridCellClick(d){document.getElementById('date').value=d;checkDateInputState('date','dateTodayBtnContainer');document.getElementById('m_date').value=d;checkDateInputState('m_date','m_dateTodayBtnContainer');selectedFilterDate=d;renderAgendaList()}
-function clearDateFilter(){selectedFilterDate=null;renderAgendaList()}
-
-function resetForm(){document.getElementById('title').value='';document.getElementById('description').value='';document.getElementById('type').value='Task';document.getElementById('date').value='';resetDateButtonState('date','dateTodayBtnContainer');document.getElementById('priority').value='personal';document.getElementById('timeblock').value='none';handleTypeChange()}
-function m_resetForm(){document.getElementById('m_editEntryId').value='';document.getElementById('m_title').value='';document.getElementById('m_description').value='';document.getElementById('m_type').value='Task';document.getElementById('m_date').value='';resetDateButtonState('m_date','m_dateTodayBtnContainer');document.getElementById('m_priority').value='personal';document.getElementById('m_timeblock').value='none';m_handleTypeChange();document.getElementById('modalFormHeaderTitle').innerText='Create Entry';document.getElementById('m_submitBtn').innerText='Save Entry'}
-function openFormModal(){m_resetForm();showModal('formModal')}
-
-async function saveSchedule(){
-    const t=document.getElementById('title').value,d=document.getElementById('description').value,ty=document.getElementById('type').value,dv=document.getElementById('date').value;
-    let dt=(ty!=='Habit'&&dv)?(ty==='Birthday'?`2000-${dv.includes('-')?dv.split('-').slice(-2).join('-'):dv}`:dv):null;
-    let pr=ty==='Birthday'?'personal':document.getElementById('priority').value,tb=(ty==='Habit'||ty==='Birthday')?'none':document.getElementById('timeblock').value;
-    if(!t)return alert('Title is required!');
-    const{error}=await supabaseClient.from('schedules').insert([{title:t,description:d,type:ty,date:dt,priority:pr,timeblock:tb,recurring:ty==='Birthday'?'yearly':'none',completed:false,isHabitInstance:false}]);
-    if(!error){resetForm();fetchSchedules()}else alert('Error: '+error.message);
-}
-async function m_saveSchedule(){
-    const id=document.getElementById('m_editEntryId').value,t=document.getElementById('m_title').value,d=document.getElementById('m_description').value,ty=document.getElementById('m_type').value,dv=document.getElementById('m_date').value;
-    let dt=(ty!=='Habit'&&dv)?(ty==='Birthday'?`2000-${dv.includes('-')?dv.split('-').slice(-2).join('-'):dv}`:dv):null;
-    let pr=ty==='Birthday'?'personal':document.getElementById('m_priority').value,tb=(ty==='Habit'||ty==='Birthday')?'none':document.getElementById('m_timeblock').value,rc=ty==='Birthday'?'yearly':'none';
-    if(!t)return alert('Title required!'); let fT=t;
-    if(id){
-        const ex=schedules.find(s=>String(s.id)===String(id));
-        if(ex){let oP=parseTodoistTitle(ex.title),nP=parseTodoistTitle(t),cL=Array.from(new Set([...oP.labelTags,...nP.labelTags])),cT=nP.timeTags.length>0?nP.timeTags:oP.timeTags;let bP=[nP.cleanTitle];cT.forEach(x=>bP.push(x));cL.forEach(x=>bP.push('.'+x));fT=bP.join(' ')}
-        let pl={title:fT,description:d,type:ty,date:ty==='Habit'?null:dt,priority:pr,timeblock:tb,recurring:rc}; if(ty==='Habit')pl.isHabitInstance=false;
-        const{error}=await supabaseClient.from('schedules').update(pl).eq('id',id); if(!error){triggerClose('formModal');fetchSchedules()}
-    }else{
-        const{error}=await supabaseClient.from('schedules').insert([{title:fT,description:d,type:ty,date:dt,priority:pr,timeblock:tb,recurring:rc,completed:false,isHabitInstance:false}]);
-        if(!error){triggerClose('formModal');fetchSchedules()}
-    }
-}
-function editSchedule(id){
-    const i=schedules.find(s=>String(s.id)===String(id));
-    if(i){
-        const p=parseTodoistTitle(i.title); document.getElementById('m_editEntryId').value=i.id; document.getElementById('m_title').value=p.cleanTitle; document.getElementById('m_description').value=i.description||''; document.getElementById('m_type').value=i.type;
-        if(i.type==='Birthday'&&i.date&&i.date.includes('-')){const pt=i.date.split('-');document.getElementById('m_date').value=pt.length===3?`2000-${pt[1]}-${pt[2]}`:i.date}else document.getElementById('m_date').value=i.date||'';
-        checkDateInputState('m_date','m_dateTodayBtnContainer'); document.getElementById('m_priority').value=i.priority; document.getElementById('m_timeblock').value=i.timeblock||'none'; m_handleTypeChange();
-        document.getElementById('modalFormHeaderTitle').innerText='Edit / Reschedule'; document.getElementById('m_submitBtn').innerText='Update Entry'; showModal('formModal');
-    }
-}
-function openAssignModal(id,e){
-    if(e)e.stopPropagation(); document.getElementById('assignEntryId').value=id; const m=schedules.find(s=>String(s.id)===String(id)); if(!m)return;
-    let aI=schedules.find(x=>x.isHabitInstance&&!x.completed&&x.title===m.title),lA=!aI&&m.date!==null&&!m.completed,cD=aI?aI.date:(lA?m.date:getTodayDateString()),cT=aI?(aI.timeblock||'none'):(lA?(m.timeblock||'none'):'none');
-    document.getElementById('assignDate').value=cD; checkDateInputState('assignDate','assignDateTodayBtnContainer'); document.getElementById('assignTimeblock').value=cT; showModal('assignModal');
-}
-async function executeAssignHabit(){
-    const id=document.getElementById('assignEntryId').value,tD=document.getElementById('assignDate').value,tT=document.getElementById('assignTimeblock').value; if(!tD)return alert('Select date!');
-    const m=schedules.find(s=>String(s.id)===String(id)); if(!m)return; let aI=schedules.find(x=>x.isHabitInstance&&!x.completed&&x.title===m.title),lA=!aI&&m.date!==null&&!m.completed;
-    if(aI){const{error}=await supabaseClient.from('schedules').update({date:tD,timeblock:tT}).eq('id',aI.id);if(!error){triggerClose('assignModal');fetchSchedules()}}
-    else if(lA){const{error}=await supabaseClient.from('schedules').update({date:tD,timeblock:tT}).eq('id',m.id);if(!error){triggerClose('assignModal');fetchSchedules()}}
-    else{const{error}=await supabaseClient.from('schedules').insert([{title:m.title,description:m.description,type:'Task',date:tD,priority:m.priority,timeblock:tT,recurring:'none',completed:false,isHabitInstance:true}]);if(!error){triggerClose('assignModal');fetchSchedules()}}
-}
-async function toggleComplete(id,e){e.stopPropagation();const i=schedules.find(s=>String(s.id)===String(id));if(i){const{error}=await supabaseClient.from('schedules').update({completed:!i.completed}).eq('id',id);if(!error)fetchSchedules()}}
-async function deleteSchedule(id,e){e.stopPropagation();if(confirm('Delete?')){const{error}=await supabaseClient.from('schedules').delete().eq('id',id);if(!error)fetchSchedules()}}
-
-function openDetailModal(id){
-    const i=schedules.find(s=>String(s.id)===String(id)); if(!i)return; const p=parseTodoistTitle(i.title);
-    let iD=i.description||'-',iP=i.type==='Birthday'?'Birthday':i.priority,iT=(i.type==='Birthday'||(i.type==='Habit'&&!i.date))?'N/A':(i.timeblock||'none'),iHM=(i.type==='Habit'&&!i.isHabitInstance),iS=iHM?(i.completed?'Archived':'Active'):(i.completed?'Completed':'Pending'),dD=getDisplayDate(i);
-    let pH=''; p.timeTags.forEach(t=>{pH+=`<span class="editable-pill time-pill">⏱️ ${t}</span>`}); if(i.type==='Deadline'||p.labelTags.includes('deadline'))pH+=`<span class="editable-pill label-pill" style="background:var(--deadline-crimson);border-color:#f55;color:#fff">📌 .deadline</span>`;
-    p.labelTags.forEach(l=>{if(l.toLowerCase()!=='deadline')pH+=`<span class="editable-pill label-pill">🏷️ ${l}</span>`}); if(!pH)pH='<span style="color:var(--muted-gray);font-size:9px">No tags</span>';
-    document.getElementById('modalTitleText').innerText=`[${i.isHabitInstance?'Habit Instance':i.type}] ${p.cleanTitle}`;
-    document.getElementById('modalBodyContent').innerHTML=`<p><strong>Date</strong> ${dD?dD:'Habit (Idle / Master)'}</p><p><strong>Description</strong> ${iD}</p><p><strong>Priority Tag</strong> ${iP}</p><p><strong>Timeblock</strong> ${iT}</p><p><strong>Status</strong> ${iS}</p>${iHM?buildHabitHeatmapHTML(i.title,priorityColors[i.priority]||'#7a9c72'):''}<p><strong>Tags & Labels</strong></p><div class="editable-pill-container">${pH}</div>`;
-    showModal('detailModal');
-}
-
-window.labelCustomOrders={};window.labelEditOrderActive=null;
-function toggleLabelEditOrder(tP){window.labelEditOrderActive=(window.labelEditOrderActive===tP)?null:tP;openDirectoryModal('collections',tP)}
-let dIdx=null,dLP=null;
-function onDragStart(e,i,p){dIdx=i;dLP=p;e.dataTransfer.effectAllowed='move';setTimeout(()=>{e.target.style.opacity='0.5'},0)}
-function onDragOver(e){e.preventDefault();e.dataTransfer.dropEffect='move'}
-function onDrop(e,tI){e.preventDefault();if(dLP&&dIdx!==null&&dIdx!==tI){let o=window.labelCustomOrders[dLP];o.splice(tI,0,o.splice(dIdx,1)[0]);openDirectoryModal('collections',dLP)}if(e.target.closest('.agenda-item'))e.target.closest('.agenda-item').style.opacity='1'}
-function onDragEnd(e){e.target.style.opacity='1';dIdx=null;dLP=null}
-
-function openDirectoryModal(tK,tP=null){
-    const m=document.getElementById('directoryModal');
-    if(m.classList.contains('active')){
-        if(currentOpenDirectory.key&&(currentOpenDirectory.key!==tK||currentOpenDirectory.param!==tP)){
-            history.pushState({subView:true},""); dirSubViewStack.push({...currentOpenDirectory});
-        }
-    }else{dirSubViewStack=[]; showModal('directoryModal');}
-    renderDir(tK,tP);
-}
-
-function renderDir(tK,tP){
-    currentOpenDirectory={key:tK,param:tP}; const mT=document.getElementById('directoryModalTitle'),mC=document.getElementById('directoryModalContent'),mH=document.getElementById('directoryModalHeader'),ts=getTodayDateString();
-    let hA='';
-    if(tK==='collections'&&tP!==null){hA+=`<button class="btn-edit" style="margin-right:6px;padding:2px 6px;font-size:10px" onclick="history.back()">← Back</button><button class="btn-edit" style="margin-right:6px;padding:2px 6px;font-size:10px" onclick="toggleLabelEditOrder('${tP}')">${window.labelEditOrderActive===tP?'Done':'Edit Order'}</button>`}
-    else if(tK==='habits_list'){hA+=`<button class="btn-edit" style="margin-right:6px;padding:2px 6px;font-size:10px" onclick="history.back()">← Back</button>`}
-    else if(tK==='habits'){hA+=`<button class="btn-archive-habit" style="margin-right:6px;padding:2px 6px;font-size:10px" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`}
-    else if(tK==='habits_bin'){hA+=`<button class="btn-edit" style="margin-right:6px;padding:2px 6px;font-size:10px" onclick="history.back()">← Back</button>`}
-    hA+=`<button class="modal-close" onclick="triggerClose('directoryModal')">×</button>`;
+    const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
     
-    let hl='';
-    if(tK==='birthdays'){
-        mT.innerText='🎂 BIRTHDAYS DIRECTORY'; let b=schedules.filter(s=>s.type==='Birthday').sort((a,c)=>(a.date||'12-31').localeCompare(c.date||'12-31'));
-        hl=b.length===0?'<div style="text-align:center;padding:15px;color:var(--muted-gray)">No birthdays recorded.</div>':b.map(s=>renderCardHTML(s,'var(--birthday-strawberry)',true)).join('');
-    }else if(tK==='habits'){
-        mT.innerText='🔁 HABITS CATEGORY'; let h=schedules.filter(s=>s.type==='Habit'&&!s.isHabitInstance&&!s.completed),pC={professional:0,daily:0,personal:0}; h.forEach(s=>{let p=s.priority||'personal';if(pC[p]!==undefined)pC[p]++});
-        hl=`<div class="agenda-item" style="background:#232320;margin-bottom:6px" onclick="openDirectoryModal('habits_list','professional')"><div class="agenda-content"><h4>💼 Professional</h4><p>Total items: ${pC.professional}</p></div><div class="agenda-actions"><span style="font-size:10px;color:#fff">View →</span></div></div><div class="agenda-item" style="background:#232320;margin-bottom:6px" onclick="openDirectoryModal('habits_list','daily')"><div class="agenda-content"><h4>☕ Daily</h4><p>Total items: ${pC.daily}</p></div><div class="agenda-actions"><span style="font-size:10px;color:#fff">View →</span></div></div><div class="agenda-item" style="background:#232320;margin-bottom:6px" onclick="openDirectoryModal('habits_list','personal')"><div class="agenda-content"><h4>🌱 Personal</h4><p>Total items: ${pC.personal}</p></div><div class="agenda-actions"><span style="font-size:10px;color:#fff">View →</span></div></div>`;
-    }else if(tK==='habits_list'){
-        mT.innerText=`🔁 HABITS: ${tP.toUpperCase()}`; const hb=schedules.filter(s=>s.type==='Habit'&&!s.isHabitInstance&&!s.completed&&s.priority===tP);
-        if(!hb.length)hl='<div style="text-align:center;padding:15px;color:var(--muted-gray)">No habits recorded here.</div>';
-        else{const gr=hb.reduce((a,s)=>{const t=getFirstHabitLabel(s.title);(a[t]=a[t]||[]).push(s);return a},{}); hl=Object.keys(gr).sort().map(t=>{const it=gr[t].sort((a,b)=>parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));const c=it.map(s=>renderHabitCardHTML(s,priorityColors[s.priority]||'#333')).join('');return `<div class="section-category-box" style="margin-bottom:12px"><div class="section-category-title"><span>🏷️ TAG: #${t.toUpperCase()}</span><span>[${it.length}]</span></div>${c}</div>`}).join('')}
-    }else if(tK==='habits_bin'){
-        mT.innerText='🗑️ HABITS BIN'; let ar=schedules.filter(s=>s.type==='Habit'&&!s.isHabitInstance&&s.completed).sort((a,b)=>parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
-        hl=ar.length===0?'<div style="text-align:center;padding:15px;color:var(--muted-gray)">Habits bin empty.</div>':ar.map(s=>renderHabitBinCardHTML(s,priorityColors[s.priority]||'#333')).join('');
-    }else if(tK==='skipped'){
-        mT.innerText='🕰️ SKIPPED TASKS'; const sk=schedules.filter(s=>(s.type==='Task'||s.type==='Deadline'||s.type==='Habit'||s.isHabitInstance)&&!s.completed&&s.date&&s.date<ts);
-        hl=sk.length===0?'<div style="text-align:center;padding:15px;color:var(--muted-gray)">No skipped past items. Clean slate!</div>':sk.map(s=>renderCardHTML(s,getBgStyle(s))).join('');
-    }else if(tK==='today_overflow'){mT.innerText='📌 TODAY (FULL LIST)';hl=sortItems(schedules.filter(s=>s.date===ts)).map(s=>renderCardHTML(s,getBgStyle(s))).join('');}
-    else if(tK==='upcoming_overflow'){mT.innerText='🚀 UPCOMING (FULL LIST)';let tm=new Date(new Date().setDate(new Date().getDate()+1)).toISOString().split('T')[0];hl=sortItems(schedules.filter(s=>s.date===tm)).map(s=>renderCardHTML(s,getBgStyle(s))).join('');}
-    else if(tK==='inbox_overflow'){mT.innerText='📥 INBOX (FULL LIST)';hl=sortItems(schedules.filter(s=>!s.date&&s.type!=='Habit'&&!s.isHabitInstance&&parseTodoistTitle(s.title).labelTags.length===0)).map(s=>renderCardHTML(s,getBgStyle(s))).join('');}
-    else if(tK==='collections'){
-        if(!tP){
-            mT.innerText='🏷️ LABELS & COLLECTIONS'; let lM={}; schedules.forEach(s=>{if(s.type==='Habit'||s.isHabitInstance)return;let t=[...parseTodoistTitle(s.title).labelTags];if(s.type==='Deadline'&&!t.includes('deadline'))t.push('deadline');t.forEach(l=>{if(!lM[l])lM[l]=[];lM[l].push(s)})});
-            let ks=Object.keys(lM).sort((a,b)=>a.toLowerCase()==='deadline'?-1:(b.toLowerCase()==='deadline'?1:a.localeCompare(b)));
-            if(ks.length===0)hl='<div style="text-align:center;padding:15px;color:var(--muted-gray)">No labels found.</div>';
-            else ks.forEach(l=>{const iD=(l.toLowerCase()==='deadline'),cB=iD?'background:var(--deadline-crimson);border-color:#f55;':'background:#232320;',pB=iD?'<span style="font-size:8px;background:var(--bg-pure);color:#fff;padding:1px 5px;border-radius:3px;margin-left:4px">📌 pinned</span>':'';hl+=`<div class="agenda-item" style="${cB}margin-bottom:6px" onclick="openDirectoryModal('collections','${l}')"><div class="agenda-content"><h4>🏷️ ${l} ${pB}</h4><p>Total items: ${lM[l].length}</p></div><div class="agenda-actions"><span style="font-size:10px;color:#fff">View →</span></div></div>`});
-        }else{
-            mT.innerText=`🏷️ LABEL: ${tP}`; let mt=schedules.filter(s=>{if(s.type==='Habit'||s.isHabitInstance)return false;return tP.toLowerCase()==='deadline'&&s.type==='Deadline'?true:parseTodoistTitle(s.title).labelTags.includes(tP)});
-            if(!window.labelCustomOrders[tP])window.labelCustomOrders[tP]=mt.map(s=>s.id); let oA=window.labelCustomOrders[tP]; mt.sort((a,b)=>{let iA=oA.indexOf(a.id),iB=oA.indexOf(b.id);return(iA===-1?999:iA)-(iB===-1?999:iB)});
-            mt.forEach((s,ix)=>{let iD=(window.labelEditOrderActive===tP),dA=iD?`draggable="true" ondragstart="onDragStart(event,${ix},'${tP}')" ondragover="onDragOver(event)" ondrop="onDrop(event,${ix})" ondragend="onDragEnd(event)"`:'',hH=iD?`<div class="drag-handle">⋮⋮</div>`:'';hl+=renderCardHTML(s,getBgStyle(s),false,dA,hH,iD)});
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true },
+        db: { schema: 'public' },
+        global: { headers: { 'x-client-info': 'yorushika-calendar' } }
+    });
+
+    let schedules = [];
+    let selectedFilterDate = null;
+    let currentOpenDirectory = { key: null, param: null };
+    let modalStack = []; // PWA Back button state manager
+
+    const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
+    const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
+    
+    const timeblockOrder = { none: 0, morning: 1, work: 2, night: 3 };
+    const priorityOrder = { professional: 1, daily: 2, personal: 3 };
+    const typeOrder = { Deadline: 1, Task: 2, Event: 3, Habit: 4, Birthday: 5 };
+
+    let currentDate = new Date();
+
+    // Centralized Helpers for Code Reduction
+    function getBgStyle(s) {
+        if (s.type === 'Deadline') return 'var(--deadline-crimson)';
+        if (s.type === 'Birthday') return 'var(--birthday-strawberry)';
+        let tbKey = s.timeblock || 'none';
+        return `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[tbKey] || '#2a2a2a'})`;
+    }
+
+    function getDisplayDate(s) {
+        if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
+            const parts = s.date.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+        }
+        return formatDateDDMM(s.date);
+    }
+
+    // Modal Control & History (PWA Back Button Logic)
+    function showModal(modalId) {
+        const modal = document.getElementById(modalId);
+        modal.style.display = 'flex';
+        setTimeout(() => { modal.classList.add('active'); }, 10);
+        
+        modalStack.push(modalId);
+        history.pushState({ modalId: modalId }, "");
+    }
+
+    function hideModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+        modalStack = modalStack.filter(id => id !== modalId);
+        if (modalId === 'directoryModal') { currentOpenDirectory = { key: null, param: null }; window.labelEditOrderActive = null; }
+    }
+
+    window.addEventListener('popstate', (e) => {
+        if (modalStack.length > 0) {
+            let topModal = modalStack.pop();
+            const modal = document.getElementById(topModal);
+            if(modal && modal.classList.contains('active')) {
+                modal.classList.remove('active');
+                setTimeout(() => { modal.style.display = 'none'; }, 300);
+            }
+            if (topModal === 'directoryModal') { currentOpenDirectory = { key: null, param: null }; window.labelEditOrderActive = null; }
+        }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalStack.length > 0) {
+            // Trigger popstate manually for escape key mapping
+            history.back(); 
+        }
+    });
+
+    function closeModal(event, modalId) {
+        if (event.target.id === modalId) { hideModal(modalId); }
+    }
+
+    async function handleLogin() {
+        const email = document.getElementById('authEmail').value;
+        const password = document.getElementById('authPassword').value;
+        const errorEl = document.getElementById('authErrorMsg');
+
+        if (!email || !password) return errorEl.innerText = 'Email and password required!';
+
+        errorEl.innerText = 'Authenticating...';
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) { errorEl.innerText = error.message; } 
+        else { errorEl.innerText = ''; document.getElementById('authOverlay').style.display = 'none'; fetchSchedules(); }
+    }
+
+    async function handleLogout() {
+        await supabaseClient.auth.signOut();
+        document.getElementById('authEmail').value = ''; document.getElementById('authPassword').value = '';
+        document.getElementById('authOverlay').style.display = 'flex';
+    }
+
+    async function checkAuthAndInit() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) { document.getElementById('authOverlay').style.display = 'flex'; } 
+        else { document.getElementById('authOverlay').style.display = 'none'; fetchSchedules(); }
+    }
+
+    function getTodayDateString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function setTodayDate(inputId, containerId) {
+        document.getElementById(inputId).value = getTodayDateString();
+        checkDateInputState(inputId, containerId);
+    }
+
+    function clearDateInput(inputId, containerId) {
+        document.getElementById(inputId).value = '';
+        checkDateInputState(inputId, containerId);
+    }
+
+    function checkDateInputState(inputId, containerId) {
+        const inputEl = document.getElementById(inputId);
+        const containerEl = document.getElementById(containerId);
+        if (!inputEl || !containerEl) return;
+        if (inputEl.value) { containerEl.innerHTML = `<button type="button" class="btn-delete-input" onclick="clearDateInput('${inputId}', '${containerId}')">×</button>`; } 
+        else { containerEl.innerHTML = `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`; }
+    }
+
+    function resetDateButtonState(inputId, containerId) {
+        const containerEl = document.getElementById(containerId);
+        if (containerEl) { containerEl.innerHTML = `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`; }
+    }
+
+    function parseTodoistTitle(rawTitle) {
+        if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
+        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
+        const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
+        let timeTags = [], labelTags = [];
+        let match;
+        while ((match = timeRegex.exec(rawTitle)) !== null) timeTags.push(match[1].toLowerCase());
+        while ((match = labelRegex.exec(rawTitle)) !== null) labelTags.push(match[1].substring(1));
+        let cleanTitle = rawTitle.replace(timeRegex, '').replace(labelRegex, '').replace(/\s+/g, ' ').trim();
+        return { cleanTitle, timeTags, labelTags };
+    }
+
+    function getFirstHabitLabel(rawTitle) {
+        const parsed = parseTodoistTitle(rawTitle);
+        return parsed.labelTags.length > 0 ? parsed.labelTags[0] : 'general';
+    }
+
+    function formatDateDDMM(dateStr) {
+        if (!dateStr) return '';
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+    }
+
+    function sharedTypeChangeLogic(prefix = '') {
+        const typeVal = document.getElementById(prefix + 'type').value;
+        const priorityGrp = document.getElementById(prefix + 'priorityGroup');
+        const timeblockGrp = document.getElementById(prefix + 'timeblockGroup');
+        const dateGrp = document.getElementById(prefix + 'dateGroup');
+        const dateLbl = document.getElementById(prefix + 'dateLabel');
+        const dateInput = document.getElementById(prefix + 'date');
+
+        if (typeVal === 'Birthday') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Birthday Date (DD/MM)'; dateInput.type = 'date'; } 
+        else if (typeVal === 'Habit') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'none'; } 
+        else if (typeVal === 'Deadline') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; dateInput.type = 'date'; } 
+        else { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Date (Leave blank for Inbox)'; dateInput.type = 'date'; }
+    }
+
+    function handleTypeChange() { sharedTypeChangeLogic(''); }
+    function m_handleTypeChange() { sharedTypeChangeLogic('m_'); }
+
+    async function autoDeleteOldHistory(dataItems) {
+        const now = new Date();
+        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        const oneYearAgoStr = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}-${String(oneYearAgo.getDate()).padStart(2, '0')}`;
+
+        const expiredIds = dataItems.filter(s => s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit').map(s => s.id);
+        if (expiredIds.length > 0) {
+            console.log(`Auto-deleting ${expiredIds.length} expired items...`);
+            await supabaseClient.from('schedules').delete().in('id', expiredIds);
+            return dataItems.filter(s => !expiredIds.includes(s.id));
+        }
+        return dataItems;
+    }
+
+    async function fetchSchedules() {
+        const statusEl = document.getElementById('dbStatus');
+        statusEl.innerText = 'Menghubungkan ke Supabase Cloud...'; statusEl.style.color = '#e6e6e6';
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const { data, error } = await supabaseClient.from('schedules').select('*').order('date', { ascending: true, nullsFirst: false }).abortSignal(controller.signal);
+            clearTimeout(timeoutId);
+
+            if (error) { if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; } throw error; }
+
+            statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)'; statusEl.style.color = '#55ff55';
+            schedules = await autoDeleteOldHistory(data || []);
+            localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        } catch (err) {
+            console.warn('Fetch error:', err);
+            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline / Cached Mode)'; statusEl.style.color = '#ff5555';
+            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+        }
+
+        updateArchiveCounters();
+        renderCalendar();
+        
+        // Refresh actively open modal to show strikethrough/resort instantly
+        if (currentOpenDirectory.key && document.getElementById('directoryModal').classList.contains('active')) {
+            openDirectoryModal(currentOpenDirectory.key, currentOpenDirectory.param);
         }
     }
-    mH.innerHTML=`<span id="directoryModalTitle">${mT.innerText}</span><div style="display:flex;align-items:center">${hA}</div>`; mC.innerHTML=hl;
-}
 
-function exportFullICS(){
-    if(!schedules||schedules.length===0)return alert('Tidak ada jadwal untuk diekspor.');
-    let cL=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Yorushika Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH'];
-    const fd=(ds,iB=false)=>{if(!ds)return null;let c=ds;if(iB&&c.includes('-')){let p=c.split('-');c=`${new Date().getFullYear()}-${p[1]}-${p[2]}`}return c.replace(/-/g,'')};
-    schedules.forEach(s=>{
-        if(!s.date&&s.type!=='Birthday')return; let iB=(s.type==='Birthday'),d=fd(s.date,iB); if(!d)return;
-        let p=parseTodoistTitle(s.title),sm=`[${s.isHabitInstance?'HABIT':s.type}] ${p.cleanTitle}`,dc=s.description?s.description.replace(/\n/g,'\\n'):''; if(p.labelTags.length>0)dc+=`\\nTags: `+p.labelTags.map(l=>'.'+l).join(' ');
-        cL.push('BEGIN:VEVENT',`UID:yorushika-${s.id}-${Date.now()}@calendar`,`DTSTAMP:${new Date().toISOString().replace(/[-:]/g,'').split('.')[0]}Z`,`DTSTART;VALUE=DATE:${d}`);
-        let nD=new Date(s.date); nD.setDate(nD.getDate()+1); cL.push(`DTEND;VALUE=DATE:${nD.getFullYear()}${String(nD.getMonth()+1).padStart(2,'0')}${String(nD.getDate()).padStart(2,'0')}`);
-        if(iB||s.recurring==='yearly')cL.push('RRULE:FREQ=YEARLY'); cL.push(`SUMMARY:${sm}`); if(dc)cL.push(`DESCRIPTION:${dc}`); cL.push('END:VEVENT');
-    }); cL.push('END:VCALENDAR');
-    const b=new Blob([cL.join('\r\n')],{type:'text/calendar;charset=utf-8'}),l=document.createElement('a'); l.href=URL.createObjectURL(b); l.setAttribute('download','yorushika_calendar.ics'); document.body.appendChild(l); l.click(); document.body.removeChild(l);
-}
+    function updateArchiveCounters() {
+        const todayStr = getTodayDateString();
+        const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
+        const habitCount = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed).length;
+        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
+        
+        let allLabels = new Set();
+        schedules.forEach(s => {
+            if (s.type === 'Habit' || s.isHabitInstance) return;
+            parseTodoistTitle(s.title).labelTags.forEach(l => allLabels.add(l));
+            if (s.type === 'Deadline') allLabels.add('deadline');
+        });
 
-function renderCardHTML(s,bS,iB=false,wA='',iH='',iDM=false){
-    const iP=s.date&&s.date<getTodayDateString(),iC=(s.completed&&(iP||s.type==='Task'||s.type==='Deadline'||s.type==='Habit'||s.isHabitInstance))?'agenda-item completed-item':'agenda-item';
-    let dD=getDisplayDate(s),tD=iB||s.type==='Birthday'?dD:`${dD} | ${s.priority} / ${s.timeblock||'none'}`;
-    const p=parseTodoistTitle(s.title); let pH=''; p.timeTags.forEach(t=>{pH+=`<span class="discord-pill time-pill">⏱️ ${t}</span>`}); p.labelTags.forEach(l=>{pH+=`<span class="discord-pill label-pill">${l}</span>`});
-    let dH=(s.description&&s.description.trim()!=='')?`<p>💬 ${s.description}</p>`:'',tP=s.isHabitInstance||s.type==='Habit'?'[HABIT]':`[${s.type}]`,sC=(s.type==='Task'||s.type==='Deadline'||s.type==='Habit'||s.isHabitInstance);
-    return `<div class="${iC}" style="background:${bS};margin-bottom:6px" ${wA} ${iDM?'':`onclick="openDetailModal('${s.id}')"`}>${iH}<div class="agenda-content"><h4>${tP} ${p.cleanTitle}</h4>${dH}<p>🏷️ ${tD}</p>${pH?`<div class="pill-badges-wrap">${pH}</div>`:''}</div><div class="agenda-actions">${sC?`<input type="checkbox" ${s.completed?'checked':''} onclick="toggleComplete('${s.id}',event)">`:''}<button class="btn-edit" onclick="editSchedule('${s.id}');event.stopPropagation();">Edit</button><button class="btn-delete" onclick="deleteSchedule('${s.id}',event)">X</button></div></div>`;
-}
-function renderHabitCardHTML(s,bS){
-    const p=parseTodoistTitle(s.title); let pH=''; p.labelTags.forEach(l=>{pH+=`<span class="discord-pill label-pill">${l}</span>`});
-    let aI=schedules.find(x=>x.isHabitInstance&&!x.completed&&x.title===s.title),lA=!aI&&s.date!==null&&!s.completed,dD=aI?aI.date:(lA?s.date:null),aBT=dD?'Re-assign':'Assign',aBC=dD?'btn-reassign':'btn-assign';
-    return `<div class="agenda-item" style="background:${bS};margin-bottom:6px" onclick="openDetailModal('${s.id}')"><div class="agenda-content"><h4>[HABIT] ${p.cleanTitle}</h4>${(s.description&&s.description.trim()!=='')?`<p>💬 ${s.description}</p>`:''}${dD?`<p>📅 Active: ${formatDateDDMM(dD)}</p>`:''}<p>🏷️ Priority: ${s.priority}</p>${pH?`<div class="pill-badges-wrap">${pH}</div>`:''}</div><div class="agenda-actions"><button class="btn-archive-habit" onclick="archiveHabit('${s.id}',event)" title="Bin">✓</button><button class="${aBC}" onclick="openAssignModal('${s.id}',event)">${aBT}</button><button class="btn-edit" onclick="editSchedule('${s.id}');event.stopPropagation();">Edit</button><button class="btn-delete" onclick="deleteSchedule('${s.id}',event)">X</button></div></div>`;
-}
-function renderHabitBinCardHTML(s,bS){
-    const p=parseTodoistTitle(s.title); let pH=''; p.labelTags.forEach(l=>{pH+=`<span class="discord-pill label-pill">${l}</span>`});
-    return `<div class="agenda-item" style="background:${bS};margin-bottom:6px;opacity:.7" onclick="openDetailModal('${s.id}')"><div class="agenda-content"><h4>[HABIT] ${p.cleanTitle}</h4>${(s.description&&s.description.trim()!=='')?`<p>💬 ${s.description}</p>`:''}<p>🏷️ Priority: ${s.priority}</p>${pH?`<div class="pill-badges-wrap">${pH}</div>`:''}</div><div class="agenda-actions"><button class="btn-assign" onclick="restoreHabit('${s.id}',event)">Restore</button><button class="btn-delete" onclick="deleteHabitPermanent('${s.id}',event)">X</button></div></div>`;
-}
-async function archiveHabit(id,e){if(e)e.stopPropagation();if(!confirm('Move to Bin?'))return;const{error}=await supabaseClient.from('schedules').update({completed:true}).eq('id',id);if(!error){await fetchSchedules();openDirectoryModal('habits')}}
-async function restoreHabit(id,e){if(e)e.stopPropagation();const{error}=await supabaseClient.from('schedules').update({completed:false}).eq('id',id);if(!error){await fetchSchedules();openDirectoryModal('habits_bin')}}
-async function deleteHabitPermanent(id,e){if(e)e.stopPropagation();if(!confirm('Delete permanently?'))return;const{error}=await supabaseClient.from('schedules').delete().eq('id',id);if(!error){await fetchSchedules();openDirectoryModal('habits_bin')}}
-function buildHabitHeatmapHTML(t,aC){
-    const cD=new Set(schedules.filter(x=>x.isHabitInstance&&x.completed===true&&x.title===t&&x.date).map(x=>x.date)),td=new Date(); td.setHours(0,0,0,0); const eW=new Date(td); eW.setDate(td.getDate()+(6-td.getDay())); const sD=new Date(eW); sD.setDate(eW.getDate()-(53*7)+1);
-    let dH='',dC=0; for(let c=0;c<53;c++){for(let r=0;r<7;r++){const cdt=new Date(sD);cdt.setDate(sD.getDate()+c*7+r);if(cdt>td)continue;const ds=`${cdt.getFullYear()}-${String(cdt.getMonth()+1).padStart(2,'0')}-${String(cdt.getDate()).padStart(2,'0')}`,iF=cD.has(ds);if(iF)dC++;dH+=`<circle cx="${c*10+5}" cy="${r*10+5}" r="3.3" fill="${iF?aC:'var(--border-color)'}"><title>${ds}${iF?' — done':''}</title></circle>`}}
-    return `<div style="color:var(--muted-gray);font-size:10px;margin:8px 0 4px">Contribution Heatmap (Past Year) — ${dC} done</div><div style="background:var(--bg-pure);border:1px solid var(--border-color);border-radius:6px;padding:8px"><svg viewBox="0 0 530 70" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;display:block">${dH}</svg></div>`;
-}
-
-function renderAgendaList(){
-    const c=document.getElementById('agendaContainer'),dc=document.getElementById('dumplistContainer'),ts=getTodayDateString(); let tm=new Date(); tm.setDate(tm.getDate()+1); const tms=`${tm.getFullYear()}-${String(tm.getMonth()+1).padStart(2,'0')}-${String(tm.getDate()).padStart(2,'0')}`;
-    if(schedules.length===0){c.innerHTML='No entries recorded yet.';dc.innerHTML='';return}
-    if(selectedFilterDate){
-        document.getElementById('clearFilterBtn').style.display='inline-block'; let f=sortItems(schedules.filter(s=>s.date===selectedFilterDate));
-        if(f.length===0)c.innerHTML=`<div style="text-align:center;padding:10px">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`;else{let hl=`<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${f.length}]</span></div>`;f.forEach(s=>hl+=renderCardHTML(s,getBgStyle(s)));c.innerHTML=hl+`</div>`} dc.innerHTML='';
-    }else{
-        document.getElementById('clearFilterBtn').style.display='none'; let hM=''; const tI=sortItems(schedules.filter(s=>s.date===ts));
-        if(tI.length>0){hM+=`<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(ts)})</span><span>[${tI.length}]</span></div>`;tI.slice(0,5).forEach(s=>hM+=renderCardHTML(s,getBgStyle(s)));if(tI.length>5)hM+=`<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${tI.length-5} more items...</button>`;hM+=`</div>`}
-        const uI=sortItems(schedules.filter(s=>s.date===tms));
-        if(uI.length>0){hM+=`<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tms)})</span><span>[${uI.length}]</span></div>`;uI.slice(0,5).forEach(s=>hM+=renderCardHTML(s,getBgStyle(s)));if(uI.length>5)hM+=`<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${uI.length-5} more upcoming items...</button>`;hM+=`</div>`}
-        c.innerHTML=hM||`<div style="text-align:center;padding:20px;color:var(--muted-gray)">No scheduled entries for today or tomorrow.</div>`;
-        const iI=sortItems(schedules.filter(s=>!s.date&&s.type!=='Habit'&&!s.isHabitInstance&&parseTodoistTitle(s.title).labelTags.length===0));
-        if(iI.length>0){let hD=`<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${iI.length}]</span></div>`;iI.slice(0,3).forEach(s=>hD+=renderCardHTML(s,getBgStyle(s)));if(iI.length>3)hD+=`<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${iI.length-3} more unassigned...</button>`;dc.innerHTML=hD+`</div>`}else dc.innerHTML='';
+        document.getElementById('birthdayBadgeCount').innerText = birthdayCount;
+        document.getElementById('habitBadgeCount').innerText = habitCount;
+        
+        const skippedBadge = document.getElementById('skippedBadgeCount');
+        skippedBadge.innerText = skippedCount;
+        if (skippedCount > 0) skippedBadge.classList.add('red-alert'); else skippedBadge.classList.remove('red-alert');
+        document.getElementById('labelBadgeCount').innerText = allLabels.size;
     }
-}
-checkAuthAndInit();
-</script></body></html>
+
+    function sortItems(items) {
+        const sortBy = document.getElementById('sortBySelect').value;
+        return [...items].sort((a, b) => {
+            if (a.completed && !b.completed) return 1;
+            if (!a.completed && b.completed) return -1;
+            
+            let tbA = a.timeblock || 'none', tbB = b.timeblock || 'none';
+            if (sortBy === 'priority') {
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+                return (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+            } else if (sortBy === 'type') {
+                let tDiff = (typeOrder[a.type] || 3) - (typeOrder[b.type] || 3);
+                if (tDiff !== 0) return tDiff;
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+            } else {
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+            }
+        });
+    }
+
+    function renderCalendar() {
+        const year = currentDate.getFullYear(), month = currentDate.getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        document.getElementById('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        let gridHTML = '';
+        for (let i = 0; i < firstDayIndex; i++) gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
+
+        const todayStr = getTodayDateString();
+
+        for (let day = 1; day <= totalDays; day++) {
+            const formattedMonth = String(month + 1).padStart(2, '0');
+            const formattedDay = String(day).padStart(2, '0');
+            const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+            let daySchedules = sortItems(schedules.filter(s => {
+                if (!s.date) return false;
+                if (s.date === dateStr) return true;
+                if (s.type === 'Birthday' || s.recurring === 'yearly') {
+                    return s.date.split('-')[1] === formattedMonth && s.date.split('-')[2] === formattedDay;
+                }
+                return false;
+            }));
+
+            let badgesHTML = '';
+            daySchedules.forEach(s => {
+                const isPast = s.date && s.date < todayStr;
+                const completedClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'completed-badge' : '';
+                const parsed = parseTodoistTitle(s.title);
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${getBgStyle(s)};">${parsed.cleanTitle}</div>`;
+            });
+
+            gridHTML += `
+                <div class="day-cell ${dateStr === todayStr ? 'today' : ''}" onclick="handleGridCellClick('${dateStr}')">
+                    <span class="day-number">${day}</span>
+                    <div class="badges-container">${badgesHTML}</div>
+                </div>`;
+        }
+        document.getElementById('daysGrid').innerHTML = gridHTML;
+        renderAgendaList();
+    }
+
+    function changeMonth(direction) { currentDate.setMonth(currentDate.getMonth() + direction); renderCalendar(); }
+    function jumpToCurrentMonth() { currentDate = new Date(); renderCalendar(); }
+
+    function handleGridCellClick(dateStr) {
+        document.getElementById('date').value = dateStr; checkDateInputState('date', 'dateTodayBtnContainer');
+        document.getElementById('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        selectedFilterDate = dateStr; renderAgendaList();
+    }
+
+    function clearDateFilter() { selectedFilterDate = null; renderAgendaList(); }
+
+    function resetForm() {
+        document.getElementById('title').value = ''; document.getElementById('description').value = '';
+        document.getElementById('type').value = 'Task'; document.getElementById('date').value = '';
+        resetDateButtonState('date', 'dateTodayBtnContainer');
+        document.getElementById('priority').value = 'personal'; document.getElementById('timeblock').value = 'none';
+        handleTypeChange();
+    }
+
+    function m_resetForm() {
+        document.getElementById('m_editEntryId').value = ''; document.getElementById('m_title').value = '';
+        document.getElementById('m_description').value = ''; document.getElementById('m_type').value = 'Task';
+        document.getElementById('m_date').value = ''; resetDateButtonState('m_date', 'm_dateTodayBtnContainer');
+        document.getElementById('m_priority').value = 'personal'; document.getElementById('m_timeblock').value = 'none';
+        m_handleTypeChange();
+        document.getElementById('modalFormHeaderTitle').innerText = 'Create Entry'; document.getElementById('m_submitBtn').innerText = 'Save Entry';
+    }
+
+    function openFormModal() { m_resetForm(); showModal('formModal'); }
+    function closeFormModal() { hideModal('formModal'); }
+
+    async function saveSchedule() {
+        const rawInputTitle = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const type = document.getElementById('type').value;
+        let dateInputVal = document.getElementById('date').value;
+        let date = null;
+
+        if (type !== 'Habit' && dateInputVal) {
+            date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
+        }
+
+        let priority = type === 'Birthday' ? 'personal' : document.getElementById('priority').value;
+        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : document.getElementById('timeblock').value;
+        let recurring = type === 'Birthday' ? 'yearly' : 'none';
+
+        if (!rawInputTitle) return alert('Title is required!');
+
+        const newEntry = { title: rawInputTitle, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+        const { error } = await supabaseClient.from('schedules').insert([newEntry]);
+        if (!error) { resetForm(); fetchSchedules(); } else { alert('Failed to save entry: ' + error.message); }
+    }
+
+    async function m_saveSchedule() {
+        const id = document.getElementById('m_editEntryId').value;
+        const rawInputTitle = document.getElementById('m_title').value;
+        const description = document.getElementById('m_description').value;
+        const type = document.getElementById('m_type').value;
+        let dateInputVal = document.getElementById('m_date').value;
+        let date = null;
+
+        if (type !== 'Habit' && dateInputVal) {
+            date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
+        }
+
+        let priority = type === 'Birthday' ? 'personal' : document.getElementById('m_priority').value;
+        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : document.getElementById('m_timeblock').value;
+        let recurring = type === 'Birthday' ? 'yearly' : 'none';
+
+        if (!rawInputTitle) return alert('Title is required!');
+        let finalTitleToSave = rawInputTitle;
+
+        if (id) {
+            const existingItem = schedules.find(s => String(s.id) === String(id));
+            if (existingItem) {
+                const oldParsed = parseTodoistTitle(existingItem.title);
+                const newParsed = parseTodoistTitle(rawInputTitle);
+                let combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
+                let combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
+
+                let builtTitleParts = [newParsed.cleanTitle];
+                combinedTimes.forEach(t => builtTitleParts.push(t));
+                combinedLabels.forEach(l => builtTitleParts.push('.' + l));
+                finalTitleToSave = builtTitleParts.join(' ');
+            }
+
+            const payload = { title: finalTitleToSave, description, type, date: (type === 'Habit' ? null : date), priority, timeblock, recurring };
+            if (type === 'Habit') payload.isHabitInstance = false;
+            
+            const { error } = await supabaseClient.from('schedules').update(payload).eq('id', id);
+            if (!error) { m_resetForm(); closeFormModal(); fetchSchedules(); }
+        } else {
+            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+            const { error } = await supabaseClient.from('schedules').insert([newEntry]);
+            if (!error) { m_resetForm(); closeFormModal(); fetchSchedules(); }
+        }
+    }
+
+    function editSchedule(id) {
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (item) {
+            hideModal('directoryModal'); hideModal('detailModal');
+            const parsed = parseTodoistTitle(item.title);
+
+            document.getElementById('m_editEntryId').value = item.id;
+            document.getElementById('m_title').value = parsed.cleanTitle;
+            document.getElementById('m_description').value = item.description || '';
+            document.getElementById('m_type').value = item.type;
+            
+            if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+                const parts = item.date.split('-');
+                document.getElementById('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
+            } else { document.getElementById('m_date').value = item.date || ''; }
+            checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+
+            document.getElementById('m_priority').value = item.priority;
+            document.getElementById('m_timeblock').value = item.timeblock || 'none';
+            
+            m_handleTypeChange();
+            document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
+            document.getElementById('m_submitBtn').innerText = 'Update Entry';
+            showModal('formModal');
+        }
+    }
+
+    function openAssignModal(id, event) {
+        if(event) event.stopPropagation();
+        hideModal('directoryModal');
+        document.getElementById('assignEntryId').value = id;
+        
+        const masterHabit = schedules.find(s => String(s.id) === String(id));
+        if (!masterHabit) return;
+
+        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
+        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
+
+        let currentDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
+        let currentTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
+
+        document.getElementById('assignDate').value = currentDate;
+        checkDateInputState('assignDate', 'assignDateTodayBtnContainer');
+        document.getElementById('assignTimeblock').value = currentTimeblock;
+        showModal('assignModal');
+    }
+
+    function closeAssignModal() { hideModal('assignModal'); }
+
+    async function executeAssignHabit() {
+        const id = document.getElementById('assignEntryId').value;
+        const targetDate = document.getElementById('assignDate').value;
+        const targetTimeblock = document.getElementById('assignTimeblock').value;
+
+        if (!targetDate) return alert('Please select a target date!');
+        const masterHabit = schedules.find(s => String(s.id) === String(id));
+        if (!masterHabit) return alert('Habit tidak ditemukan.');
+
+        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
+        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
+
+        if (activeInst) {
+            const { error } = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', activeInst.id);
+            if (!error) { closeAssignModal(); fetchSchedules(); }
+        } else if (legacyActive) {
+            const { error } = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', masterHabit.id);
+            if (!error) { closeAssignModal(); fetchSchedules(); }
+        } else {
+            const newInstance = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
+            const { error } = await supabaseClient.from('schedules').insert([newInstance]);
+            if (!error) { closeAssignModal(); fetchSchedules(); }
+        }
+    }
+
+    async function toggleComplete(id, event) {
+        event.stopPropagation();
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (item) {
+            const { error } = await supabaseClient.from('schedules').update({ completed: !item.completed }).eq('id', id);
+            if (!error) fetchSchedules();
+        }
+    }
+
+    async function deleteSchedule(id, event) {
+        event.stopPropagation();
+        if (confirm('Delete this entry?')) {
+            const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+            if (!error) fetchSchedules();
+        }
+    }
+
+    function openDetailModal(id) {
+        hideModal('directoryModal');
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) return;
+
+        const parsed = parseTodoistTitle(item.title);
+        let itemDesc = item.description ? item.description : '-';
+        let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
+        let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
+        const isHabitMaster = (item.type === 'Habit' && !item.isHabitInstance);
+        let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
+        let displayDate = getDisplayDate(item);
+
+        let pillHTML = '';
+        parsed.timeTags.forEach(t => { pillHTML += `<span class="editable-pill time-pill">⏱️ ${t}</span>`; });
+        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) { pillHTML += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`; }
+        parsed.labelTags.forEach(l => { if (l.toLowerCase() !== 'deadline') pillHTML += `<span class="editable-pill label-pill">🏷️ ${l}</span>`; });
+        if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
+
+        document.getElementById('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
+        document.getElementById('modalBodyContent').innerHTML = `
+            <p><strong>Date</strong> ${displayDate ? displayDate : 'Habit (Idle / Master Pool)'}</p>
+            <p><strong>Description / Note</strong> ${itemDesc}</p>
+            <p><strong>Priority Tag</strong> ${itemPriority}</p>
+            <p><strong>Timeblock</strong> ${itemTimeblock}</p>
+            <p><strong>Status</strong> ${itemStatus}</p>
+            ${isHabitMaster ? buildHabitHeatmapHTML(item.title, priorityColors[item.priority] || '#7a9c72') : ''}
+            <p><strong>Tags & Labels</strong></p>
+            <div class="editable-pill-container">${pillHTML}</div>
+        `;
+        showModal('detailModal');
+    }
+
+    function closeDetailModal() { hideModal('detailModal'); }
+
+    // D&D Logic
+    window.labelCustomOrders = {};
+    window.labelEditOrderActive = null;
+
+    function toggleLabelEditOrder(targetParam) {
+        window.labelEditOrderActive = (window.labelEditOrderActive === targetParam) ? null : targetParam;
+        openDirectoryModal('collections', targetParam);
+    }
+
+    let dragItemIdx = null, dragLabelParam = null;
+    function onDragStart(e, idx, param) {
+        dragItemIdx = idx; dragLabelParam = param;
+        e.dataTransfer.effectAllowed = 'move';
+        setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
+    }
+    function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+    function onDrop(e, targetIdx) {
+        e.preventDefault();
+        if (dragLabelParam && dragItemIdx !== null && dragItemIdx !== targetIdx) {
+            let orderArr = window.labelCustomOrders[dragLabelParam];
+            orderArr.splice(targetIdx, 0, orderArr.splice(dragItemIdx, 1)[0]);
+            openDirectoryModal('collections', dragLabelParam);
+        }
+        if(e.target.closest('.agenda-item')) e.target.closest('.agenda-item').style.opacity = '1';
+    }
+    function onDragEnd(e) { e.target.style.opacity = '1'; dragItemIdx = null; dragLabelParam = null; }
+
+    function openDirectoryModal(typeKey, targetParam = null) {
+        currentOpenDirectory = { key: typeKey, param: targetParam };
+        const modalTitle = document.getElementById('directoryModalTitle');
+        const modalContent = document.getElementById('directoryModalContent');
+        const modalHeaderEl = document.getElementById('directoryModalHeader');
+        const todayStr = getTodayDateString();
+
+        let headerActionsHTML = '';
+        if (typeKey === 'collections' && targetParam !== null) {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">${window.labelEditOrderActive === targetParam ? 'Done' : 'Edit Order'}</button>`;
+        } else if (typeKey === 'habits_list') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits')">← Back</button>`;
+        } else if (typeKey === 'habits') {
+            headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`;
+        } else if (typeKey === 'habits_bin') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits')">← Back</button>`;
+        }
+        headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
+
+        let html = '';
+        if (typeKey === 'birthdays') {
+            modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
+            let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => (a.date || '12-31').localeCompare(b.date || '12-31'));
+            html = birthdays.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>' : birthdays.map(s => renderCardHTML(s, 'var(--birthday-strawberry)', true)).join('');
+        } else if (typeKey === 'habits') {
+            modalTitle.innerText = '🔁 HABITS CATEGORY';
+            let habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed);
+            let pCounts = { professional: 0, daily: 0, personal: 0 };
+            habits.forEach(s => { let p = s.priority || 'personal'; if(pCounts[p]!==undefined) pCounts[p]++; });
+
+            html += `
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'professional')">
+                    <div class="agenda-content"><h4>💼 Professional</h4><p>Total items: ${pCounts.professional}</p></div>
+                    <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                </div>
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'daily')">
+                    <div class="agenda-content"><h4>☕ Daily</h4><p>Total items: ${pCounts.daily}</p></div>
+                    <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                </div>
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'personal')">
+                    <div class="agenda-content"><h4>🌱 Personal</h4><p>Total items: ${pCounts.personal}</p></div>
+                    <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                </div>`;
+       } else if (typeKey === 'habits_list') {
+            modalTitle.innerText = `🔁 HABITS: ${targetParam.toUpperCase()}`;
+            const habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed && s.priority === targetParam);
+
+            if (!habits.length) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>';
+            } else {
+                const groups = habits.reduce((acc, s) => {
+                    const tag = getFirstHabitLabel(s.title);
+                    (acc[tag] = acc[tag] || []).push(s);
+                    return acc;
+                }, {});
+
+                html = Object.keys(groups).sort().map(tag => {
+                    const items = groups[tag].sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+                    const cards = items.map(s => renderHabitCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+                    
+                    return `
+                        <div class="section-category-box" style="margin-bottom: 12px;">
+                            <div class="section-category-title">
+                                <span>🏷️ TAG: #${tag.toUpperCase()}</span>
+                                <span>[${items.length}]</span>
+                            </div>
+                            ${cards}
+                        </div>`;
+                }).join('');
+            }
+        } else if (typeKey === 'habits_bin') {
+            modalTitle.innerText = '🗑️ HABITS BIN';
+            let archived = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && s.completed).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+            html = archived.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>' : archived.map(s => renderHabitBinCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+        } else if (typeKey === 'skipped') {
+            modalTitle.innerText = '🕰️ SKIPPED TASKS';
+            const skipped = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
+            html = skipped.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>' : skipped.map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'today_overflow') {
+            modalTitle.innerText = '📌 TODAY (FULL LIST)';
+            html = sortItems(schedules.filter(s => s.date === todayStr)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'upcoming_overflow') {
+            modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
+            let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
+            html = sortItems(schedules.filter(s => s.date === tomStr)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'inbox_overflow') {
+            modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
+            html = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'collections') {
+            if (!targetParam) {
+                modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
+                let labelMap = {};
+                schedules.forEach(s => {
+                    if (s.type === 'Habit' || s.isHabitInstance) return;
+                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
+                    tags.forEach(l => { if (!labelMap[l]) labelMap[l] = []; labelMap[l].push(s); });
+                });
+                let keys = Object.keys(labelMap).sort((a, b) => a.toLowerCase() === 'deadline' ? -1 : (b.toLowerCase() === 'deadline' ? 1 : a.localeCompare(b)));
+                
+                if (keys.length === 0) { html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found.</div>'; } 
+                else {
+                    keys.forEach(l => {
+                        const isDeadline = (l.toLowerCase() === 'deadline');
+                        const cardBg = isDeadline ? 'background: var(--deadline-crimson); border-color: #ff5555;' : 'background: #232320;';
+                        const pinnedBadge = isDeadline ? '<span style="font-size: 8px; background: var(--bg-pure); color: #ffffff; padding: 1px 5px; border-radius: 3px; margin-left: 4px;">📌 pinned</span>' : '';
+                        html += `
+                            <div class="agenda-item" style="${cardBg} margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
+                                <div class="agenda-content"><h4>🏷️ ${l} ${pinnedBadge}</h4><p>Total items: ${labelMap[l].length}</p></div>
+                                <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
+                            </div>`;
+                    });
+                }
+            } else {
+                modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
+                let matched = schedules.filter(s => {
+                    if (s.type === 'Habit' || s.isHabitInstance) return false;
+                    return targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline' ? true : parseTodoistTitle(s.title).labelTags.includes(targetParam);
+                });
+                
+                if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
+                let orderArr = window.labelCustomOrders[targetParam];
+                matched.sort((a, b) => {
+                    let idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
+                    return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                });
+
+                matched.forEach((s, idx) => {
+                    let isDragMode = (window.labelEditOrderActive === targetParam);
+                    let dragAttr = isDragMode ? `draggable="true" ondragstart="onDragStart(event, ${idx}, '${targetParam}')" ondragover="onDragOver(event)" ondrop="onDrop(event, ${idx})" ondragend="onDragEnd(event)"` : '';
+                    let handleHTML = isDragMode ? `<div class="drag-handle">⋮⋮</div>` : '';
+                    html += renderCardHTML(s, getBgStyle(s), false, dragAttr, handleHTML, isDragMode);
+                });
+            }
+        }
+
+        modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
+        modalContent.innerHTML = html;
+        showModal('directoryModal');
+    }
+
+    function closeDirectoryModal() { hideModal('directoryModal'); }
+
+    function exportFullICS() {
+        if (!schedules || schedules.length === 0) return alert('Tidak ada jadwal untuk diekspor.');
+        let icsLines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Yorushika Calendar//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+        const formatDateToICS = (dateStr, isBirthday = false) => {
+            if (!dateStr) return null;
+            let clean = dateStr;
+            if (isBirthday && clean.includes('-')) { let parts = clean.split('-'); clean = `${new Date().getFullYear()}-${parts[1]}-${parts[2]}`; }
+            return clean.replace(/-/g, '');
+        };
+
+        schedules.forEach(s => {
+            if (!s.date && s.type !== 'Birthday') return;
+            let isBday = (s.type === 'Birthday');
+            let dStr = formatDateToICS(s.date, isBday);
+            if (!dStr) return;
+
+            let parsed = parseTodoistTitle(s.title);
+            let summary = `[${s.isHabitInstance ? 'HABIT' : s.type}] ${parsed.cleanTitle}`;
+            let description = s.description ? s.description.replace(/\n/g, '\\n') : '';
+            if (parsed.labelTags.length > 0) description += `\\nTags: ` + parsed.labelTags.map(l => '.' + l).join(' ');
+
+            icsLines.push('BEGIN:VEVENT', `UID:yorushika-${s.id}-${Date.now()}@calendar`, `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`);
+            icsLines.push(`DTSTART;VALUE=DATE:${dStr}`);
+            let nextDay = new Date(s.date); nextDay.setDate(nextDay.getDate() + 1);
+            icsLines.push(`DTEND;VALUE=DATE:${nextDay.getFullYear()}${String(nextDay.getMonth() + 1).padStart(2, '0')}${String(nextDay.getDate()).padStart(2, '0')}`);
+            if (isBday || s.recurring === 'yearly') icsLines.push('RRULE:FREQ=YEARLY');
+            icsLines.push(`SUMMARY:${summary}`);
+            if (description) icsLines.push(`DESCRIPTION:${description}`);
+            icsLines.push('END:VEVENT');
+        });
+        icsLines.push('END:VCALENDAR');
+        const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.setAttribute('download', 'yorushika_calendar.ics'); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false) {
+        const isPast = s.date && s.date < getTodayDateString();
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
+        let displayDate = getDisplayDate(s);
+        let tagDisplay = isBirthdayDirectory || s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock || 'none'}`;
+
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        parsed.timeTags.forEach(t => { pillsHTML += `<span class="discord-pill time-pill">⏱️ ${t}</span>`; });
+        parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+
+        let descHTML = (s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : '';
+        let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
+        let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
+        const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
+
+        return `
+            <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" ${wrapperAttrs} ${clickAction}>
+                ${injectLeftHTML}
+                <div class="agenda-content">
+                    <h4>${typePrefix} ${parsed.cleanTitle}</h4>
+                    ${descHTML}
+                    <p>🏷️ ${tagDisplay}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                </div>
+                <div class="agenda-actions">
+                    ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                </div>
+            </div>`;
+    }
+
+    function renderHabitCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = ''; parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === s.title);
+        let legacyActive = !activeInst && s.date !== null && !s.completed;
+        
+        let displayDate = activeInst ? activeInst.date : (legacyActive ? s.date : null);
+        let assignBtnText = displayDate ? 'Re-assign' : 'Assign';
+        let assignBtnClass = displayDate ? 'btn-reassign' : 'btn-assign';
+
+        return `
+            <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    ${(s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : ''}
+                    ${displayDate ? `<p>📅 Active: ${formatDateDDMM(displayDate)}</p>` : ''}
+                    <p>🏷️ Priority: ${s.priority}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                </div>
+                <div class="agenda-actions">
+                    <button class="btn-archive-habit" onclick="archiveHabit('${s.id}', event)" title="Move to Habits Bin">✓</button>
+                    <button class="${assignBtnClass}" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
+                    <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                    <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                </div>
+            </div>`;
+    }
+
+    function renderHabitBinCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = ''; parsed.labelTags.forEach(l => { pillsHTML += `<span class="discord-pill label-pill">${l}</span>`; });
+        return `
+            <div class="agenda-item" style="background: ${solidBg}; margin-bottom: 6px; opacity: 0.7;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    ${(s.description && s.description.trim() !== '') ? `<p>💬 ${s.description}</p>` : ''}
+                    <p>🏷️ Priority: ${s.priority}</p>
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                </div>
+                <div class="agenda-actions">
+                    <button class="btn-assign" onclick="restoreHabit('${s.id}', event)" title="Restore to active Habits">Restore</button>
+                    <button class="btn-delete" onclick="deleteHabitPermanent('${s.id}', event)" title="Delete permanently">X</button>
+                </div>
+            </div>`;
+    }
+
+    async function archiveHabit(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Move this habit to the Habits Bin?')) return;
+        const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
+        if (!error) { await fetchSchedules(); openDirectoryModal('habits'); }
+    }
+
+    async function restoreHabit(id, event) {
+        if (event) event.stopPropagation();
+        const { error } = await supabaseClient.from('schedules').update({ completed: false }).eq('id', id);
+        if (!error) { await fetchSchedules(); openDirectoryModal('habits_bin'); }
+    }
+
+    async function deleteHabitPermanent(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Delete this habit permanently?')) return;
+        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (!error) { await fetchSchedules(); openDirectoryModal('habits_bin'); }
+    }
+
+    function buildHabitHeatmapHTML(habitTitle, accentColor) {
+        const completedDates = new Set(schedules.filter(x => x.isHabitInstance && x.completed === true && x.title === habitTitle && x.date).map(x => x.date));
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(today); endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+        const startDate = new Date(endOfWeek); startDate.setDate(endOfWeek.getDate() - (53 * 7) + 1);
+
+        let dotsHTML = '', doneCount = 0;
+        for (let col = 0; col < 53; col++) {
+            for (let row = 0; row < 7; row++) {
+                const cellDate = new Date(startDate); cellDate.setDate(startDate.getDate() + col * 7 + row);
+                if (cellDate > today) continue;
+                const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+                const isFilled = completedDates.has(dateStr);
+                if (isFilled) doneCount++;
+                dotsHTML += `<circle cx="${col * 10 + 5}" cy="${row * 10 + 5}" r="3.3" fill="${isFilled ? accentColor : 'var(--border-color)'}"><title>${dateStr}${isFilled ? ' — done' : ''}</title></circle>`;
+            }
+        }
+        return `
+            <div style="color: var(--muted-gray); font-size: 10px; margin: 8px 0 4px 0;">Contribution Heatmap (Past Year) — ${doneCount} done</div>
+            <div style="background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+                <svg viewBox="0 0 530 70" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">${dotsHTML}</svg>
+            </div>`;
+    }
+
+    function renderAgendaList() {
+        const container = document.getElementById('agendaContainer');
+        const dumplistContainer = document.getElementById('dumplistContainer');
+        const todayStr = getTodayDateString();
+        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+        if (schedules.length === 0) { container.innerHTML = 'No entries recorded yet.'; dumplistContainer.innerHTML = ''; return; }
+
+        if (selectedFilterDate) {
+            document.getElementById('clearFilterBtn').style.display = 'inline-block';
+            let filtered = sortItems(schedules.filter(s => s.date === selectedFilterDate));
+            if (filtered.length === 0) { container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`; } 
+            else {
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filtered.length}]</span></div>`;
+                filtered.forEach(s => html += renderCardHTML(s, getBgStyle(s)));
+                container.innerHTML = html + `</div>`;
+            }
+            dumplistContainer.innerHTML = '';
+        } else {
+            document.getElementById('clearFilterBtn').style.display = 'none';
+            let htmlMain = '';
+
+            const todayItems = sortItems(schedules.filter(s => s.date === todayStr));
+            if (todayItems.length > 0) {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
+                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
+                if (todayItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                htmlMain += `</div>`;
+            }
+
+            const upcomingItems = sortItems(schedules.filter(s => s.date === tomStr));
+            if (upcomingItems.length > 0) {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
+                upcomingItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
+                if (upcomingItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${upcomingItems.length - 5} more upcoming items...</button>`;
+                htmlMain += `</div>`;
+            }
+
+            container.innerHTML = htmlMain || `<div style="text-align: center; padding: 20px; color: var(--muted-gray);">No scheduled entries for today or tomorrow.</div>`;
+
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
+            if (inboxItems.length > 0) {
+                let htmlDump = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>`;
+                inboxItems.slice(0, 3).forEach(s => htmlDump += renderCardHTML(s, getBgStyle(s)));
+                if (inboxItems.length > 3) htmlDump += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>`;
+                dumplistContainer.innerHTML = htmlDump + `</div>`;
+            } else { dumplistContainer.innerHTML = ''; }
+        }
+    }
+
+    checkAuthAndInit();
+</script>
+</body>
+</html>
