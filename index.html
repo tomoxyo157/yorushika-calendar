@@ -9,7 +9,7 @@
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/whiteyoru.png">
     
     <!-- PWA Manifest & Mobile Icons -->
-    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22displayf%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/blackyoru.png">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1077,11 +1077,33 @@
                     <div class="agenda-content"><h4>🌱 Personal</h4><p>Total items: ${pCounts.personal}</p></div>
                     <div class="agenda-actions"><span style="font-size:10px; color:#fff;">View →</span></div>
                 </div>`;
-        } else if (typeKey === 'habits_list') {
+       } else if (typeKey === 'habits_list') {
             modalTitle.innerText = `🔁 HABITS: ${targetParam.toUpperCase()}`;
-            let habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed && s.priority === targetParam)
-                                 .sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
-            html = habits.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>' : habits.map(s => renderHabitCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+            const habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed && s.priority === targetParam);
+
+            if (!habits.length) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>';
+            } else {
+                const groups = habits.reduce((acc, s) => {
+                    const tag = getFirstHabitLabel(s.title);
+                    (acc[tag] = acc[tag] || []).push(s);
+                    return acc;
+                }, {});
+
+                html = Object.keys(groups).sort().map(tag => {
+                    const items = groups[tag].sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+                    const cards = items.map(s => renderHabitCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+                    
+                    return `
+                        <div class="section-category-box" style="margin-bottom: 12px;">
+                            <div class="section-category-title">
+                                <span>🏷️ TAG: #${tag.toUpperCase()}</span>
+                                <span>[${items.length}]</span>
+                            </div>
+                            ${cards}
+                        </div>`;
+                }).join('');
+            }
         } else if (typeKey === 'habits_bin') {
             modalTitle.innerText = '🗑️ HABITS BIN';
             let archived = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && s.completed).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
