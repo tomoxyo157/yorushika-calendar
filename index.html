@@ -5,10 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Yorushika Calendar // ヨルシカ</title>
     
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/whiteyoru.png">
     
-    <!-- PWA Manifest & Mobile Icons -->
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22displayf%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/blackyoru.png">
 
@@ -343,7 +341,6 @@
     </div>
 </div>
 
-<!-- Modal Templates -->
 <div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
@@ -478,8 +475,7 @@
 
     let schedules = [];
     let selectedFilterDate = null;
-    let currentOpenDirectory = { key: null, param: null };
-    let modalStack = []; // PWA Back button state manager
+    let screenStack = [];
 
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
@@ -490,7 +486,6 @@
 
     let currentDate = new Date();
 
-    // Centralized Helpers for Code Reduction
     function getBgStyle(s) {
         if (s.type === 'Deadline') return 'var(--deadline-crimson)';
         if (s.type === 'Birthday') return 'var(--birthday-strawberry)';
@@ -506,48 +501,57 @@
         return formatDateDDMM(s.date);
     }
 
-    // Modal Control & History (PWA Back Button Logic)
-    function showModal(modalId) {
-        const modal = document.getElementById(modalId);
+    const ALL_MODALS = ['formModal', 'assignModal', 'detailModal', 'directoryModal'];
+
+    function showModalEl(id) {
+        ALL_MODALS.forEach(m => { if (m !== id) hideModalEl(m); });
+        const modal = document.getElementById(id);
         modal.style.display = 'flex';
-        setTimeout(() => { modal.classList.add('active'); }, 10);
-        
-        modalStack.push(modalId);
-        history.pushState({ modalId: modalId }, "");
+        requestAnimationFrame(() => modal.classList.add('active'));
+    }
+    function hideModalEl(id) {
+        const modal = document.getElementById(id);
+        if (modal && modal.classList.contains('active')) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
     }
 
-    function hideModal(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal && modal.classList.contains('active')) {
-            modal.classList.remove('active');
-            setTimeout(() => { modal.style.display = 'none'; }, 300);
-        }
-        modalStack = modalStack.filter(id => id !== modalId);
-        if (modalId === 'directoryModal') { currentOpenDirectory = { key: null, param: null }; window.labelEditOrderActive = null; }
+    function renderScreen(screen) {
+        if (!screen) return;
+        if (screen.modal === 'directoryModal') renderDirectoryModal(screen.key, screen.param);
+        else if (screen.modal === 'formModal') renderFormModal(screen.editId);
+        else if (screen.modal === 'assignModal') renderAssignModal(screen.id);
+        else if (screen.modal === 'detailModal') renderDetailModal(screen.id);
     }
 
-    window.addEventListener('popstate', (e) => {
-        if (modalStack.length > 0) {
-            let topModal = modalStack.pop();
-            const modal = document.getElementById(topModal);
-            if(modal && modal.classList.contains('active')) {
-                modal.classList.remove('active');
-                setTimeout(() => { modal.style.display = 'none'; }, 300);
-            }
-            if (topModal === 'directoryModal') { currentOpenDirectory = { key: null, param: null }; window.labelEditOrderActive = null; }
-        }
+    function navPush(screen) {
+        screenStack.push(screen);
+        history.pushState({ d: screenStack.length }, "");
+        renderScreen(screen);
+    }
+
+    function goBack() { if (screenStack.length > 0) history.back(); }
+
+    function closeAllScreens() { if (screenStack.length > 0) history.go(-screenStack.length); }
+
+    window.addEventListener('popstate', () => {
+        if (screenStack.length === 0) return;
+        screenStack.pop();
+        if (screenStack.length > 0) { renderScreen(screenStack[screenStack.length - 1]); }
+        else { window.labelEditOrderActive = null; ALL_MODALS.forEach(hideModalEl); }
     });
 
     window.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modalStack.length > 0) {
-            // Trigger popstate manually for escape key mapping
-            history.back(); 
-        }
+        if (screenStack.length === 0) return;
+        const t = (e.target.tagName || '').toLowerCase();
+        const isEditing = t === 'input' || t === 'textarea' || t === 'select' || e.target.isContentEditable;
+        if (e.key === 'Escape') { closeAllScreens(); }
+        else if (e.key === 'Backspace' && !isEditing) { e.preventDefault(); goBack(); }
     });
 
-    function closeModal(event, modalId) {
-        if (event.target.id === modalId) { hideModal(modalId); }
-    }
+    function closeModal(event, modalId) { if (event.target.id === modalId) goBack(); }
+    function closeFormModal() { goBack(); }
+    function closeAssignModal() { goBack(); }
+    function closeDetailModal() { goBack(); }
+    function closeDirectoryModal() { goBack(); }
 
     async function handleLogin() {
         const email = document.getElementById('authEmail').value;
@@ -683,10 +687,10 @@
 
         updateArchiveCounters();
         renderCalendar();
-        
-        // Refresh actively open modal to show strikethrough/resort instantly
-        if (currentOpenDirectory.key && document.getElementById('directoryModal').classList.contains('active')) {
-            openDirectoryModal(currentOpenDirectory.key, currentOpenDirectory.param);
+
+        if (screenStack.length > 0) {
+            const top = screenStack[screenStack.length - 1];
+            if (top.modal !== 'formModal') renderScreen(top);
         }
     }
 
@@ -793,64 +797,55 @@
 
     function clearDateFilter() { selectedFilterDate = null; renderAgendaList(); }
 
-    function resetForm() {
-        document.getElementById('title').value = ''; document.getElementById('description').value = '';
-        document.getElementById('type').value = 'Task'; document.getElementById('date').value = '';
-        resetDateButtonState('date', 'dateTodayBtnContainer');
-        document.getElementById('priority').value = 'personal'; document.getElementById('timeblock').value = 'none';
-        handleTypeChange();
+    function formResetByPrefix(prefix) {
+        const g = id => document.getElementById(prefix + id);
+        if (prefix === 'm_') g('editEntryId').value = '';
+        g('title').value = ''; g('description').value = '';
+        g('type').value = 'Task'; g('date').value = '';
+        resetDateButtonState(prefix + 'date', prefix + 'dateTodayBtnContainer');
+        g('priority').value = 'personal'; g('timeblock').value = 'none';
+        sharedTypeChangeLogic(prefix);
+        if (prefix === 'm_') { document.getElementById('modalFormHeaderTitle').innerText = 'Create Entry'; document.getElementById('m_submitBtn').innerText = 'Save Entry'; }
+    }
+    function resetForm() { formResetByPrefix(''); }
+    function m_resetForm() { formResetByPrefix('m_'); }
+
+    function openFormModal() { navPush({ modal: 'formModal', editId: null }); }
+    function editSchedule(id) { navPush({ modal: 'formModal', editId: id }); }
+
+    function renderFormModal(editId) {
+        if (editId) {
+            const item = schedules.find(s => String(s.id) === String(editId));
+            if (!item) { m_resetForm(); showModalEl('formModal'); return; }
+            const parsed = parseTodoistTitle(item.title);
+            document.getElementById('m_editEntryId').value = item.id;
+            document.getElementById('m_title').value = parsed.cleanTitle;
+            document.getElementById('m_description').value = item.description || '';
+            document.getElementById('m_type').value = item.type;
+            if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+                const parts = item.date.split('-');
+                document.getElementById('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
+            } else { document.getElementById('m_date').value = item.date || ''; }
+            checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+            document.getElementById('m_priority').value = item.priority;
+            document.getElementById('m_timeblock').value = item.timeblock || 'none';
+            m_handleTypeChange();
+            document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
+            document.getElementById('m_submitBtn').innerText = 'Update Entry';
+        } else { m_resetForm(); }
+        showModalEl('formModal');
     }
 
-    function m_resetForm() {
-        document.getElementById('m_editEntryId').value = ''; document.getElementById('m_title').value = '';
-        document.getElementById('m_description').value = ''; document.getElementById('m_type').value = 'Task';
-        document.getElementById('m_date').value = ''; resetDateButtonState('m_date', 'm_dateTodayBtnContainer');
-        document.getElementById('m_priority').value = 'personal'; document.getElementById('m_timeblock').value = 'none';
-        m_handleTypeChange();
-        document.getElementById('modalFormHeaderTitle').innerText = 'Create Entry'; document.getElementById('m_submitBtn').innerText = 'Save Entry';
-    }
+    async function saveScheduleByPrefix(prefix) {
+        const g = id => document.getElementById(prefix + id).value;
+        const id = prefix === 'm_' ? document.getElementById('m_editEntryId').value : '';
+        const rawInputTitle = g('title'), description = g('description'), type = g('type');
+        let dateInputVal = g('date'), date = null;
+        if (type !== 'Habit' && dateInputVal) date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
 
-    function openFormModal() { m_resetForm(); showModal('formModal'); }
-    function closeFormModal() { hideModal('formModal'); }
-
-    async function saveSchedule() {
-        const rawInputTitle = document.getElementById('title').value;
-        const description = document.getElementById('description').value;
-        const type = document.getElementById('type').value;
-        let dateInputVal = document.getElementById('date').value;
-        let date = null;
-
-        if (type !== 'Habit' && dateInputVal) {
-            date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
-        }
-
-        let priority = type === 'Birthday' ? 'personal' : document.getElementById('priority').value;
-        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : document.getElementById('timeblock').value;
+        let priority = type === 'Birthday' ? 'personal' : g('priority');
+        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : g('timeblock');
         let recurring = type === 'Birthday' ? 'yearly' : 'none';
-
-        if (!rawInputTitle) return alert('Title is required!');
-
-        const newEntry = { title: rawInputTitle, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
-        const { error } = await supabaseClient.from('schedules').insert([newEntry]);
-        if (!error) { resetForm(); fetchSchedules(); } else { alert('Failed to save entry: ' + error.message); }
-    }
-
-    async function m_saveSchedule() {
-        const id = document.getElementById('m_editEntryId').value;
-        const rawInputTitle = document.getElementById('m_title').value;
-        const description = document.getElementById('m_description').value;
-        const type = document.getElementById('m_type').value;
-        let dateInputVal = document.getElementById('m_date').value;
-        let date = null;
-
-        if (type !== 'Habit' && dateInputVal) {
-            date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
-        }
-
-        let priority = type === 'Birthday' ? 'personal' : document.getElementById('m_priority').value;
-        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : document.getElementById('m_timeblock').value;
-        let recurring = type === 'Birthday' ? 'yearly' : 'none';
-
         if (!rawInputTitle) return alert('Title is required!');
         let finalTitleToSave = rawInputTitle;
 
@@ -859,75 +854,42 @@
             if (existingItem) {
                 const oldParsed = parseTodoistTitle(existingItem.title);
                 const newParsed = parseTodoistTitle(rawInputTitle);
-                let combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
-                let combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
-
-                let builtTitleParts = [newParsed.cleanTitle];
-                combinedTimes.forEach(t => builtTitleParts.push(t));
-                combinedLabels.forEach(l => builtTitleParts.push('.' + l));
-                finalTitleToSave = builtTitleParts.join(' ');
+                const combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
+                const combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
+                finalTitleToSave = [newParsed.cleanTitle, ...combinedTimes, ...combinedLabels.map(l => '.' + l)].join(' ');
             }
-
             const payload = { title: finalTitleToSave, description, type, date: (type === 'Habit' ? null : date), priority, timeblock, recurring };
             if (type === 'Habit') payload.isHabitInstance = false;
-            
             const { error } = await supabaseClient.from('schedules').update(payload).eq('id', id);
-            if (!error) { m_resetForm(); closeFormModal(); fetchSchedules(); }
+            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); if (prefix === 'm_') goBack(); }
         } else {
             const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
             const { error } = await supabaseClient.from('schedules').insert([newEntry]);
-            if (!error) { m_resetForm(); closeFormModal(); fetchSchedules(); }
+            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); if (prefix === 'm_') goBack(); }
+            else if (prefix === '') alert('Failed to save entry: ' + error.message);
         }
     }
+    function saveSchedule() { saveScheduleByPrefix(''); }
+    function m_saveSchedule() { saveScheduleByPrefix('m_'); }
 
-    function editSchedule(id) {
-        const item = schedules.find(s => String(s.id) === String(id));
-        if (item) {
-            hideModal('directoryModal'); hideModal('detailModal');
-            const parsed = parseTodoistTitle(item.title);
+    function openAssignModal(id, event) { if (event) event.stopPropagation(); navPush({ modal: 'assignModal', id }); }
 
-            document.getElementById('m_editEntryId').value = item.id;
-            document.getElementById('m_title').value = parsed.cleanTitle;
-            document.getElementById('m_description').value = item.description || '';
-            document.getElementById('m_type').value = item.type;
-            
-            if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
-                const parts = item.date.split('-');
-                document.getElementById('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
-            } else { document.getElementById('m_date').value = item.date || ''; }
-            checkDateInputState('m_date', 'm_dateTodayBtnContainer');
-
-            document.getElementById('m_priority').value = item.priority;
-            document.getElementById('m_timeblock').value = item.timeblock || 'none';
-            
-            m_handleTypeChange();
-            document.getElementById('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
-            document.getElementById('m_submitBtn').innerText = 'Update Entry';
-            showModal('formModal');
-        }
-    }
-
-    function openAssignModal(id, event) {
-        if(event) event.stopPropagation();
-        hideModal('directoryModal');
+    function renderAssignModal(id) {
         document.getElementById('assignEntryId').value = id;
-        
         const masterHabit = schedules.find(s => String(s.id) === String(id));
-        if (!masterHabit) return;
+        if (!masterHabit) { showModalEl('assignModal'); return; }
 
         let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
         let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
-        let currentDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
-        let currentTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
+        let curDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
+        let curTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
 
-        document.getElementById('assignDate').value = currentDate;
+        document.getElementById('assignDate').value = curDate;
         checkDateInputState('assignDate', 'assignDateTodayBtnContainer');
-        document.getElementById('assignTimeblock').value = currentTimeblock;
-        showModal('assignModal');
+        document.getElementById('assignTimeblock').value = curTimeblock;
+        showModalEl('assignModal');
     }
-
-    function closeAssignModal() { hideModal('assignModal'); }
 
     async function executeAssignHabit() {
         const id = document.getElementById('assignEntryId').value;
@@ -941,17 +903,16 @@
         let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
         let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
+        let result;
         if (activeInst) {
-            const { error } = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', activeInst.id);
-            if (!error) { closeAssignModal(); fetchSchedules(); }
+            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', activeInst.id);
         } else if (legacyActive) {
-            const { error } = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', masterHabit.id);
-            if (!error) { closeAssignModal(); fetchSchedules(); }
+            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', masterHabit.id);
         } else {
             const newInstance = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
-            const { error } = await supabaseClient.from('schedules').insert([newInstance]);
-            if (!error) { closeAssignModal(); fetchSchedules(); }
+            result = await supabaseClient.from('schedules').insert([newInstance]);
         }
+        if (!result.error) { await fetchSchedules(); goBack(); }
     }
 
     async function toggleComplete(id, event) {
@@ -971,10 +932,30 @@
         }
     }
 
-    function openDetailModal(id) {
-        hideModal('directoryModal');
+    function openDetailModal(id) { navPush({ modal: 'detailModal', id }); }
+
+    function buildEditablePills(item, parsed) {
+        let html = '';
+        parsed.timeTags.forEach(t => { html += `<span class="editable-pill time-pill">⏱️ ${t}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${t}',true,event)">×</span></span>`; });
+        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) { html += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`; }
+        parsed.labelTags.forEach(l => { if (l.toLowerCase() !== 'deadline') html += `<span class="editable-pill label-pill">🏷️ ${l}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${l}',false,event)">×</span></span>`; });
+        return html || '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
+    }
+
+    async function removeTagFromItem(id, token, isTime, event) {
+        event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
+        const esc = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = isTime ? new RegExp(`\\b${esc}\\b`, 'i') : new RegExp(`\\.${esc}\\b`, 'i');
+        const newTitle = item.title.replace(re, '').replace(/\s+/g, ' ').trim();
+        const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
+        if (!error) await fetchSchedules();
+    }
+
+    function renderDetailModal(id) {
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) { goBack(); return; }
 
         const parsed = parseTodoistTitle(item.title);
         let itemDesc = item.description ? item.description : '-';
@@ -983,12 +964,6 @@
         const isHabitMaster = (item.type === 'Habit' && !item.isHabitInstance);
         let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
         let displayDate = getDisplayDate(item);
-
-        let pillHTML = '';
-        parsed.timeTags.forEach(t => { pillHTML += `<span class="editable-pill time-pill">⏱️ ${t}</span>`; });
-        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) { pillHTML += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`; }
-        parsed.labelTags.forEach(l => { if (l.toLowerCase() !== 'deadline') pillHTML += `<span class="editable-pill label-pill">🏷️ ${l}</span>`; });
-        if (!pillHTML) pillHTML = '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
 
         document.getElementById('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
         document.getElementById('modalBodyContent').innerHTML = `
@@ -999,20 +974,19 @@
             <p><strong>Status</strong> ${itemStatus}</p>
             ${isHabitMaster ? buildHabitHeatmapHTML(item.title, priorityColors[item.priority] || '#7a9c72') : ''}
             <p><strong>Tags & Labels</strong></p>
-            <div class="editable-pill-container">${pillHTML}</div>
+            <div class="editable-pill-container">${buildEditablePills(item, parsed)}</div>
         `;
-        showModal('detailModal');
+        showModalEl('detailModal');
     }
 
-    function closeDetailModal() { hideModal('detailModal'); }
-
-    // D&D Logic
     window.labelCustomOrders = {};
     window.labelEditOrderActive = null;
 
+    function rerenderTop() { if (screenStack.length > 0) renderScreen(screenStack[screenStack.length - 1]); }
+
     function toggleLabelEditOrder(targetParam) {
         window.labelEditOrderActive = (window.labelEditOrderActive === targetParam) ? null : targetParam;
-        openDirectoryModal('collections', targetParam);
+        rerenderTop();
     }
 
     let dragItemIdx = null, dragLabelParam = null;
@@ -1027,14 +1001,15 @@
         if (dragLabelParam && dragItemIdx !== null && dragItemIdx !== targetIdx) {
             let orderArr = window.labelCustomOrders[dragLabelParam];
             orderArr.splice(targetIdx, 0, orderArr.splice(dragItemIdx, 1)[0]);
-            openDirectoryModal('collections', dragLabelParam);
+            rerenderTop();
         }
         if(e.target.closest('.agenda-item')) e.target.closest('.agenda-item').style.opacity = '1';
     }
     function onDragEnd(e) { e.target.style.opacity = '1'; dragItemIdx = null; dragLabelParam = null; }
 
-    function openDirectoryModal(typeKey, targetParam = null) {
-        currentOpenDirectory = { key: typeKey, param: targetParam };
+    function openDirectoryModal(typeKey, targetParam = null) { navPush({ modal: 'directoryModal', key: typeKey, param: targetParam }); }
+
+    function renderDirectoryModal(typeKey, targetParam = null) {
         const modalTitle = document.getElementById('directoryModalTitle');
         const modalContent = document.getElementById('directoryModalContent');
         const modalHeaderEl = document.getElementById('directoryModalHeader');
@@ -1042,14 +1017,14 @@
 
         let headerActionsHTML = '';
         if (typeKey === 'collections' && targetParam !== null) {
-            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections', null)">← Back</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">${window.labelEditOrderActive === targetParam ? 'Done' : 'Edit Order'}</button>`;
         } else if (typeKey === 'habits_list') {
-            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits')">← Back</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
         } else if (typeKey === 'habits') {
             headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`;
         } else if (typeKey === 'habits_bin') {
-            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits')">← Back</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
         }
         headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
 
@@ -1172,10 +1147,8 @@
 
         modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
         modalContent.innerHTML = html;
-        showModal('directoryModal');
+        showModalEl('directoryModal');
     }
-
-    function closeDirectoryModal() { hideModal('directoryModal'); }
 
     function exportFullICS() {
         if (!schedules || schedules.length === 0) return alert('Tidak ada jadwal untuk diekspor.');
@@ -1295,20 +1268,20 @@
         if (event) event.stopPropagation();
         if (!confirm('Move this habit to the Habits Bin?')) return;
         const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
-        if (!error) { await fetchSchedules(); openDirectoryModal('habits'); }
+        if (!error) await fetchSchedules();
     }
 
     async function restoreHabit(id, event) {
         if (event) event.stopPropagation();
         const { error } = await supabaseClient.from('schedules').update({ completed: false }).eq('id', id);
-        if (!error) { await fetchSchedules(); openDirectoryModal('habits_bin'); }
+        if (!error) await fetchSchedules();
     }
 
     async function deleteHabitPermanent(id, event) {
         if (event) event.stopPropagation();
         if (!confirm('Delete this habit permanently?')) return;
         const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
-        if (!error) { await fetchSchedules(); openDirectoryModal('habits_bin'); }
+        if (!error) await fetchSchedules();
     }
 
     function buildHabitHeatmapHTML(habitTitle, accentColor) {
