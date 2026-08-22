@@ -543,7 +543,7 @@
         if (screenStack.length === 0) return;
         const t = (e.target.tagName || '').toLowerCase();
         const isEditing = t === 'input' || t === 'textarea' || t === 'select' || e.target.isContentEditable;
-        if (e.key === 'Escape') { closeAllScreens(); }
+        if (e.key === 'Escape') { goBack(); }
         else if (e.key === 'Backspace' && !isEditing) { e.preventDefault(); goBack(); }
     });
 
@@ -643,7 +643,7 @@
 
         if (typeVal === 'Birthday') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Birthday Date (DD/MM)'; dateInput.type = 'date'; } 
         else if (typeVal === 'Habit') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'none'; } 
-        else if (typeVal === 'Deadline') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; dateInput.type = 'date'; } 
+        else if (typeVal === 'Deadline') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; dateInput.type = 'date'; } 
         else { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Date (Leave blank for Inbox)'; dateInput.type = 'date'; }
     }
 
@@ -718,6 +718,7 @@
 
     function sortItems(items) {
         const sortBy = document.getElementById('sortBySelect').value;
+        const titleDiff = (a, b) => parseTodoistTitle(a.title).cleanTitle.toLowerCase().localeCompare(parseTodoistTitle(b.title).cleanTitle.toLowerCase());
         return [...items].sort((a, b) => {
             if (a.completed && !b.completed) return 1;
             if (!a.completed && b.completed) return -1;
@@ -726,17 +727,23 @@
             if (sortBy === 'priority') {
                 let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
                 if (pDiff !== 0) return pDiff;
-                return (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+                return titleDiff(a, b);
             } else if (sortBy === 'type') {
                 let tDiff = (typeOrder[a.type] || 3) - (typeOrder[b.type] || 3);
                 if (tDiff !== 0) return tDiff;
                 let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
                 if (tbDiff !== 0) return tbDiff;
-                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+                return titleDiff(a, b);
             } else {
                 let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
                 if (tbDiff !== 0) return tbDiff;
-                return (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+                return titleDiff(a, b);
             }
         });
     }
@@ -843,7 +850,7 @@
         let dateInputVal = g('date'), date = null;
         if (type !== 'Habit' && dateInputVal) date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
 
-        let priority = type === 'Birthday' ? 'personal' : g('priority');
+        let priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : g('priority'));
         let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : g('timeblock');
         let recurring = type === 'Birthday' ? 'yearly' : 'none';
         if (!rawInputTitle) return alert('Title is required!');
@@ -959,7 +966,7 @@
 
         const parsed = parseTodoistTitle(item.title);
         let itemDesc = item.description ? item.description : '-';
-        let itemPriority = item.type === 'Birthday' ? 'Birthday' : item.priority;
+        let itemPriority = item.type === 'Birthday' ? 'Birthday' : (item.type === 'Deadline' ? 'N/A' : item.priority);
         let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
         const isHabitMaster = (item.type === 'Habit' && !item.isHabitInstance);
         let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
@@ -1189,7 +1196,9 @@
         const isPast = s.date && s.date < getTodayDateString();
         const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         let displayDate = getDisplayDate(s);
-        let tagDisplay = isBirthdayDirectory || s.type === 'Birthday' ? displayDate : `${displayDate} | ${s.priority} / ${s.timeblock || 'none'}`;
+        let tagDisplay = isBirthdayDirectory || s.type === 'Birthday' ? displayDate
+            : s.type === 'Deadline' ? `${displayDate} | ${s.timeblock || 'none'}`
+            : `${displayDate} | ${s.priority} / ${s.timeblock || 'none'}`;
 
         const parsed = parseTodoistTitle(s.title);
         let pillsHTML = '';
