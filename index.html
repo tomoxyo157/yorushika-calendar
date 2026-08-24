@@ -1160,6 +1160,9 @@
                 if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
                 let orderArr = window.labelCustomOrders[targetParam];
                 matched.sort((a, b) => {
+                    // Completed/ticked items always sink to the bottom, like the other workflows.
+                    if (a.completed && !b.completed) return 1;
+                    if (!a.completed && b.completed) return -1;
                     let idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
@@ -1231,6 +1234,20 @@
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
 
+        // For habits that are already assigned to a day (instance, or legacy master-with-date),
+        // surface a quick Re-assign action alongside tick/delete so they can be moved to
+        // another day, or re-armed for the next day after completing today's streak.
+        let habitMasterId = null;
+        if (!s.completed && (s.type === 'Habit' || s.isHabitInstance)) {
+            if (s.isHabitInstance) {
+                const master = schedules.find(m => m.type === 'Habit' && !m.isHabitInstance && m.title === s.title);
+                habitMasterId = master ? master.id : null;
+            } else if (s.date) {
+                habitMasterId = s.id;
+            }
+        }
+        const reassignBtnHTML = habitMasterId ? `<button class="btn-reassign" onclick="openAssignModal('${habitMasterId}', event); event.stopPropagation();" title="Move this habit to another day">↻ Re-assign</button>` : '';
+
         return `
             <div class="${itemClass}" style="background: ${bgStyle}; margin-bottom: 6px;" ${wrapperAttrs} ${clickAction}>
                 ${injectLeftHTML}
@@ -1242,6 +1259,7 @@
                 </div>
                 <div class="agenda-actions">
                     ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                    ${reassignBtnHTML}
                     <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                     <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                 </div>
