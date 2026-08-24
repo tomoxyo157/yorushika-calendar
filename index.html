@@ -185,7 +185,7 @@
 
         .footer-tag { text-align: center; font-size: 12px; font-style: italic; color: var(--muted-gray); margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 10px; letter-spacing: 1px; }
 
-        .drag-handle { cursor: grab; user-select: none; display: flex; align-items: center; justify-content: center; padding: 0 8px; font-size: 16px; color: var(--muted-gray); }
+        .drag-handle { cursor: grab; user-select: none; touch-action: none; display: flex; align-items: center; justify-content: center; padding: 0 8px; font-size: 16px; color: var(--muted-gray); }
         .drag-handle:active { cursor: grabbing; }
     </style>
 </head>
@@ -987,7 +987,12 @@
     }
 
     window.labelCustomOrders = {};
+    try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
     window.labelEditOrderActive = null;
+
+    function saveLabelOrders() {
+        try { localStorage.setItem('yorushika_labelOrders', JSON.stringify(window.labelCustomOrders)); } catch(e) {}
+    }
 
     function rerenderTop() { if (screenStack.length > 0) renderScreen(screenStack[screenStack.length - 1]); }
 
@@ -996,23 +1001,39 @@
         rerenderTop();
     }
 
-    let dragItemIdx = null, dragLabelParam = null;
-    function onDragStart(e, idx, param) {
-        dragItemIdx = idx; dragLabelParam = param;
-        e.dataTransfer.effectAllowed = 'move';
-        setTimeout(() => { e.target.style.opacity = '0.5'; }, 0);
-    }
-    function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
-    function onDrop(e, targetIdx) {
+    // Pointer-based reordering (works for mouse AND touch, unlike native HTML5 drag-drop)
+    let dragState = null; // { param, currentIdx }
+    function onHandlePointerDown(e, idx, param) {
         e.preventDefault();
-        if (dragLabelParam && dragItemIdx !== null && dragItemIdx !== targetIdx) {
-            let orderArr = window.labelCustomOrders[dragLabelParam];
-            orderArr.splice(targetIdx, 0, orderArr.splice(dragItemIdx, 1)[0]);
-            rerenderTop();
-        }
-        if(e.target.closest('.agenda-item')) e.target.closest('.agenda-item').style.opacity = '1';
+        dragState = { param, currentIdx: idx };
+        const item = e.currentTarget.closest('.agenda-item');
+        if (item) item.style.opacity = '0.6';
+        document.addEventListener('pointermove', onHandlePointerMove);
+        document.addEventListener('pointerup', onHandlePointerUp);
+        document.addEventListener('pointercancel', onHandlePointerUp);
     }
-    function onDragEnd(e) { e.target.style.opacity = '1'; dragItemIdx = null; dragLabelParam = null; }
+    function onHandlePointerMove(e) {
+        if (!dragState) return;
+        e.preventDefault();
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const overItem = el ? el.closest('.agenda-item[data-drag-idx]') : null;
+        if (!overItem) return;
+        const targetIdx = parseInt(overItem.getAttribute('data-drag-idx'), 10);
+        if (isNaN(targetIdx) || targetIdx === dragState.currentIdx) return;
+        let orderArr = window.labelCustomOrders[dragState.param];
+        if (!orderArr) return;
+        orderArr.splice(targetIdx, 0, orderArr.splice(dragState.currentIdx, 1)[0]);
+        dragState.currentIdx = targetIdx;
+        rerenderTop();
+    }
+    function onHandlePointerUp(e) {
+        document.removeEventListener('pointermove', onHandlePointerMove);
+        document.removeEventListener('pointerup', onHandlePointerUp);
+        document.removeEventListener('pointercancel', onHandlePointerUp);
+        if (dragState) saveLabelOrders();
+        dragState = null;
+        rerenderTop();
+    }
 
     function openDirectoryModal(typeKey, targetParam = null) { navPush({ modal: 'directoryModal', key: typeKey, param: targetParam }); }
 
@@ -1145,8 +1166,8 @@
 
                 matched.forEach((s, idx) => {
                     let isDragMode = (window.labelEditOrderActive === targetParam);
-                    let dragAttr = isDragMode ? `draggable="true" ondragstart="onDragStart(event, ${idx}, '${targetParam}')" ondragover="onDragOver(event)" ondrop="onDrop(event, ${idx})" ondragend="onDragEnd(event)"` : '';
-                    let handleHTML = isDragMode ? `<div class="drag-handle">⋮⋮</div>` : '';
+                    let dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
+                    let handleHTML = isDragMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event, ${idx}, '${targetParam}')">⋮⋮</div>` : '';
                     html += renderCardHTML(s, getBgStyle(s), false, dragAttr, handleHTML, isDragMode);
                 });
             }
