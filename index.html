@@ -922,55 +922,17 @@
         if (!result.error) { await fetchSchedules(); goBack(); }
     }
 
-    function findHabitMasterFor(item) {
-        return schedules.find(s => s.type === 'Habit' && !s.isHabitInstance && s.title === item.title);
-    }
-
     async function toggleComplete(id, event) {
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
-        if (!item) return;
-
-        // Assigned habit instance being ticked done -> offer re-assign
-        if (item.isHabitInstance && !item.completed) {
-            const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
-            if (error) return;
-            const wantsReassign = confirm('Habit ditandai selesai. Re-assign ke tanggal/waktu baru sekarang?');
-            if (wantsReassign) {
-                const master = findHabitMasterFor(item);
-                await fetchSchedules();
-                if (master) openAssignModal(master.id);
-            } else {
-                await fetchSchedules();
-            }
-            return;
+        if (item) {
+            const { error } = await supabaseClient.from('schedules').update({ completed: !item.completed }).eq('id', id);
+            if (!error) fetchSchedules();
         }
-
-        const { error } = await supabaseClient.from('schedules').update({ completed: !item.completed }).eq('id', id);
-        if (!error) fetchSchedules();
     }
 
     async function deleteSchedule(id, event) {
         event.stopPropagation();
-        const item = schedules.find(s => String(s.id) === String(id));
-        if (!item) return;
-
-        // Assigned habit instance being deleted -> offer re-assign
-        if (item.isHabitInstance) {
-            if (!confirm('Delete this entry?')) return;
-            const master = findHabitMasterFor(item);
-            const wantsReassign = master ? confirm('Habit ini dihapus dari jadwal. Re-assign ke tanggal/waktu baru sekarang?') : false;
-            const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
-            if (error) return;
-            if (wantsReassign && master) {
-                await fetchSchedules();
-                openAssignModal(master.id);
-            } else {
-                fetchSchedules();
-            }
-            return;
-        }
-
         if (confirm('Delete this entry?')) {
             const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
             if (!error) fetchSchedules();
@@ -1198,7 +1160,6 @@
                 if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
                 let orderArr = window.labelCustomOrders[targetParam];
                 matched.sort((a, b) => {
-                    if (!!a.completed !== !!b.completed) return a.completed ? 1 : -1;
                     let idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
