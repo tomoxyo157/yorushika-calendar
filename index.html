@@ -36,17 +36,22 @@
 
         .container { max-width: 500px; margin: auto; background: var(--card-bg); padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 16px; }
 
-        .mobile-create-trigger { display: block; width: 100%; background: var(--text-main); color: var(--bg-pure); border: none; padding: 11px; text-align: center; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; border-radius: 7px; margin-bottom: 2px; }
+        .mobile-create-trigger { display: block; width: 100%; background: var(--text-main); color: var(--bg-pure); border: none; padding: 11px; text-align: center; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; border-radius: 7px; margin-top: 4px; margin-bottom: 6px; }
         .mobile-create-trigger:hover { opacity: 0.82; }
 
+        /* Tampilan Mobile Asli */
+        .day-cell { height: 68px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 4px; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+
+        /* Responsive Desktop Layout (2 Kolom) */
         @media (min-width: 1100px) {
             body { padding: 8px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
             .container { zoom: 0.60; -moz-transform: scale(0.60); -moz-transform-origin: top center; max-width: 1680px; width: 100%; display: grid; grid-template-columns: 380px 1fr; grid-template-rows: auto auto auto; gap: 16px; align-items: stretch; padding: 14px; margin: 20px auto; }
             .desktop-full-span { grid-column: span 2; }
-            .desktop-agenda-column { grid-column: 1; grid-row: 2; display: flex; flex-direction: column; }
-            .desktop-calendar-column { grid-column: 2; grid-row: 2; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+            .desktop-agenda-column { grid-column: 1; grid-row: 2; order: 1; display: flex; flex-direction: column; }
+            .desktop-calendar-column { grid-column: 2; grid-row: 2; order: 2; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
             .desktop-calendar-column .days-grid { flex-grow: 1; }
-            .mobile-create-trigger { display: block !important; margin-bottom: 12px; }
+            .mobile-create-trigger { margin-top: 0; margin-bottom: 14px; }
+            .day-cell { height: auto; aspect-ratio: 4 / 3; min-height: 60px; }
         }
         
         #dbStatus { font-size: 12px; text-align: center; padding: 6px; border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-pure); color: var(--muted-gray); }
@@ -71,7 +76,6 @@
 
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 10px; color: var(--muted-gray); margin-bottom: 5px; letter-spacing: 0.5px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
-        .day-cell { aspect-ratio: 4 / 3; min-height: 60px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 4px; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
         .day-cell:hover { border-color: var(--accent-color); background: var(--card-bg); }
         .day-cell.today { border: 1px solid var(--text-main); background: var(--card-bg); }
         .day-cell.today .day-number { color: var(--text-main); text-decoration: underline; }
@@ -224,6 +228,25 @@
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
 
+    <!-- Kalender (Di Mobile Tampil Paling Atas) -->
+    <div class="desktop-calendar-column">
+        <h2>Calendar</h2>
+        <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">◀</button>
+            <h3 id="monthYearDisplay"></h3>
+            <div class="calendar-nav-actions">
+                <button class="btn-today-kalender" onclick="jumpToCurrentMonth()">Today</button>
+                <button onclick="changeMonth(1)">▶</button>
+            </div>
+        </div>
+
+        <div class="weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="days-grid" id="daysGrid"></div>
+    </div>
+
+    <!-- Tombol Create Entry + Agenda Column (Di Mobile Tampil Di Bawah Kalender) -->
     <div class="desktop-agenda-column">
         <button class="mobile-create-trigger" onclick="openFormModal()">+ Create Entry</button>
         
@@ -258,23 +281,6 @@
             <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
             <div id="dumplistContainer"></div>
         </div>
-    </div>
-
-    <div class="desktop-calendar-column">
-        <h2>Calendar</h2>
-        <div class="calendar-nav">
-            <button onclick="changeMonth(-1)">◀</button>
-            <h3 id="monthYearDisplay"></h3>
-            <div class="calendar-nav-actions">
-                <button class="btn-today-kalender" onclick="jumpToCurrentMonth()">Today</button>
-                <button onclick="changeMonth(1)">▶</button>
-            </div>
-        </div>
-
-        <div class="weekdays">
-            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
-        </div>
-        <div class="days-grid" id="daysGrid"></div>
     </div>
 
     <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
