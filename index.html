@@ -1020,7 +1020,17 @@
         let html = '';
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
-            let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => (a.date || '12-31').localeCompare(b.date || '12-31'));
+            let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => {
+                // Extract MM-DD from date (handle both "2000-MM-DD" and "MM-DD" formats)
+                const extractMonthDay = (dateStr) => {
+                    if (!dateStr) return '12-31';
+                    const parts = dateStr.split('-');
+                    return parts.length === 3 ? `${parts[1]}-${parts[2]}` : dateStr;
+                };
+                const aMonthDay = extractMonthDay(a.date);
+                const bMonthDay = extractMonthDay(b.date);
+                return aMonthDay.localeCompare(bMonthDay);
+            });
             html = birthdays.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>' : birthdays.map(s => renderCardHTML(s, 'var(--birthday-strawberry)', true)).join('');
         } else if (typeKey === 'habits') {
             modalTitle.innerText = '🔁 HABITS CATEGORY';
@@ -1084,16 +1094,21 @@
             const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
             const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
             
-            // Show pinned items first in a subcategory if any are pinned
+            // Show pinned items first in a subcategory if any are pinned (using proper section-category-box styling)
             if (pinnedTodayItems.length > 0) {
-                html += `<div style="border-left: 3px solid var(--accent-color); padding-left: 10px; margin-bottom: 8px;">`;
-                html += `<div style="font-size: 11px; color: var(--muted-gray); font-weight: 600; margin-bottom: 4px;">📍 PINNED</div>`;
+                html += `<div class="section-category-box" style="margin-bottom: 12px;">`;
+                html += `<div class="section-category-title"><span>📍 PINNED</span><span>[${pinnedTodayItems.length}]</span></div>`;
                 html += pinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
                 html += `</div>`;
             }
             
-            // Show unpinned items
-            html += unpinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+            // Show unpinned items in another category
+            if (unpinnedTodayItems.length > 0) {
+                html += `<div class="section-category-box">`;
+                html += `<div class="section-category-title"><span>📝 REGULAR</span><span>[${unpinnedTodayItems.length}]</span></div>`;
+                html += unpinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+                html += `</div>`;
+            }
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
             let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
@@ -1351,16 +1366,17 @@
 
             const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
             if (todayItems.length > 0) {
-                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
+                htmlMain += `<div class="section-category-box">`;
+                htmlMain += `<div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
                 
                 // Separate pinned and unpinned items
                 const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
                 const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
                 
-                // Show pinned items first in a subcategory if any are pinned
+                // Show pinned items first (using same styling as habits categories)
                 if (pinnedTodayItems.length > 0) {
-                    htmlMain += `<div style="border-left: 3px solid var(--accent-color); padding-left: 10px; margin-bottom: 8px;">`;
-                    htmlMain += `<div style="font-size: 11px; color: var(--muted-gray); font-weight: 600; margin-bottom: 4px;">📍 PINNED</div>`;
+                    htmlMain += `<div style="background: #232320; margin-bottom: 6px; border-radius: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.1);">`;
+                    htmlMain += `<div style="font-size: 11px; color: var(--accent-color); font-weight: 600; margin-bottom: 6px;">📍 PINNED (${pinnedTodayItems.length})</div>`;
                     pinnedTodayItems.forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                     htmlMain += `</div>`;
                 }
