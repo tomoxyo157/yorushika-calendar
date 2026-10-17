@@ -158,6 +158,8 @@
         .btn-edit:hover { background: #55ff55; color: black; }
         .btn-delete { color: #ff8585; border: 1px solid #ff8585; padding: 2px 4px; }
         .btn-delete:hover { background: #ff5555; color: white; }
+        .btn-pin { color: #ffc700; border: 1px solid #ffc700; padding: 2px 5px; background: rgba(0, 0, 0, 0.45); border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; }
+        .btn-pin:hover { background: #ffc700; color: black; }
 
         .btn-overflow-more { display: block; width: 100%; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; font-size: 10px; text-align: center; cursor: pointer; margin-top: 5px; }
         .btn-overflow-more:hover { background: var(--border-color); }
@@ -929,6 +931,29 @@
     try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
     window.labelEditOrderActive = null;
 
+    // Pin functionality - track pinned items by ID (only used in dashboard-today)
+    window.pinnedItems = new Set();
+    try { window.pinnedItems = new Set(JSON.parse(localStorage.getItem('yorushika_pinnedItems')) || []); } catch(e) { window.pinnedItems = new Set(); }
+    
+    function togglePinItem(id, event) {
+        event.stopPropagation();
+        if (window.pinnedItems.has(String(id))) {
+            window.pinnedItems.delete(String(id));
+        } else {
+            window.pinnedItems.add(String(id));
+        }
+        savePinnedItems();
+        renderAgendaList();
+    }
+    
+    function savePinnedItems() {
+        try { localStorage.setItem('yorushika_pinnedItems', JSON.stringify(Array.from(window.pinnedItems))); } catch(e) {}
+    }
+    
+    function isPinned(id) {
+        return window.pinnedItems.has(String(id));
+    }
+
     function saveLabelOrders() {
         try { localStorage.setItem('yorushika_labelOrders', JSON.stringify(window.labelCustomOrders)); } catch(e) {}
     }
@@ -1053,7 +1078,22 @@
             html = skipped.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>' : skipped.map(s => renderCardHTML(s, getBgStyle(s))).join('');
         } else if (typeKey === 'today_overflow') {
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
-            html = sortItems(schedules.filter(s => isMatchingToday(s, todayStr))).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+            const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
+            
+            // Separate pinned and unpinned items
+            const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
+            const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
+            
+            // Show pinned items first in a subcategory if any are pinned
+            if (pinnedTodayItems.length > 0) {
+                html += `<div style="border-left: 3px solid var(--accent-color); padding-left: 10px; margin-bottom: 8px;">`;
+                html += `<div style="font-size: 11px; color: var(--muted-gray); font-weight: 600; margin-bottom: 4px;">📍 PINNED</div>`;
+                html += pinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+                html += `</div>`;
+            }
+            
+            // Show unpinned items
+            html += unpinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
             let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
@@ -1114,7 +1154,7 @@
         showModalEl('directoryModal');
     }
 
-    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false) {
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false, showPinButton = false) {
         const isPast = s.date && s.date < getTodayDateString();
         const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
@@ -1140,6 +1180,14 @@
         let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
+        
+        // Pin button only shows in dashboard-today for Task/Deadline/Habit items
+        let pinButtonHTML = '';
+        if (showPinButton && (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) {
+            const pinIcon = isPinned(s.id) ? '📍' : '📌';
+            const pinTitle = isPinned(s.id) ? 'Unpin' : 'Pin to Top';
+            pinButtonHTML = `<button class="btn-pin" title="${pinTitle}" onclick="togglePinItem('${s.id}', event)">${pinIcon}</button>`;
+        }
 
         return `
             <div class="${itemClass}" style="background: ${bgStyle};" ${wrapperAttrs} ${clickAction}>
@@ -1153,6 +1201,7 @@
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                     <div class="agenda-actions">
                         ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                        ${pinButtonHTML}
                         <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                         <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                     </div>
@@ -1303,8 +1352,29 @@
             const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
             if (todayItems.length > 0) {
                 htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
-                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
-                if (todayItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                
+                // Separate pinned and unpinned items
+                const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
+                const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
+                
+                // Show pinned items first in a subcategory if any are pinned
+                if (pinnedTodayItems.length > 0) {
+                    htmlMain += `<div style="border-left: 3px solid var(--accent-color); padding-left: 10px; margin-bottom: 8px;">`;
+                    htmlMain += `<div style="font-size: 11px; color: var(--muted-gray); font-weight: 600; margin-bottom: 4px;">📍 PINNED</div>`;
+                    pinnedTodayItems.forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
+                    htmlMain += `</div>`;
+                }
+                
+                // Show unpinned items
+                if (unpinnedTodayItems.length > 0) {
+                    unpinnedTodayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
+                    if (unpinnedTodayItems.length > 5) {
+                        htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${unpinnedTodayItems.length - 5} more items in Today...</button>`;
+                    }
+                } else if (pinnedTodayItems.length === 0) {
+                    htmlMain += `<div style="text-align: center; padding: 10px; color: var(--muted-gray); font-size: 13px;">No tasks for today</div>`;
+                }
+                
                 htmlMain += `</div>`;
             }
 
