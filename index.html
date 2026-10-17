@@ -736,7 +736,7 @@
                     <div class="badges-container">${badgesHTML}</div>
                 </div>`;
         }
-        \$('daysGrid').innerHTML = gridHTML;
+        $('daysGrid').innerHTML = gridHTML;
         renderAgendaList();
     }
 
@@ -930,7 +930,7 @@
     try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
     window.labelEditOrderActive = null;
 
-    // Pin functionality - track pinned items by ID
+    // Pin functionality - track pinned items by ID (only used in dashboard-today)
     window.pinnedItems = new Set();
     try { window.pinnedItems = new Set(JSON.parse(localStorage.getItem('yorushika_pinnedItems')) || []); } catch(e) { window.pinnedItems = new Set(); }
     
@@ -943,7 +943,12 @@
         }
         savePinnedItems();
         renderAgendaList();
-        rerenderTop(); // Mensinkronkan tampilan dashboard utama dan pop-up window yang sedang terbuka
+        if (screenStack.length > 0) {
+            const top = screenStack[screenStack.length - 1];
+            if (top.modal === 'directoryModal' && top.key === 'today_overflow') {
+                renderDirectoryModal('today_overflow');
+            }
+        }
     }
     
     function savePinnedItems() {
@@ -1021,6 +1026,7 @@
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
             let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => {
+                // Extract MM-DD from date (handle both "2000-MM-DD" and "MM-DD" formats)
                 const extractMonthDay = (dateStr) => {
                     if (!dateStr) return '12-31';
                     const parts = dateStr.split('-');
@@ -1089,21 +1095,21 @@
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
             const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
             
+            // Separate pinned and unpinned items
             const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
             const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
             
+            // Show pinned items first in a subcategory if any are pinned
             if (pinnedTodayItems.length > 0) {
-                html += `<div class="section-category-box" style="margin-bottom: 12px;">`;
-                html += `<div class="section-category-title"><span>📍 PINNED</span><span>[${pinnedTodayItems.length}]</span></div>`;
-                pinnedTodayItems.forEach(s => html += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
+                html += `<div style="background: #232320; margin-bottom: 12px; border-radius: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.1);">`;
+                html += `<div style="font-size: 11px; color: var(--accent-color); font-weight: 600; margin-bottom: 6px;">📍 PINNED (${pinnedTodayItems.length})</div>`;
+                html += pinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
                 html += `</div>`;
             }
             
+            // Show unpinned items
             if (unpinnedTodayItems.length > 0) {
-                html += `<div class="section-category-box">`;
-                html += `<div class="section-category-title"><span>📝 REGULAR</span><span>[${unpinnedTodayItems.length}]</span></div>`;
-                unpinnedTodayItems.forEach(s => html += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
-                html += `</div>`;
+                html += unpinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
             }
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
@@ -1192,6 +1198,7 @@
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
         
+        // Pin button only shows in dashboard-today for Task/Deadline/Habit items
         let pinButtonHTML = '';
         if (showPinButton && (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) {
             const pinIcon = isPinned(s.id) ? '📍' : '📌';
@@ -1364,9 +1371,11 @@
                 htmlMain += `<div class="section-category-box">`;
                 htmlMain += `<div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
                 
+                // Separate pinned and unpinned items
                 const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
                 const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
                 
+                // Show pinned items first (using same styling as habits categories)
                 if (pinnedTodayItems.length > 0) {
                     htmlMain += `<div style="background: #232320; margin-bottom: 6px; border-radius: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.1);">`;
                     htmlMain += `<div style="font-size: 11px; color: var(--accent-color); font-weight: 600; margin-bottom: 6px;">📍 PINNED (${pinnedTodayItems.length})</div>`;
@@ -1374,6 +1383,7 @@
                     htmlMain += `</div>`;
                 }
                 
+                // Show unpinned items
                 if (unpinnedTodayItems.length > 0) {
                     unpinnedTodayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                     if (unpinnedTodayItems.length > 5) {
