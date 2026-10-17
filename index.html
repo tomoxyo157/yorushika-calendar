@@ -736,7 +736,7 @@
                     <div class="badges-container">${badgesHTML}</div>
                 </div>`;
         }
-        $('daysGrid').innerHTML = gridHTML;
+        \$('daysGrid').innerHTML = gridHTML;
         renderAgendaList();
     }
 
@@ -744,20 +744,20 @@
     function jumpToCurrentMonth() { currentDate = new Date(); renderCalendar(); }
 
     function handleGridCellClick(dateStr) {
-        $('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        \$('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
         selectedFilterDate = dateStr; renderAgendaList();
     }
 
     function clearDateFilter() { selectedFilterDate = null; renderAgendaList(); }
 
     function formResetByPrefix(prefix = 'm_') {
-        $('m_editEntryId').value = '';
-        $(prefix + 'title').value = ''; $(prefix + 'description').value = '';
-        $(prefix + 'type').value = 'Task'; $(prefix + 'date').value = '';
+        \$('m_editEntryId').value = '';
+        $(prefix + 'title').value = '';$(prefix + 'description').value = '';
+        $(prefix + 'type').value = 'Task';$(prefix + 'date').value = '';
         resetDateButtonState(prefix + 'date', prefix + 'dateTodayBtnContainer');
-        $(prefix + 'priority').value = 'personal'; $(prefix + 'timeblock').value = 'none';
+        $(prefix + 'priority').value = 'personal';$(prefix + 'timeblock').value = 'none';
         sharedTypeChangeLogic(prefix);
-        $('modalFormHeaderTitle').innerText = 'Create Entry'; $('m_submitBtn').innerText = 'Save Entry';
+        $('modalFormHeaderTitle').innerText = 'Create Entry';$('m_submitBtn').innerText = 'Save Entry';
     }
     function m_resetForm() { formResetByPrefix('m_'); }
 
@@ -769,17 +769,16 @@
             const item = schedules.find(s => String(s.id) === String(editId));
             if (!item) { m_resetForm(); showModalEl('formModal'); return; }
             const parsed = parseTodoistTitle(item.title);
-            $('m_editEntryId').value = item.id;
-            $('m_title').value = parsed.cleanTitle;
-            $('m_description').value = item.description || '';
-            $('m_type').value = item.type;
+            \$('m_editEntryId').value = item.id;
+            \$('m_title').value = parsed.cleanTitle;
+            $('m_description').value = item.description \vert{}\vert{} '';$('m_type').value = item.type;
             if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
                 const parts = item.date.split('-');
-                $('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
-            } else { $('m_date').value = item.date || ''; }
+                \$('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
+            } else { \$('m_date').value = item.date || ''; }
             checkDateInputState('m_date', 'm_dateTodayBtnContainer');
-            $('m_priority').value = item.priority;
-            $('m_timeblock').value = item.timeblock || 'none';
+            \$('m_priority').value = item.priority;
+            \$('m_timeblock').value = item.timeblock || 'none';
             m_handleTypeChange();
             $('modalFormHeaderTitle').innerText = 'Edit / Reschedule';$('m_submitBtn').innerText = 'Update Entry';
         } else { m_resetForm(); }
@@ -787,13 +786,13 @@
     }
 
     async function saveScheduleByPrefix(prefix = 'm_') {
-        const id = $('m_editEntryId').value;
-        const rawInputTitle = $(prefix + 'title').value, description = $(prefix + 'description').value, type =$(prefix + 'type').value;
-        let dateInputVal = $(prefix + 'date').value, date = null;
+        const id = \$('m_editEntryId').value;
+        const rawInputTitle = \$(prefix + 'title').value, description = $(prefix + 'description').value, type =$(prefix + 'type').value;
+        let dateInputVal = \$(prefix + 'date').value, date = null;
         if (type !== 'Habit' && dateInputVal) date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
 
-        let priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : $(prefix + 'priority').value);
-        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : $(prefix + 'timeblock').value;
+        let priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : \$(prefix + 'priority').value);
+        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : \$(prefix + 'timeblock').value;
         let recurring = type === 'Birthday' ? 'yearly' : 'none';
         if (!rawInputTitle) return alert('Title is required!');
         let finalTitleToSave = rawInputTitle;
@@ -823,7 +822,7 @@
     function openAssignModal(id, event) { if (event) event.stopPropagation(); navPush({ modal: 'assignModal', id }); }
 
     function renderAssignModal(id) {
-        $('assignEntryId').value = id;
+        \$('assignEntryId').value = id;
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) { showModalEl('assignModal'); return; }
 
@@ -833,16 +832,16 @@
         let curDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
         let curTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
 
-        $('assignDate').value = curDate;
+        \$('assignDate').value = curDate;
         checkDateInputState('assignDate', 'assignDateTodayBtnContainer');
-        $('assignTimeblock').value = curTimeblock;
+        \$('assignTimeblock').value = curTimeblock;
         showModalEl('assignModal');
     }
 
     async function executeAssignHabit() {
-        const id = $('assignEntryId').value;
-        const targetDate = $('assignDate').value;
-        const targetTimeblock = $('assignTimeblock').value;
+        const id = \$('assignEntryId').value;
+        const targetDate = \$('assignDate').value;
+        const targetTimeblock = \$('assignTimeblock').value;
 
         if (!targetDate) return alert('Please select a target date!');
         const masterHabit = schedules.find(s => String(s.id) === String(id));
@@ -894,7 +893,7 @@
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) return;
-        const esc = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const esc = token.replace(/[.*+?^\${}()|[\]\\]/g, '\\$&');
         const re = isTime ? new RegExp(`\\b${esc}\\b`, 'i') : new RegExp(`\\.${esc}\\b`, 'i');
         const newTitle = item.title.replace(re, '').replace(/\s+/g, ' ').trim();
         const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
@@ -913,8 +912,8 @@
         let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
         let displayDate = getDisplayDate(item);
 
-        $('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
-        $('modalBodyContent').innerHTML = `
+        \$('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
+        \$('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate || 'Habit (Idle / Master Pool)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
@@ -931,7 +930,7 @@
     try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
     window.labelEditOrderActive = null;
 
-    // Pin functionality - track pinned items by ID (only used in dashboard-today)
+    // Pin functionality - track pinned items by ID
     window.pinnedItems = new Set();
     try { window.pinnedItems = new Set(JSON.parse(localStorage.getItem('yorushika_pinnedItems')) || []); } catch(e) { window.pinnedItems = new Set(); }
     
@@ -944,6 +943,7 @@
         }
         savePinnedItems();
         renderAgendaList();
+        rerenderTop(); // Mensinkronkan tampilan dashboard utama dan pop-up window yang sedang terbuka
     }
     
     function savePinnedItems() {
@@ -1001,9 +1001,9 @@
     function openDirectoryModal(typeKey, targetParam = null) { navPush({ modal: 'directoryModal', key: typeKey, param: targetParam }); }
 
     function renderDirectoryModal(typeKey, targetParam = null) {
-        const modalTitle = $('directoryModalTitle');
-        const modalContent = $('directoryModalContent');
-        const modalHeaderEl = $('directoryModalHeader');
+        const modalTitle = \$('directoryModalTitle');
+        const modalContent = \$('directoryModalContent');
+        const modalHeaderEl = \$('directoryModalHeader');
         const todayStr = getTodayDateString();
 
         let headerActionsHTML = '';
@@ -1021,7 +1021,6 @@
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
             let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => {
-                // Extract MM-DD from date (handle both "2000-MM-DD" and "MM-DD" formats)
                 const extractMonthDay = (dateStr) => {
                     if (!dateStr) return '12-31';
                     const parts = dateStr.split('-');
@@ -1090,23 +1089,20 @@
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
             const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
             
-            // Separate pinned and unpinned items
             const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
             const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
             
-            // Show pinned items first in a subcategory if any are pinned (using proper section-category-box styling)
             if (pinnedTodayItems.length > 0) {
                 html += `<div class="section-category-box" style="margin-bottom: 12px;">`;
                 html += `<div class="section-category-title"><span>📍 PINNED</span><span>[${pinnedTodayItems.length}]</span></div>`;
-                html += pinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+                pinnedTodayItems.forEach(s => html += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                 html += `</div>`;
             }
             
-            // Show unpinned items in another category
             if (unpinnedTodayItems.length > 0) {
                 html += `<div class="section-category-box">`;
                 html += `<div class="section-category-title"><span>📝 REGULAR</span><span>[${unpinnedTodayItems.length}]</span></div>`;
-                html += unpinnedTodayItems.map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+                unpinnedTodayItems.forEach(s => html += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                 html += `</div>`;
             }
         } else if (typeKey === 'upcoming_overflow') {
@@ -1196,7 +1192,6 @@
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
         
-        // Pin button only shows in dashboard-today for Task/Deadline/Habit items
         let pinButtonHTML = '';
         if (showPinButton && (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) {
             const pinIcon = isPinned(s.id) ? '📍' : '📌';
@@ -1213,7 +1208,7 @@
                     ${noteHTML}
                 </div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${pillsHTML ? `<div class="pill-badges-wrap">\${pillsHTML}</div>` : ''}
                     <div class="agenda-actions">
                         ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                         ${pinButtonHTML}
@@ -1249,7 +1244,7 @@
                     ${noteHTML}
                 </div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${pillsHTML ? `<div class="pill-badges-wrap">\${pillsHTML}</div>` : ''}
                     <div class="agenda-actions">
                         <button class="btn-archive-habit" onclick="archiveHabit('${s.id}', event)" title="Move to Habits Bin">✓</button>
                         <button class="${assignBtnClass}" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
@@ -1277,7 +1272,7 @@
                     ${noteHTML}
                 </div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${pillsHTML ? `<div class="pill-badges-wrap">\${pillsHTML}</div>` : ''}
                     <div class="agenda-actions">
                         <button class="btn-assign" onclick="restoreHabit('${s.id}', event)" title="Restore to active Habits">Restore</button>
                         <button class="btn-delete" onclick="deleteHabitPermanent('${s.id}', event)" title="Delete permanently">X</button>
@@ -1342,8 +1337,8 @@
     }
 
     function renderAgendaList() {
-        const container = $('agendaContainer');
-        const dumplistContainer = $('dumplistContainer');
+        const container = \$('agendaContainer');
+        const dumplistContainer = \$('dumplistContainer');
         const todayStr = getTodayDateString();
         let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
         const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
@@ -1351,7 +1346,7 @@
         if (schedules.length === 0) { container.innerHTML = 'No entries recorded yet.'; dumplistContainer.innerHTML = ''; return; }
 
         if (selectedFilterDate) {
-            $('clearFilterBtn').style.display = 'inline-block';
+            \$('clearFilterBtn').style.display = 'inline-block';
             let filtered = sortItems(schedules.filter(s => isMatchingToday(s, selectedFilterDate)));
             if (filtered.length === 0) { container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`; } 
             else {
@@ -1361,7 +1356,7 @@
             }
             dumplistContainer.innerHTML = '';
         } else {
-            $('clearFilterBtn').style.display = 'none';
+            \$('clearFilterBtn').style.display = 'none';
             let htmlMain = '';
 
             const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
@@ -1369,11 +1364,9 @@
                 htmlMain += `<div class="section-category-box">`;
                 htmlMain += `<div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
                 
-                // Separate pinned and unpinned items
                 const pinnedTodayItems = todayItems.filter(s => isPinned(s.id));
                 const unpinnedTodayItems = todayItems.filter(s => !isPinned(s.id));
                 
-                // Show pinned items first (using same styling as habits categories)
                 if (pinnedTodayItems.length > 0) {
                     htmlMain += `<div style="background: #232320; margin-bottom: 6px; border-radius: 6px; padding: 6px 8px; border: 1px solid rgba(255,255,255,0.1);">`;
                     htmlMain += `<div style="font-size: 11px; color: var(--accent-color); font-weight: 600; margin-bottom: 6px;">📍 PINNED (${pinnedTodayItems.length})</div>`;
@@ -1381,7 +1374,6 @@
                     htmlMain += `</div>`;
                 }
                 
-                // Show unpinned items
                 if (unpinnedTodayItems.length > 0) {
                     unpinnedTodayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                     if (unpinnedTodayItems.length > 5) {
