@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yorushika Calendar // ヨルシカ</title>
+    
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/whiteyoru.png">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Yorushika%20Calendar%22%2C%22short_name%22%3A%22Yorushika%22%2C%22start_url%22%3A%22.%22%2C%22displayf%22%3A%22standalone%22%2C%22background_color%22%3A%22%23141413%22%2C%22theme_color%22%3A%22%23141413%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fraw.githubusercontent.com%2Ftomoxyo157%2Fyorushika-calendar%2F0db260444d70110792b50b1134bf76f2fce8df7f%2Fblackyoru.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/tomoxyo157/yorushika-calendar/0db260444d70110792b50b1134bf76f2fce8df7f/blackyoru.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        :root {
+            --main-font: 'EB Garamond', serif;
+            --bg-pure: #141413;
+            --card-bg: #1c1c1a;
+            --border-color: #2a2a27;
+            --text-main: #e3ded8;
+            --muted-gray: #8c877d;
+            --accent-color: #b5b0a4;
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.4);
+            --birthday-strawberry: #ff4d6d;
+            --deadline-crimson: #ff2a2a;
+            --discord-badge-bg: #1e1f22;
+            --discord-badge-border: #35363c;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
+        body, input, select, textarea, button { font-family: var(--main-font); }
+        body { background-color: var(--bg-pure); color: var(--text-main); margin: 0; padding: 14px; text-transform: lowercase; font-size: 15px; -webkit-font-smoothing: antialiased; }
+
+        .container { max-width: 500px; margin: auto; background: var(--card-bg); padding: 18px; border-radius: 14px; border: 1px solid var(--border-color); box-shadow: var(--shadow-md); display: flex; flex-direction: column; gap: 16px; }
+
+        .mobile-create-trigger { display: block; width: 100%; background: var(--text-main); color: var(--bg-pure); border: none; padding: 11px; text-align: center; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; border-radius: 7px; margin-top: 4px; margin-bottom: 6px; }
+        .mobile-create-trigger:hover { opacity: 0.82; }
+
+        /* Tampilan Mobile Asli */
+        .day-cell { height: 68px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 4px; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+
+        /* Responsive Desktop Layout (2 Kolom) */
+        @media (min-width: 1100px) {
+            body { padding: 8px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
+            .container { zoom: 0.60; -moz-transform: scale(0.60); -moz-transform-origin: top center; max-width: 1680px; width: 100%; display: grid; grid-template-columns: 380px 1fr; grid-template-rows: auto auto auto; gap: 16px; align-items: stretch; padding: 14px; margin: 20px auto; }
+            .desktop-full-span { grid-column: span 2; }
+            .desktop-agenda-column { grid-column: 1; grid-row: 2; order: 1; display: flex; flex-direction: column; }
+            .desktop-calendar-column { grid-column: 2; grid-row: 2; order: 2; display: flex; flex-direction: column; justify-content: space-between; height: 100%; }
+            .desktop-calendar-column .days-grid { flex-grow: 1; }
+            .mobile-create-trigger { margin-top: 0; margin-bottom: 14px; }
+            .day-cell { height: auto; aspect-ratio: 4 / 3; min-height: 60px; }
+        }
+        
+        #dbStatus { font-size: 12px; text-align: center; padding: 6px; border: 1px solid var(--border-color); border-radius: 7px; background: var(--bg-pure); color: var(--muted-gray); }
+        
+        .yorushika-header { text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 14px; position: relative; }
+        .eye-logo-svg { width: 66px; height: 33px; fill: var(--text-main); margin-bottom: 8px; }
+        .jp-title-logo { font-size: 25px; font-weight: 500; letter-spacing: 3px; color: var(--text-main); margin: 0; }
+        .sub-tag { font-size: 10px; color: var(--muted-gray); letter-spacing: 1.5px; font-style: italic; }
+
+        .header-actions-right { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
+        .btn-logout { background: transparent; border: 1px solid var(--border-color); padding: 4px 9px; font-size: 10px; cursor: pointer; border-radius: 5px; color: #ff8585; border-color: rgba(255,85,85,0.35); }
+        .btn-logout:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+
+        h2 { text-align: center; color: var(--text-main); font-size: 22px; font-weight: 500; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        
+        .calendar-nav { display: grid; grid-template-columns: 45px 1fr auto; align-items: center; margin-bottom: 10px; background: var(--bg-pure); border-radius: 8px; padding: 6px 8px; border: 1px solid var(--border-color); }
+        .calendar-nav h3 { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; margin: 0; color: var(--text-main); text-align: center; }
+        .calendar-nav button, .btn-today-kalender { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; padding: 4px 12px; font-size: 14px; cursor: pointer; }
+        .calendar-nav button:hover, .btn-today-kalender:hover { background: var(--border-color); }
+        .calendar-nav-actions { display: flex; gap: 4px; align-items: center; }
+        .btn-today-kalender { padding: 4px 8px; font-size: 10px; }
+
+        .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 10px; color: var(--muted-gray); margin-bottom: 5px; letter-spacing: 0.5px; }
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+        .day-cell:hover { border-color: var(--accent-color); background: var(--card-bg); }
+        .day-cell.today { border: 1.5px solid var(--text-main); box-shadow: 0 0 0 1px rgba(227, 222, 216, 0.25); background: var(--card-bg); }
+        .day-cell.today .day-number { color: var(--text-main); text-decoration: underline; }
+        .day-number { font-weight: 600; color: var(--muted-gray); font-size: 13px; }
+        
+        .badges-container { max-height: 48px; overflow: hidden; display: flex; flex-direction: column; gap: 2px; }
+        .mini-badge { font-size: 8px; color: #ffffff; padding: 1px 4px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border: 1px solid rgba(255,255,255,0.15); }
+        .mini-badge.completed-badge { opacity: 0.35; text-decoration: line-through; }
+
+        .pill-badges-wrap { display: flex; align-items: center; gap: 3px; }
+        .discord-pill { background: var(--discord-badge-bg); border: 1px solid var(--discord-badge-border); color: #b5bac1; font-size: 8px; padding: 1px 5px; border-radius: 10px; letter-spacing: 0.3px; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; }
+        .discord-pill.time-pill { color: #f2f3f5; border-color: #4e5058; }
+        .discord-pill.label-pill { color: #dbdee1; }
+        .discord-pill.more-pill { background: #2b2d31; color: #949ba4; font-weight: 600; }
+
+        .form-group { margin-bottom: 10px; }
+        label { display: block; margin-bottom: 3px; font-weight: 600; font-size: 10px; color: var(--muted-gray); letter-spacing: 0.3px; }
+        input, select, textarea { width: 100%; padding: 8px; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 6px; font-size: 13px; }
+        
+        .date-input-wrapper { display: flex; gap: 4px; align-items: center; }
+        .date-input-wrapper input[type="date"] { flex-grow: 1; }
+        .btn-today-input, .btn-delete-input { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; font-size: 10px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+        .btn-today-input:hover { background: var(--border-color); }
+        .btn-delete-input { color: #ff8585; }
+        .btn-delete-input:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+
+        select option { text-transform: lowercase; background: var(--card-bg); }
+        textarea { resize: vertical; min-height: 54px; white-space: pre-wrap; line-height: 1.5; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-color); }
+        
+        .form-buttons { display: flex; gap: 8px; margin-top: 12px; }
+        .btn-submit { flex: 2; background: var(--text-main); color: var(--bg-pure); border: none; padding: 9px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-submit:hover { opacity: 0.85; }
+        .btn-reset { flex: 1; background: transparent; color: var(--muted-gray); border: 1px solid var(--border-color); padding: 9px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-reset:hover { background: var(--border-color); color: var(--text-main); }
+
+        .agenda-list { background: var(--bg-pure); padding: 14px; border: 1px solid var(--border-color); border-radius: 10px; flex-grow: 1; }
+        .agenda-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+        .agenda-list h4 { font-size: 15px; font-weight: 500; letter-spacing: 0.5px; color: var(--text-main); margin: 0; }
+        .agenda-controls { display: flex; gap: 6px; align-items: center; }
+        .sort-select { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; font-size: 11px; padding: 3px 5px; cursor: pointer; width: auto; }
+        .btn-clear-filter { background: var(--card-bg); color: #ff8585; border: 1px solid var(--border-color); border-radius: 5px; font-size: 10px; padding: 3px 7px; cursor: pointer; }
+        .btn-clear-filter:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
+
+        .archive-windows-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-bottom: 10px; }
+        .btn-window-trigger { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px 2px; font-size: 8px; cursor: pointer; text-align: center; font-weight: 600; }
+        .btn-window-trigger:hover { background: var(--border-color); }
+        .nav-counter-badge { background: var(--text-main); color: var(--bg-pure); font-size: 8px; font-weight: 700; padding: 1px 5px; border-radius: 10px; margin-left: 2px; display: inline-block; vertical-align: middle; }
+        .btn-window-trigger:hover .nav-counter-badge { background: var(--bg-pure); color: var(--text-main); }
+        .nav-counter-badge.red-alert { background: #ff4d6d; color: #ffffff; }
+        .btn-window-trigger:hover .nav-counter-badge.red-alert { background: #ffffff; color: #ff4d6d; }
+
+        .dumplist-box, .section-category-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px; margin-bottom: 9px; margin-top: 0; }
+        .section-category-box { margin-bottom: 9px; margin-top: 0; }
+        .dumplist-title, .section-category-title { font-size: 12px; color: var(--muted-gray); margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; }
+        .section-category-title { color: var(--text-main); padding-bottom: 5px; }
+        
+        .agenda-item { padding: 6px 8px; border-radius: 6px; margin-bottom: 5px; color: white; display: flex; justify-content: space-between; align-items: center; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; min-height: 34px; gap: 6px; }
+        .agenda-item:hover { border-color: rgba(255,255,255,0.5); }
+        .agenda-item.completed-item { opacity: 0.35 !important; }
+        .agenda-item.completed-item .agenda-content h4 { text-decoration: line-through !important; }
+        
+        .agenda-content { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+        .agenda-content h4 { margin: 0; font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 0 1 auto; }
+        .note-indicator { font-size: 10px; flex-shrink: 0; cursor: help; }
+        .birthday-date-tag { font-size: 9px; color: #ffe6eb; background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px; flex-shrink: 0; font-weight: 600; }
+
+        .agenda-right-cluster { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
+
+        .agenda-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+        .agenda-actions input[type="checkbox"] { width: 13px; height: 13px; cursor: pointer; accent-color: var(--text-main); margin: 0; }
+        .btn-assign, .btn-reassign, .btn-archive-habit, .btn-edit, .btn-delete { background: rgba(0, 0, 0, 0.45); border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; padding: 2px 5px; }
+        .btn-assign { color: #6fb3e0; border: 1px solid #6fb3e0; }
+        .btn-assign:hover { background: #4da6ff; color: black; }
+        .btn-reassign { color: #d8b4fe; border: 1px solid #c084fc; background: rgba(0, 0, 0, 0.5); }
+        .btn-reassign:hover { background: #c084fc; color: black; }
+        .btn-archive-habit { color: #d9a441; border: 1px solid #d9a441; font-size: 9px; font-weight: 700; line-height: 1; }
+        .btn-archive-habit:hover { background: #d9a441; color: black; }
+        .btn-edit { color: #7fdb7f; border: 1px solid #7fdb7f; }
+        .btn-edit:hover { background: #55ff55; color: black; }
+        .btn-delete { color: #ff8585; border: 1px solid #ff8585; padding: 2px 4px; }
+        .btn-delete:hover { background: #ff5555; color: white; }
+        .btn-pin { background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.28); color: #b5b0a4; border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; padding: 2px 5px; line-height: 1.1; }
+        .btn-pin:hover { border-color: var(--text-main); color: var(--text-main); }
+        .btn-pin.pinned { background: var(--text-main); color: var(--bg-pure); border-color: var(--text-main); }
+        .batch-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 7px; padding: 6px 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .batch-toolbar-left, .batch-toolbar-right { display: flex; align-items: center; gap: 5px; }
+        .batch-select-cb { width: 13px; height: 13px; cursor: pointer; accent-color: var(--text-main); margin: 0 4px 0 0; flex-shrink: 0; }
+
+        .btn-overflow-more { display: block; width: 100%; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; font-size: 10px; text-align: center; cursor: pointer; margin-top: 5px; }
+        .btn-overflow-more:hover { background: var(--border-color); }
+
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 10, 9, 0.75); z-index: 1000; justify-content: center; align-items: center; padding: 10px; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-card { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 440px; max-height: 80vh; display: flex; flex-direction: column; padding: 20px; border-radius: 12px; box-shadow: var(--shadow-md); position: relative; transform: scale(0.92); transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-header { font-size: 15px; font-weight: 500; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .modal-scroll-body { overflow-y: auto; max-height: calc(80vh - 60px); padding-right: 4px; }
+        .modal-close { background: none; border: none; color: var(--muted-gray); font-size: 19px; cursor: pointer; line-height: 1; }
+        .modal-close:hover { color: #ff8585; }
+        .modal-body p { margin: 7px 0; font-size: 12px; white-space: pre-wrap; }
+        .modal-body strong { color: var(--muted-gray); font-size: 10px; display: block; }
+
+        .editable-pill-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .editable-pill { background: #2b2d31; border: 1px solid #383a40; color: #f2f3f5; font-size: 9px; padding: 2px 7px; border-radius: 10px; display: inline-flex; align-items: center; gap: 5px; }
+        .editable-pill .remove-pill { cursor: pointer; color: #ed4245; font-weight: bold; font-size: 10px; }
+        .editable-pill .remove-pill:hover { color: #ff6b6b; }
+
+        #authOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(20, 20, 19, 0.96); z-index: 9999; display: flex; justify-content: center; align-items: center; padding: 16px; }
+        .auth-box { background: var(--card-bg); border: 1px solid var(--border-color); width: 100%; max-width: 380px; padding: 28px; border-radius: 14px; box-shadow: var(--shadow-md); text-align: center; }
+        .auth-box h3 { color: var(--text-main); font-size: 18px; font-weight: 500; letter-spacing: 1.5px; margin: 12px 0 16px 0; }
+        #authErrorMsg { font-size: 11px; color: #ff8585; margin-top: 8px; min-height: 15px; }
+
+        .footer-tag { text-align: center; font-size: 12px; font-style: italic; color: var(--muted-gray); margin-top: 8px; border-top: 1px solid var(--border-color); padding-top: 10px; letter-spacing: 1px; }
+
+        .drag-handle { cursor: grab; user-select: none; touch-action: none; display: flex; align-items: center; justify-content: center; padding: 0 6px; font-size: 14px; color: var(--muted-gray); }
+        .drag-handle:active { cursor: grabbing; }
+    </style>
+</head>
+<body>
+
+<svg style="display:none;">
+    <symbol id="eye-logo" viewBox="0 0 200 100">
+        <circle cx="100" cy="50" r="38" fill="none" stroke="#ffffff" stroke-width="8"/>
+        <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
+        <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
+        <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
+    </symbol>
+</svg>
+
+<div id="authOverlay" style="display: none;">
+    <div class="auth-box">
+        <svg class="eye-logo-svg" style="width: 50px; height: 25px; margin: 0 auto 10px auto; display: block;"><use href="#eye-logo"/></svg>
+        <h3>SYSTEM ACCESS</h3>
+        <div class="form-group" style="text-align: left;">
+            <label>Email Address</label>
+            <input type="email" id="authEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group" style="text-align: left; margin-bottom: 12px;">
+            <label>Password</label>
+            <input type="password" id="authPassword" placeholder="••••••••">
+        </div>
+        <button class="btn-submit" style="width: 100%; padding: 10px;" onclick="handleLogin()">Sign In to Vault</button>
+        <div id="authErrorMsg"></div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="yorushika-header desktop-full-span">
+        <div class="header-actions-right">
+            <button class="btn-logout" onclick="handleLogout()">Logout</button>
+        </div>
+        <svg class="eye-logo-svg"><use href="#eye-logo"/></svg>
+        <p class="jp-title-logo">ヨルシカ</p>
+        <span class="sub-tag">Music & Schedule Archive</span>
+    </div>
+
+    <!-- Kalender (Di Mobile Tampil Paling Atas) -->
+    <div class="desktop-calendar-column">
+        <h2>Calendar</h2>
+        <div class="calendar-nav">
+            <button onclick="changeMonth(-1)">◀</button>
+            <h3 id="monthYearDisplay"></h3>
+            <div class="calendar-nav-actions">
+                <button class="btn-today-kalender" onclick="jumpToCurrentMonth()">Today</button>
+                <button onclick="changeMonth(1)">▶</button>
+            </div>
+        </div>
+
+        <div class="weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+        </div>
+        <div class="days-grid" id="daysGrid"></div>
+    </div>
+
+    <!-- Tombol Create Entry + Agenda Column (Di Mobile Tampil Di Bawah Kalender) -->
+    <div class="desktop-agenda-column">
+        <button class="mobile-create-trigger" onclick="openFormModal()">+ Create Entry</button>
+        
+        <div class="agenda-list">
+            <div class="agenda-header-row">
+                <h4>📋 Schedule</h4>
+                <div class="agenda-controls">
+                    <select id="sortBySelect" class="sort-select" onchange="renderAgendaList()">
+                        <option value="timeblock">Sort: Timeblock</option>
+                        <option value="priority">Sort: Priority</option>
+                        <option value="type">Sort: Type</option>
+                    </select>
+                    <button id="clearFilterBtn" class="btn-clear-filter" style="display:none;" onclick="clearDateFilter()">Show All</button>
+                </div>
+            </div>
+
+            <div class="archive-windows-nav">
+                <button class="btn-window-trigger" onclick="openDirectoryModal('birthdays')">
+                    🎂 Birthdays <span id="birthdayBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('habits')">
+                    🔁 Habits <span id="habitBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('skipped')">
+                    🕰️ Skipped <span id="skippedBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+                <button class="btn-window-trigger" onclick="openDirectoryModal('collections')">
+                    🏷️ Labels <span id="labelBadgeCount" class="nav-counter-badge">0</span>
+                </button>
+            </div>
+
+            <div id="dumplistContainer"></div>
+            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
+        </div>
+    </div>
+
+    <div id="dbStatus" class="desktop-full-span">Menghubungkan ke Supabase Cloud...</div>
+
+    <div class="footer-tag desktop-full-span">
+        <span>― 夜을歩く者のための記録 ―</span>
+    </div>
+</div>
+
+<div class="modal-overlay" id="formModal" onclick="closeModal(event, 'formModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalFormHeaderTitle">Create Entry</span>
+            <button class="modal-close" onclick="closeFormModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="m_editEntryId">
+                <div class="form-group">
+                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
+                </div>
+                <div class="form-group">
+                    <label>Description / Note (Optional)</label>
+                    <textarea id="m_description" placeholder="Short detail or sub-note..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="m_type" onchange="m_handleTypeChange()">
+                        <option value="Task">Task (With checkmark)</option>
+                        <option value="Event">Event</option>
+                        <option value="Deadline">Deadline (Crimson Red)</option>
+                        <option value="Habit">Habit / Recurring</option>
+                        <option value="Birthday">Birthday (Recurring Yearly)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="m_dateGroup">
+                    <label id="m_dateLabel">Date (Leave blank for Inbox)</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="m_date" oninput="checkDateInputState('m_date', 'm_dateTodayBtnContainer')">
+                        <span id="m_dateTodayBtnContainer">
+                            <button type="button" class="btn-today-input" onclick="setTodayDate('m_date', 'm_dateTodayBtnContainer')">Today</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group" id="m_priorityGroup">
+                    <label>Priority Tagging</label>
+                    <select id="m_priority">
+                        <option value="personal">Personal (Mint Green)</option>
+                        <option value="professional">Professional (Maroon)</option>
+                        <option value="daily">Daily (Ink Charcoal)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="m_timeblockGroup">
+                    <label>Timeblock Tagging</label>
+                    <select id="m_timeblock">
+                        <option value="none">None (Slate Grey - Default)</option>
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="m_resetForm()">Reset</button>
+                    <button class="btn-submit" id="m_submitBtn" onclick="m_saveSchedule()">Save Entry</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="assignModal" onclick="closeModal(event, 'assignModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span>🔁 Assign / Re-assign Habit</span>
+            <button class="modal-close" onclick="closeAssignModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="assignEntryId">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="assignDate" oninput="checkDateInputState('assignDate', 'assignDateTodayBtnContainer')">
+                        <span id="assignDateTodayBtnContainer">
+                            <button type="button" class="btn-today-input" onclick="setTodayDate('assignDate', 'assignDateTodayBtnContainer')">Today</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Timeblock Tagging</label>
+                    <select id="assignTimeblock">
+                        <option value="none">None (Slate Grey - Default)</option>
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="closeAssignModal()">Cancel</button>
+                    <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="detailModal" onclick="closeModal(event, 'detailModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span id="modalTitleText">Entry Detail</span>
+            <button class="modal-close" onclick="closeDetailModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div class="modal-body" id="modalBodyContent"></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="directoryModal" onclick="closeModal(event, 'directoryModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header" id="directoryModalHeader">
+            <span id="directoryModalTitle">Directory</span>
+            <button class="modal-close" onclick="closeDirectoryModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div id="directoryModalContent" style="font-size: 11px;"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const $ = id => document.getElementById(id);
+
+    const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: { persistSession: true, autoRefreshToken: true },
+        db: { schema: 'public' },
+        global: { headers: { 'x-client-info': 'yorushika-calendar' } }
+    });
+
+    let schedules = [];
+    let selectedFilterDate = null;
+    let screenStack = [];
+
+    // Modular Local Storage Helpers (designed for easy future migration to Supabase)
+    const STORAGE_KEYS = {
+        TODAY_PINS: 'yorushika_today_pinned_ids',
+        LABEL_BIN: 'yorushika_label_bin_ids'
+    };
+
+    function getTodayPinnedIds() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_PINS));
+            return Array.isArray(raw) ? raw.map(String) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveTodayPinnedIds(ids) {
+        try { localStorage.setItem(STORAGE_KEYS.TODAY_PINS, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
+    }
+
+    function isTodayPinned(id) {
+        return getTodayPinnedIds().includes(String(id));
+    }
+
+    function toggleTodayPin(id, event) {
+        if (event) event.stopPropagation();
+        const strId = String(id);
+        let pinned = getTodayPinnedIds();
+        if (pinned.includes(strId)) {
+            pinned = pinned.filter(x => x !== strId);
+        } else {
+            pinned.unshift(strId);
+        }
+        saveTodayPinnedIds(pinned);
+        renderCalendar();
+        rerenderTop();
+    }
+
+    function pruneStaleTodayPins(validItems) {
+        const validSet = new Set((validItems || []).map(x => String(x.id)));
+        const current = getTodayPinnedIds();
+        const pruned = current.filter(id => validSet.has(id));
+        if (pruned.length !== current.length) saveTodayPinnedIds(pruned);
+    }
+
+    function getLabelBinIds() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.LABEL_BIN));
+            return Array.isArray(raw) ? raw.map(String) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveLabelBinIds(ids) {
+        try { localStorage.setItem(STORAGE_KEYS.LABEL_BIN, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
+    }
+
+    function isInLabelBin(id) {
+        return getLabelBinIds().includes(String(id));
+    }
+
+    function moveIdsToLabelBin(ids) {
+        const current = getLabelBinIds();
+        saveLabelBinIds([...current, ...ids.map(String)]);
+    }
+
+    function restoreIdFromLabelBin(id) {
+        const strId = String(id);
+        saveLabelBinIds(getLabelBinIds().filter(x => x !== strId));
+    }
+
+    function pruneStaleLabelBin(validItems) {
+        const validSet = new Set((validItems || []).map(x => String(x.id)));
+        const current = getLabelBinIds();
+        const pruned = current.filter(id => validSet.has(id));
+        if (pruned.length !== current.length) saveLabelBinIds(pruned);
+    }
+
+    function sortTodayItemsWithPins(items) {
+        const sorted = sortItems(items);
+        const pinnedIds = getTodayPinnedIds();
+        if (pinnedIds.length === 0) return sorted;
+        const pinnedSet = new Set(pinnedIds);
+        const pinnedList = [];
+        const regularList = [];
+        sorted.forEach(item => {
+            if (pinnedSet.has(String(item.id))) pinnedList.push(item);
+            else regularList.push(item);
+        });
+        pinnedList.sort((a, b) => pinnedIds.indexOf(String(a.id)) - pinnedIds.indexOf(String(b.id)));
+        return [...pinnedList, ...regularList];
+    }
+
+    const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
+    const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
+    
+    const timeblockOrder = { morning: 0, work: 1, night: 2, none: 3 };
+    const priorityOrder = { professional: 1, daily: 2, personal: 3 };
+    const typeOrder = { Deadline: 1, Task: 2, Event: 3, Habit: 4, Birthday: 5 };
+
+    let currentDate = new Date();
+
+    function getBgStyle(s) {
+        if (s.type === 'Deadline') return 'var(--deadline-crimson)';
+        if (s.type === 'Birthday') return 'var(--birthday-strawberry)';
+        return `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#2a2a2a'})`;
+    }
+
+    function getDisplayDate(s) {
+        if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
+            const parts = s.date.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+        }
+        return formatDateDDMM(s.date);
+    }
+
+    const ALL_MODALS = ['formModal', 'assignModal', 'detailModal', 'directoryModal'];
+
+    function showModalEl(id) {
+        ALL_MODALS.forEach(m => { if (m !== id) hideModalEl(m); });
+        const modal = $(id);
+        modal.style.display = 'flex';
+        requestAnimationFrame(() => modal.classList.add('active'));
+    }
+    function hideModalEl(id) {
+        const modal = $(id);
+        if (modal && modal.classList.contains('active')) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
+    }
+
+    function renderScreen(screen) {
+        if (!screen) return;
+        if (screen.modal === 'directoryModal') renderDirectoryModal(screen.key, screen.param);
+        else if (screen.modal === 'formModal') renderFormModal(screen.editId);
+        else if (screen.modal === 'assignModal') renderAssignModal(screen.id);
+        else if (screen.modal === 'detailModal') renderDetailModal(screen.id);
+    }
+
+    function navPush(screen) {
+        screenStack.push(screen);
+        history.pushState({ d: screenStack.length }, "");
+        renderScreen(screen);
+    }
+
+    function goBack() { if (screenStack.length > 0) history.back(); }
+
+    window.addEventListener('popstate', () => {
+        if (screenStack.length === 0) return;
+        screenStack.pop();
+        if (screenStack.length > 0) { renderScreen(screenStack[screenStack.length - 1]); }
+        else { window.labelEditOrderActive = null; window.labelBatchModeActive = null; window.labelBatchSelectedIds = new Set(); ALL_MODALS.forEach(hideModalEl); }
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (screenStack.length === 0) return;
+        const t = (e.target.tagName || '').toLowerCase();
+        const isEditing = t === 'input' || t === 'textarea' || t === 'select' || e.target.isContentEditable;
+        if (e.key === 'Escape') { goBack(); }
+        else if (e.key === 'Backspace' && !isEditing) { e.preventDefault(); goBack(); }
+    });
+
+    function closeModal(event, modalId) { if (event.target.id === modalId) goBack(); }
+    function closeFormModal() { goBack(); }
+    function closeAssignModal() { goBack(); }
+    function closeDetailModal() { goBack(); }
+    function closeDirectoryModal() { goBack(); }
+
+    async function handleLogin() {
+        const email = $('authEmail').value;
+        const password = $('authPassword').value;
+        const errorEl = $('authErrorMsg');
+
+        if (!email || !password) return errorEl.innerText = 'Email and password required!';
+
+        errorEl.innerText = 'Authenticating...';
+        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) { errorEl.innerText = error.message; } 
+        else { errorEl.innerText = ''; $('authOverlay').style.display = 'none'; fetchSchedules(); }
+    }
+
+    async function handleLogout() {
+        await supabaseClient.auth.signOut();
+        $('authEmail').value = ''; $('authPassword').value = '';
+        $('authOverlay').style.display = 'flex';
+    }
+
+    async function checkAuthAndInit() {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) { $('authOverlay').style.display = 'flex'; } 
+        else { $('authOverlay').style.display = 'none'; fetchSchedules(); }
+    }
+
+    function getTodayDateString() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function setTodayDate(inputId, containerId) {
+        $(inputId).value = getTodayDateString();
+        checkDateInputState(inputId, containerId);
+    }
+
+    function clearDateInput(inputId, containerId) {
+        $(inputId).value = '';
+        checkDateInputState(inputId, containerId);
+    }
+
+    function checkDateInputState(inputId, containerId) {
+        const inputEl = $(inputId);
+        const containerEl = $(containerId);
+        if (!inputEl || !containerEl) return;
+        containerEl.innerHTML = inputEl.value 
+            ? `<button type="button" class="btn-delete-input" onclick="clearDateInput('${inputId}', '${containerId}')">×</button>`
+            : `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`;
+    }
+
+    function resetDateButtonState(inputId, containerId) {
+        const containerEl = $(containerId);
+        if (containerEl) { containerEl.innerHTML = `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`; }
+    }
+
+    function parseTodoistTitle(rawTitle) {
+        if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
+        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
+        const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
+        let timeTags = [], labelTags = [], match;
+        while ((match = timeRegex.exec(rawTitle)) !== null) timeTags.push(match[1].toLowerCase());
+        while ((match = labelRegex.exec(rawTitle)) !== null) labelTags.push(match[1].substring(1));
+        let cleanTitle = rawTitle.replace(timeRegex, '').replace(labelRegex, '').replace(/\s+/g, ' ').trim();
+        return { cleanTitle, timeTags, labelTags };
+    }
+
+    function isHabitInst(s) {
+        return Boolean(s && (s.isHabitInstance || s.is_habit_instance || s.ishabitinstance));
+    }
+
+    function isMasterHabitItem(s) {
+        return Boolean(s && s.type === 'Habit' && !isHabitInst(s));
+    }
+
+    function getFirstHabitLabel(rawTitle) {
+        const parsed = parseTodoistTitle(rawTitle);
+        return parsed.labelTags.length > 0 ? parsed.labelTags[0] : 'general';
+    }
+
+    function formatDateDDMM(dateStr) {
+        if (!dateStr) return '';
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
+        }
+        return dateStr;
+    }
+
+    function sharedTypeChangeLogic(prefix = '') {
+        const typeVal = $(prefix + 'type').value;
+        const priorityGrp = $(prefix + 'priorityGroup');
+        const timeblockGrp = $(prefix + 'timeblockGroup');
+        const dateGrp = $(prefix + 'dateGroup');
+        const dateLbl = $(prefix + 'dateLabel');
+        const dateInput = $(prefix + 'date');
+
+        dateInput.type = 'date';
+        if (typeVal === 'Birthday') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Birthday Date (DD/MM)'; } 
+        else if (typeVal === 'Habit') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'none'; } 
+        else if (typeVal === 'Deadline') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; } 
+        else { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Date (Leave blank for Inbox)'; }
+    }
+
+    function handleTypeChange() { sharedTypeChangeLogic(''); }
+    function m_handleTypeChange() { sharedTypeChangeLogic('m_'); }
+
+    async function autoDeleteOldHistory(dataItems) {
+        const now = new Date();
+        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+        const oneYearAgoStr = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}-${String(oneYearAgo.getDate()).padStart(2, '0')}`;
+
+        const expiredIds = dataItems.filter(s => s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit').map(s => s.id);
+        if (expiredIds.length > 0) {
+            await supabaseClient.from('schedules').delete().in('id', expiredIds);
+            return dataItems.filter(s => !expiredIds.includes(s.id));
+        }
+        return dataItems;
+    }
+
+    async function fetchSchedules() {
+        const statusEl = $('dbStatus');
+        statusEl.innerText = 'Menghubungkan ke Supabase Cloud...'; statusEl.style.color = '#e6e6e6';
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const { data, error } = await supabaseClient.from('schedules').select('*').order('date', { ascending: true, nullsFirst: false }).abortSignal(controller.signal);
+            clearTimeout(timeoutId);
+
+            if (error) { if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; } throw error; }
+
+            statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)'; statusEl.style.color = '#55ff55';
+            schedules = await autoDeleteOldHistory(data || []);
+            localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        } catch (err) {
+            console.warn('Fetch error:', err);
+            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline / Cached Mode)'; statusEl.style.color = '#ff5555';
+            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+        }
+
+        pruneStaleTodayPins(schedules);
+        pruneStaleLabelBin(schedules);
+        updateArchiveCounters();
+        renderCalendar();
+
+        if (screenStack.length > 0) {
+            const top = screenStack[screenStack.length - 1];
+            if (top.modal !== 'formModal') renderScreen(top);
+        }
+    }
+
+    function updateArchiveCounters() {
+        const todayStr = getTodayDateString();
+        const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
+        const habitCount = schedules.filter(s => isMasterHabitItem(s) && !s.completed).length;
+        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
+        
+        let allLabels = new Set();
+        schedules.forEach(s => {
+            if (s.type === 'Habit' || s.isHabitInstance) return;
+            if (isInLabelBin(s.id)) return;
+            parseTodoistTitle(s.title).labelTags.forEach(l => allLabels.add(l));
+            if (s.type === 'Deadline') allLabels.add('deadline');
+        });
+
+        $('birthdayBadgeCount').innerText = birthdayCount;
+        $('habitBadgeCount').innerText = habitCount;
+        
+        const skippedBadge = $('skippedBadgeCount');
+        skippedBadge.innerText = skippedCount;
+        skippedBadge.classList.toggle('red-alert', skippedCount > 0);
+        $('labelBadgeCount').innerText = allLabels.size;
+    }
+
+    function sortItems(items) {
+        const sortBy = $('sortBySelect').value;
+        const titleDiff = (a, b) => parseTodoistTitle(a.title).cleanTitle.toLowerCase().localeCompare(parseTodoistTitle(b.title).cleanTitle.toLowerCase());
+        return [...items].sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            
+            let tbA = a.timeblock || 'none', tbB = b.timeblock || 'none';
+            if (sortBy === 'priority') {
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+            } else if (sortBy === 'type') {
+                let tDiff = (typeOrder[a.type] || 3) - (typeOrder[b.type] || 3);
+                if (tDiff !== 0) return tDiff;
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+            } else {
+                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
+                if (tbDiff !== 0) return tbDiff;
+                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
+                if (pDiff !== 0) return pDiff;
+            }
+            return titleDiff(a, b);
+        });
+    }
+
+    function renderCalendar() {
+        const year = currentDate.getFullYear(), month = currentDate.getMonth();
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        $('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
+
+        const firstDayIndex = new Date(year, month, 1).getDay();
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        let gridHTML = '';
+        for (let i = 0; i < firstDayIndex; i++) gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
+
+        const todayStr = getTodayDateString();
+
+        for (let day = 1; day <= totalDays; day++) {
+            const formattedMonth = String(month + 1).padStart(2, '0');
+            const formattedDay = String(day).padStart(2, '0');
+            const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+            let daySchedules = sortItems(schedules.filter(s => {
+                if (!s.date) return false;
+                if (s.date === dateStr) return true;
+                if (s.type === 'Birthday' || s.recurring === 'yearly') {
+                    return s.date.split('-')[1] === formattedMonth && s.date.split('-')[2] === formattedDay;
+                }
+                return false;
+            }));
+
+            let badgesHTML = '';
+            daySchedules.forEach(s => {
+                const isPast = s.date && s.date < todayStr;
+                const completedClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'completed-badge' : '';
+                const parsed = parseTodoistTitle(s.title);
+                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${getBgStyle(s)};">${parsed.cleanTitle}</div>`;
+            });
+
+            gridHTML += `
+                <div class="day-cell ${dateStr === todayStr ? 'today' : ''}" onclick="handleGridCellClick('${dateStr}')">
+                    <span class="day-number">${day}</span>
+                    <div class="badges-container">${badgesHTML}</div>
+                </div>`;
+        }
+        $('daysGrid').innerHTML = gridHTML;
+        renderAgendaList();
+    }
+
+    function changeMonth(direction) { currentDate.setMonth(currentDate.getMonth() + direction); renderCalendar(); }
+    function jumpToCurrentMonth() {
+        currentDate = new Date();
+        const todayStr = getTodayDateString();
+        selectedFilterDate = todayStr;
+        $('m_date').value = todayStr;
+        checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        renderCalendar();
+    }
+
+    function handleGridCellClick(dateStr) {
+        $('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        selectedFilterDate = dateStr; renderAgendaList();
+    }
+
+    function clearDateFilter() { selectedFilterDate = null; renderAgendaList(); }
+
+    function formResetByPrefix(prefix = 'm_') {
+        $('m_editEntryId').value = '';
+        $(prefix + 'title').value = ''; $(prefix + 'description').value = '';
+        $(prefix + 'type').value = 'Task'; $(prefix + 'date').value = '';
+        resetDateButtonState(prefix + 'date', prefix + 'dateTodayBtnContainer');
+        $(prefix + 'priority').value = 'personal'; $(prefix + 'timeblock').value = 'none';
+        sharedTypeChangeLogic(prefix);
+        $('modalFormHeaderTitle').innerText = 'Create Entry'; $('m_submitBtn').innerText = 'Save Entry';
+    }
+    function m_resetForm() { formResetByPrefix('m_'); }
+
+    function openFormModal() { navPush({ modal: 'formModal', editId: null }); }
+    function editSchedule(id) { navPush({ modal: 'formModal', editId: id }); }
+
+    function renderFormModal(editId) {
+        if (editId) {
+            const item = schedules.find(s => String(s.id) === String(editId));
+            if (!item) { m_resetForm(); showModalEl('formModal'); return; }
+            const parsed = parseTodoistTitle(item.title);
+            $('m_editEntryId').value = item.id;
+            $('m_title').value = parsed.cleanTitle;
+            $('m_description').value = item.description || '';
+            $('m_type').value = item.type;
+            if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+                const parts = item.date.split('-');
+                $('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
+            } else { $('m_date').value = item.date || ''; }
+            checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+            $('m_priority').value = item.priority;
+            $('m_timeblock').value = item.timeblock || 'none';
+            m_handleTypeChange();
+            $('modalFormHeaderTitle').innerText = 'Edit / Reschedule';$('m_submitBtn').innerText = 'Update Entry';
+        } else {
+            m_resetForm();
+            if (selectedFilterDate) {
+                $('m_date').value = selectedFilterDate;
+                checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+            }
+        }
+        showModalEl('formModal');
+    }
+
+    async function saveScheduleByPrefix(prefix = 'm_') {
+        const id = $('m_editEntryId').value;
+        const rawInputTitle = $(prefix + 'title').value, description = $(prefix + 'description').value, type =$(prefix + 'type').value;
+        let dateInputVal = $(prefix + 'date').value, date = null;
+        if (type !== 'Habit' && dateInputVal) date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
+
+        let priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : $(prefix + 'priority').value);
+        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : $(prefix + 'timeblock').value;
+        let recurring = type === 'Birthday' ? 'yearly' : 'none';
+        if (!rawInputTitle) return alert('Title is required!');
+        let finalTitleToSave = rawInputTitle;
+
+        if (id) {
+            const existingItem = schedules.find(s => String(s.id) === String(id));
+            if (existingItem) {
+                const oldParsed = parseTodoistTitle(existingItem.title);
+                const newParsed = parseTodoistTitle(rawInputTitle);
+                const combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
+                const combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
+                finalTitleToSave = [newParsed.cleanTitle, ...combinedTimes, ...combinedLabels.map(l => '.' + l)].join(' ');
+            }
+            const payload = { title: finalTitleToSave, description, type, date: (type === 'Habit' ? null : date), priority, timeblock, recurring };
+            if (type === 'Habit') payload.isHabitInstance = false;
+            const { error } = await supabaseClient.from('schedules').update(payload).eq('id', id);
+            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); goBack(); }
+        } else {
+            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+            const { error } = await supabaseClient.from('schedules').insert([newEntry]);
+            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); goBack(); }
+            else alert('Failed to save entry: ' + error.message);
+        }
+    }
+    function m_saveSchedule() { saveScheduleByPrefix('m_'); }
+
+    function openAssignModal(id, event) { if (event) event.stopPropagation(); navPush({ modal: 'assignModal', id }); }
+
+    function renderAssignModal(id) {
+        $('assignEntryId').value = id;
+        const masterHabit = schedules.find(s => String(s.id) === String(id));
+        if (!masterHabit) { showModalEl('assignModal'); return; }
+
+        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
+        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
+
+        let curDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
+        let curTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
+
+        $('assignDate').value = curDate;
+        checkDateInputState('assignDate', 'assignDateTodayBtnContainer');
+        $('assignTimeblock').value = curTimeblock;
+        showModalEl('assignModal');
+    }
+
+    async function executeAssignHabit() {
+        const id = $('assignEntryId').value;
+        const targetDate = $('assignDate').value;
+        const targetTimeblock = $('assignTimeblock').value;
+
+        if (!targetDate) return alert('Please select a target date!');
+        const masterHabit = schedules.find(s => String(s.id) === String(id));
+        if (!masterHabit) return alert('Habit tidak ditemukan.');
+
+        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
+        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
+
+        let result;
+        if (activeInst) {
+            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', activeInst.id);
+        } else if (legacyActive) {
+            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', masterHabit.id);
+        } else {
+            const newInstance = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
+            result = await supabaseClient.from('schedules').insert([newInstance]);
+        }
+        if (!result.error) { await fetchSchedules(); goBack(); }
+    }
+
+    async function toggleComplete(id, event) {
+        event.stopPropagation();
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (item) {
+            const { error } = await supabaseClient.from('schedules').update({ completed: !item.completed }).eq('id', id);
+            if (!error) fetchSchedules();
+        }
+    }
+
+    async function deleteSchedule(id, event) {
+        event.stopPropagation();
+        if (confirm('Delete this entry?')) {
+            const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+            if (!error) fetchSchedules();
+        }
+    }
+
+    function openDetailModal(id) { navPush({ modal: 'detailModal', id }); }
+
+    function buildEditablePills(item, parsed) {
+        let html = '';
+        parsed.timeTags.forEach(t => { html += `<span class="editable-pill time-pill">⏱️ ${t}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${t}',true,event)">×</span></span>`; });
+        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) { html += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`; }
+        parsed.labelTags.forEach(l => { if (l.toLowerCase() !== 'deadline') html += `<span class="editable-pill label-pill">🏷️ ${l}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${l}',false,event)">×</span></span>`; });
+        return html || '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
+    }
+
+    async function removeTagFromItem(id, token, isTime, event) {
+        event.stopPropagation();
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) return;
+        const esc = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const re = isTime ? new RegExp(`\\b${esc}\\b`, 'i') : new RegExp(`\\.${esc}\\b`, 'i');
+        const newTitle = item.title.replace(re, '').replace(/\s+/g, ' ').trim();
+        const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
+        if (!error) await fetchSchedules();
+    }
+
+    function renderDetailModal(id) {
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) { goBack(); return; }
+
+        const parsed = parseTodoistTitle(item.title);
+        let itemDesc = item.description || '-';
+        let itemPriority = item.type === 'Birthday' ? 'Birthday' : (item.type === 'Deadline' ? 'N/A' : item.priority);
+        let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
+        const isHabitMaster = isMasterHabitItem(item);
+        let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
+        let displayDate = getDisplayDate(item);
+
+        $('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
+        $('modalBodyContent').innerHTML = `
+            <p><strong>Date</strong> ${displayDate || 'Habit (Idle / Master Pool)'}</p>
+            <p><strong>Description / Note</strong> ${itemDesc}</p>
+            <p><strong>Priority Tag</strong> ${itemPriority}</p>
+            <p><strong>Timeblock</strong> ${itemTimeblock}</p>
+            <p><strong>Status</strong> ${itemStatus}</p>
+            ${isHabitMaster ? buildHabitHeatmapHTML(item.title, priorityColors[item.priority] || '#7a9c72') : ''}
+            <p><strong>Tags & Labels</strong></p>
+            <div class="editable-pill-container">${buildEditablePills(item, parsed)}</div>
+        `;
+        showModalEl('detailModal');
+    }
+
+    window.labelCustomOrders = {};
+    try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
+    window.labelEditOrderActive = null;
+    window.labelBatchModeActive = null;
+    window.labelBatchSelectedIds = new Set();
+
+    function toggleLabelBatchMode(targetParam) {
+        if (window.labelBatchModeActive === targetParam) {
+            window.labelBatchModeActive = null;
+            window.labelBatchSelectedIds = new Set();
+        } else {
+            window.labelEditOrderActive = null;
+            window.labelBatchModeActive = targetParam;
+            window.labelBatchSelectedIds = new Set();
+        }
+        rerenderTop();
+    }
+
+    function toggleLabelBatchItem(id, event) {
+        if (event) event.stopPropagation();
+        const strId = String(id);
+        if (window.labelBatchSelectedIds.has(strId)) {
+            window.labelBatchSelectedIds.delete(strId);
+        } else {
+            window.labelBatchSelectedIds.add(strId);
+        }
+        rerenderTop();
+    }
+
+    function toggleSelectAllLabelBatch(targetParam) {
+        const matched = getActiveItemsForLabel(targetParam);
+        const allSelected = matched.length > 0 && matched.every(s => window.labelBatchSelectedIds.has(String(s.id)));
+        if (allSelected) {
+            window.labelBatchSelectedIds = new Set();
+        } else {
+            window.labelBatchSelectedIds = new Set(matched.map(s => String(s.id)));
+        }
+        rerenderTop();
+    }
+
+    function getActiveItemsForLabel(targetParam) {
+        return schedules.filter(s => {
+            if (s.type === 'Habit' || s.isHabitInstance) return false;
+            if (isInLabelBin(s.id)) return false;
+            return targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline' ? true : parseTodoistTitle(s.title).labelTags.includes(targetParam);
+        });
+    }
+
+    function executeBatchArchiveLabelItems(targetParam) {
+        const selectedIds = Array.from(window.labelBatchSelectedIds);
+        if (selectedIds.length === 0) return alert('Select at least one item first.');
+        moveIdsToLabelBin(selectedIds);
+        window.labelBatchSelectedIds = new Set();
+        window.labelBatchModeActive = null;
+        updateArchiveCounters();
+        renderAgendaList();
+        const remaining = getActiveItemsForLabel(targetParam);
+        if (remaining.length === 0) {
+            goBack();
+        } else {
+            rerenderTop();
+        }
+    }
+
+    function restoreLabelBinItem(id, event) {
+        if (event) event.stopPropagation();
+        restoreIdFromLabelBin(id);
+        updateArchiveCounters();
+        renderAgendaList();
+        rerenderTop();
+    }
+
+    async function deleteLabelBinItemPermanent(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Delete this archived item permanently?')) return;
+        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (!error) {
+            restoreIdFromLabelBin(id);
+            await fetchSchedules();
+        }
+    }
+
+    function saveLabelOrders() {
+        try { localStorage.setItem('yorushika_labelOrders', JSON.stringify(window.labelCustomOrders)); } catch(e) {}
+    }
+
+    function rerenderTop() { if (screenStack.length > 0) renderScreen(screenStack[screenStack.length - 1]); }
+
+    function toggleLabelEditOrder(targetParam) {
+        window.labelEditOrderActive = (window.labelEditOrderActive === targetParam) ? null : targetParam;
+        rerenderTop();
+    }
+
+    let dragState = null;
+    function onHandlePointerDown(e, idx, param) {
+        e.preventDefault();
+        dragState = { param, currentIdx: idx };
+        const item = e.currentTarget.closest('.agenda-item');
+        if (item) item.style.opacity = '0.6';
+        document.addEventListener('pointermove', onHandlePointerMove);
+        document.addEventListener('pointerup', onHandlePointerUp);
+        document.addEventListener('pointercancel', onHandlePointerUp);
+    }
+    function onHandlePointerMove(e) {
+        if (!dragState) return;
+        e.preventDefault();
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const overItem = el ? el.closest('.agenda-item[data-drag-idx]') : null;
+        if (!overItem) return;
+        const targetIdx = parseInt(overItem.getAttribute('data-drag-idx'), 10);
+        if (isNaN(targetIdx) || targetIdx === dragState.currentIdx) return;
+        let orderArr = window.labelCustomOrders[dragState.param];
+        if (!orderArr) return;
+        orderArr.splice(targetIdx, 0, orderArr.splice(dragState.currentIdx, 1)[0]);
+        dragState.currentIdx = targetIdx;
+        rerenderTop();
+    }
+    function onHandlePointerUp() {
+        document.removeEventListener('pointermove', onHandlePointerMove);
+        document.removeEventListener('pointerup', onHandlePointerUp);
+        document.removeEventListener('pointercancel', onHandlePointerUp);
+        if (dragState) saveLabelOrders();
+        dragState = null;
+        rerenderTop();
+    }
+
+    function openDirectoryModal(typeKey, targetParam = null) { navPush({ modal: 'directoryModal', key: typeKey, param: targetParam }); }
+
+    function renderDirectoryModal(typeKey, targetParam = null) {
+        const modalTitle = $('directoryModalTitle');
+        const modalContent = $('directoryModalContent');
+        const modalHeaderEl = $('directoryModalHeader');
+        const todayStr = getTodayDateString();
+
+        let headerActionsHTML = '';
+        if (typeKey === 'collections' && targetParam !== null) {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
+            headerActionsHTML += `<button class="btn-delete" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelBatchMode('${targetParam}')">${window.labelBatchModeActive === targetParam ? 'Cancel' : 'Select'}</button>`;
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">${window.labelEditOrderActive === targetParam ? 'Done' : 'Edit Order'}</button>`;
+        } else if (typeKey === 'collections' && targetParam === null) {
+            headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections_bin')">🗑️ Bin</button>`;
+        } else if (typeKey === 'collections_bin') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
+        } else if (typeKey === 'habits_list' || typeKey === 'habits_bin') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
+        } else if (typeKey === 'habits') {
+            headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`;
+        }
+        headerActionsHTML += `<button class="modal-close" onclick="closeDirectoryModal()">×</button>`;
+
+        let html = '';
+        if (typeKey === 'birthdays') {
+            modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
+            let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => (a.date || '12-31').localeCompare(b.date || '12-31'));
+            html = birthdays.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>' : birthdays.map(s => renderCardHTML(s, 'var(--birthday-strawberry)', true)).join('');
+        } else if (typeKey === 'habits') {
+            modalTitle.innerText = '🔁 HABITS CATEGORY';
+            let habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed);
+            let pCounts = { professional: 0, daily: 0, personal: 0 };
+            habits.forEach(s => { let p = s.priority || 'personal'; if(pCounts[p]!==undefined) pCounts[p]++; });
+
+            html += `
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'professional')">
+                    <div class="agenda-content"><h4>💼 Professional</h4></div>
+                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.professional} items</span><span style="font-size:10px; color:#fff;">→</span></div>
+                </div>
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'daily')">
+                    <div class="agenda-content"><h4>☕ Daily</h4></div>
+                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.daily} items</span><span style="font-size:10px; color:#fff;">→</span></div>
+                </div>
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'personal')">
+                    <div class="agenda-content"><h4>🌱 Personal</h4></div>
+                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.personal} items</span><span style="font-size:10px; color:#fff;">→</span></div>
+                </div>`;
+       } else if (typeKey === 'habits_list') {
+            modalTitle.innerText = `🔁 HABITS: ${targetParam.toUpperCase()}`;
+            const habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed && String(s.priority || 'personal').toLowerCase() === String(targetParam).toLowerCase());
+
+            if (!habits.length) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>';
+            } else {
+                const groups = habits.reduce((acc, s) => {
+                    const tag = getFirstHabitLabel(s.title);
+                    (acc[tag] = acc[tag] || []).push(s);
+                    return acc;
+                }, {});
+
+                html = Object.keys(groups).sort().map(tag => {
+                    const items = groups[tag].sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+                    const cards = items.map(s => renderHabitCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+                    
+                    return `
+                        <div class="section-category-box" style="margin-bottom: 12px;">
+                            <div class="section-category-title">
+                                <span>🏷️ TAG: #${tag.toUpperCase()}</span>
+                                <span>[${items.length}]</span>
+                            </div>
+                            ${cards}
+                        </div>`;
+                }).join('');
+            }
+        } else if (typeKey === 'habits_bin') {
+            modalTitle.innerText = '🗑️ HABITS BIN';
+            let archived = schedules.filter(s => isMasterHabitItem(s) && Boolean(s.completed)).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+            html = archived.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>' : archived.map(s => renderHabitBinCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+        } else if (typeKey === 'skipped') {
+            modalTitle.innerText = '🕰️ SKIPPED TASKS';
+            const skipped = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
+            html = skipped.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>' : skipped.map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'today_overflow') {
+            modalTitle.innerText = '📌 TODAY (FULL LIST)';
+            html = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr))).map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
+        } else if (typeKey === 'upcoming_overflow') {
+            modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
+            let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
+            html = sortItems(schedules.filter(s => isMatchingToday(s, tomStr))).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'inbox_overflow') {
+            modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
+            html = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'collections_bin') {
+            modalTitle.innerText = '🗑️ LABELS BIN';
+            const binnedItems = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && isInLabelBin(s.id));
+            if (binnedItems.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Labels bin is empty.</div>';
+            } else {
+                const groups = {};
+                binnedItems.forEach(s => {
+                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
+                    if (tags.length === 0) tags.push('unlabeled');
+                    tags.forEach(t => { (groups[t] = groups[t] || []).push(s); });
+                });
+                html = Object.keys(groups).sort().map(tag => {
+                    const cards = groups[tag].map(s => {
+                        const parsed = parseTodoistTitle(s.title);
+                        let pillsHTML = '';
+                        if (parsed.timeTags.length > 0) pillsHTML += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
+                        if (parsed.labelTags.length > 0) pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+                        return `
+                            <div class="agenda-item" style="background: ${getBgStyle(s)}; opacity: 0.75;" onclick="openDetailModal('${s.id}')">
+                                <div class="agenda-content">
+                                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                                </div>
+                                <div class="agenda-right-cluster">
+                                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                                    <div class="agenda-actions">
+                                        <button class="btn-assign" onclick="restoreLabelBinItem('${s.id}', event)" title="Restore to active label">Restore</button>
+                                        <button class="btn-delete" onclick="deleteLabelBinItemPermanent('${s.id}', event)" title="Delete permanently">X</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                    return `
+                        <div class="section-category-box" style="margin-bottom: 12px;">
+                            <div class="section-category-title">
+                                <span>🏷️ #${tag.toUpperCase()}</span>
+                                <span>[${groups[tag].length}]</span>
+                            </div>
+                            ${cards}
+                        </div>`;
+                }).join('');
+            }
+        } else if (typeKey === 'collections') {
+            if (!targetParam) {
+                modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
+                let labelMap = {};
+                schedules.forEach(s => {
+                    if (s.type === 'Habit' || s.isHabitInstance) return;
+                    if (isInLabelBin(s.id)) return;
+                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
+                    tags.forEach(l => { (labelMap[l] = labelMap[l] || []).push(s); });
+                });
+                let keys = Object.keys(labelMap).sort((a, b) => a.toLowerCase() === 'deadline' ? -1 : (b.toLowerCase() === 'deadline' ? 1 : a.localeCompare(b)));
+                
+                if (keys.length === 0) { html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found.</div>'; } 
+                else {
+                    keys.forEach(l => {
+                        const isDeadline = (l.toLowerCase() === 'deadline');
+                        const cardBg = isDeadline ? 'background: var(--deadline-crimson); border-color: #ff5555;' : 'background: #232320;';
+                        const pinnedBadge = isDeadline ? '<span style="font-size: 8px; background: var(--bg-pure); color: #ffffff; padding: 1px 5px; border-radius: 3px; margin-left: 4px;">📌 pinned</span>' : '';
+                        html += `
+                            <div class="agenda-item" style="${cardBg} margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
+                                <div class="agenda-content"><h4>🏷️ ${l} ${pinnedBadge}</h4></div>
+                                <div class="agenda-right-cluster"><span style="font-size:10px; color:#fff;">${labelMap[l].length} items →</span></div>
+                            </div>`;
+                    });
+                }
+            } else {
+                modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
+                let matched = getActiveItemsForLabel(targetParam);
+                
+                if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
+                let orderArr = window.labelCustomOrders[targetParam];
+                matched.sort((a, b) => {
+                    let idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
+                    return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+                });
+
+                const isBatchMode = (window.labelBatchModeActive === targetParam);
+                if (isBatchMode) {
+                    const allSelected = matched.length > 0 && matched.every(s => window.labelBatchSelectedIds.has(String(s.id)));
+                    const selCount = matched.filter(s => window.labelBatchSelectedIds.has(String(s.id))).length;
+                    html += `
+                        <div class="batch-toolbar">
+                            <div class="batch-toolbar-left">
+                                <button class="btn-edit" onclick="toggleSelectAllLabelBatch('${targetParam}')">${allSelected ? 'Unselect All' : 'Select All'}</button>
+                                <span style="font-size: 10px; color: var(--muted-gray);">${selCount} selected</span>
+                            </div>
+                            <div class="batch-toolbar-right">
+                                <button class="btn-delete" onclick="executeBatchArchiveLabelItems('${targetParam}')">Move to Bin (${selCount})</button>
+                            </div>
+                        </div>`;
+                }
+
+                if (matched.length === 0) {
+                    html += '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No active items in this label.</div>';
+                } else {
+                    matched.forEach((s, idx) => {
+                        let isDragMode = (window.labelEditOrderActive === targetParam);
+                        let dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
+                        let handleHTML = isDragMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event, ${idx}, '${targetParam}')">⋮⋮</div>` : '';
+                        if (isBatchMode) {
+                            const checked = window.labelBatchSelectedIds.has(String(s.id)) ? 'checked' : '';
+                            handleHTML = `<input type="checkbox" class="batch-select-cb" ${checked} onclick="toggleLabelBatchItem('${s.id}', event)">`;
+                        }
+                        html += renderCardHTML(s, getBgStyle(s), false, dragAttr, handleHTML, isDragMode || isBatchMode);
+                    });
+                }
+            }
+        }
+
+        modalHeaderEl.innerHTML = `<span id="directoryModalTitle">${modalTitle.innerText}</span><div style="display:flex; align-items:center;">${headerActionsHTML}</div>`;
+        modalContent.innerHTML = html;
+        showModalEl('directoryModal');
+    }
+
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false, allowPin = false) {
+        const isPast = s.date && s.date < getTodayDateString();
+        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
+        
+        const parsed = parseTodoistTitle(s.title);
+        
+        let pillsHTML = '';
+        if (parsed.timeTags.length > 0) {
+            pillsHTML += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
+        }
+        if (parsed.labelTags.length > 0) {
+            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+            if (parsed.labelTags.length > 1) {
+                pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
+            }
+        }
+
+        let hasNote = (s.description && s.description.trim() !== '');
+        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
+        
+        let showDateTag = (isBirthdayDirectory || s.type === 'Birthday');
+        let bdayTagHTML = showDateTag ? `<span class="birthday-date-tag">🎂 ${getDisplayDate(s)}</span>` : '';
+
+        let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
+        let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
+        const pinned = allowPin && isTodayPinned(s.id);
+        const pinBtnHTML = allowPin ? `<button class="btn-pin ${pinned ? 'pinned' : ''}" onclick="toggleTodayPin('${s.id}', event)" title="${pinned ? 'Unpin from top' : 'Pin to top (do now)'}">📌</button>` : '';
+        const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
+
+        return `
+            <div class="${itemClass}" style="background: ${bgStyle};" ${wrapperAttrs} ${clickAction}>
+                ${injectLeftHTML}
+                <div class="agenda-content">
+                    <h4>${typePrefix} ${parsed.cleanTitle}</h4>
+                    ${bdayTagHTML}
+                    ${noteHTML}
+                </div>
+                <div class="agenda-right-cluster">
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    <div class="agenda-actions">
+                        ${pinBtnHTML}
+                        ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
+                        <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                        <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function renderHabitCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        if (parsed.labelTags.length > 0) {
+            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+            if (parsed.labelTags.length > 1) pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
+        }
+        
+        let hasNote = (s.description && s.description.trim() !== '');
+        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
+
+        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === s.title);
+        let legacyActive = !activeInst && s.date !== null && !s.completed;
+        let displayDate = activeInst ? activeInst.date : (legacyActive ? s.date : null);
+        
+        let assignBtnText = displayDate ? 'Re-assign' : 'Assign';
+        let assignBtnClass = displayDate ? 'btn-reassign' : 'btn-assign';
+
+        return `
+            <div class="agenda-item" style="background: ${solidBg};" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    ${noteHTML}
+                </div>
+                <div class="agenda-right-cluster">
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    <div class="agenda-actions">
+                        <button class="btn-archive-habit" onclick="archiveHabit('${s.id}', event)" title="Move to Habits Bin">✓</button>
+                        <button class="${assignBtnClass}" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
+                        <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                        <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function renderHabitBinCardHTML(s, solidBg) {
+        const parsed = parseTodoistTitle(s.title);
+        let pillsHTML = '';
+        if (parsed.labelTags.length > 0) {
+            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+            if (parsed.labelTags.length > 1) pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
+        }
+        let hasNote = (s.description && s.description.trim() !== '');
+        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
+
+        return `
+            <div class="agenda-item" style="background: ${solidBg}; opacity: 0.7;" onclick="openDetailModal('${s.id}')">
+                <div class="agenda-content">
+                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
+                    ${noteHTML}
+                </div>
+                <div class="agenda-right-cluster">
+                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    <div class="agenda-actions">
+                        <button class="btn-assign" onclick="restoreHabit('${s.id}', event)" title="Restore to active Habits">Restore</button>
+                        <button class="btn-delete" onclick="deleteHabitPermanent('${s.id}', event)" title="Delete permanently">X</button>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    async function archiveHabit(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Move this habit to the Habits Bin?')) return;
+        const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
+        if (!error) await fetchSchedules();
+    }
+
+    async function restoreHabit(id, event) {
+        if (event) event.stopPropagation();
+        const { error } = await supabaseClient.from('schedules').update({ completed: false }).eq('id', id);
+        if (!error) await fetchSchedules();
+    }
+
+    async function deleteHabitPermanent(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Delete this habit permanently?')) return;
+        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (!error) await fetchSchedules();
+    }
+
+    function buildHabitHeatmapHTML(habitTitle, accentColor) {
+        const completedDates = new Set(schedules.filter(x => isHabitInst(x) && x.completed === true && (x.title || '').trim() === (habitTitle || '').trim() && x.date).map(x => x.date));
+        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const endOfWeek = new Date(today); endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+        const startDate = new Date(endOfWeek); startDate.setDate(endOfWeek.getDate() - (53 * 7) + 1);
+
+        let dotsHTML = '', doneCount = 0;
+        for (let col = 0; col < 53; col++) {
+            for (let row = 0; row < 7; row++) {
+                const cellDate = new Date(startDate); cellDate.setDate(startDate.getDate() + col * 7 + row);
+                if (cellDate > today) continue;
+                const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+                const isFilled = completedDates.has(dateStr);
+                if (isFilled) doneCount++;
+                dotsHTML += `<circle cx="${col * 10 + 5}" cy="${row * 10 + 5}" r="3.3" fill="${isFilled ? accentColor : 'var(--border-color)'}"><title>${dateStr}${isFilled ? ' — done' : ''}</title></circle>`;
+            }
+        }
+        return `
+            <div style="color: var(--muted-gray); font-size: 10px; margin: 8px 0 4px 0;">Contribution Heatmap (Past Year) — ${doneCount} done</div>
+            <div style="background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px;">
+                <svg viewBox="0 0 530 70" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; display: block;">${dotsHTML}</svg>
+            </div>`;
+    }
+
+    function isMatchingToday(item, targetDateStr) {
+        if (!item) return false;
+        if (item.date === targetDateStr) return true;
+        if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
+            const parts = item.date.split('-');
+            const targetParts = targetDateStr.split('-');
+            return parts[1] === targetParts[1] && parts[2] === targetParts[2];
+        }
+        return false;
+    }
+
+    function renderAgendaList() {
+        const container = $('agendaContainer');
+        const dumplistContainer = $('dumplistContainer');
+        const todayStr = getTodayDateString();
+        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+
+        if (schedules.length === 0) { container.innerHTML = 'No entries recorded yet.'; dumplistContainer.innerHTML = ''; return; }
+
+        if (selectedFilterDate) {
+            $('clearFilterBtn').style.display = 'inline-block';
+            let filtered = sortItems(schedules.filter(s => isMatchingToday(s, selectedFilterDate)));
+            if (filtered.length === 0) { container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`; } 
+            else {
+                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filtered.length}]</span></div>`;
+                filtered.forEach(s => html += renderCardHTML(s, getBgStyle(s)));
+                container.innerHTML = html + `</div>`;
+            }
+            dumplistContainer.innerHTML = '';
+        } else {
+            $('clearFilterBtn').style.display = 'none';
+            let htmlMain = '';
+
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
+            if (inboxItems.length > 0) {
+                let htmlDump = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>`;
+                inboxItems.slice(0, 3).forEach(s => htmlDump += renderCardHTML(s, getBgStyle(s)));
+                if (inboxItems.length > 3) htmlDump += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>`;
+                dumplistContainer.innerHTML = htmlDump + `</div>`;
+            } else { dumplistContainer.innerHTML = ''; }
+
+            const todayItems = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr)));
+            if (todayItems.length > 0) {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
+                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
+                if (todayItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
+                htmlMain += `</div>`;
+            }
+
+            const upcomingItems = sortItems(schedules.filter(s => isMatchingToday(s, tomStr)));
+            if (upcomingItems.length > 0) {
+                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
+                upcomingItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
+                if (upcomingItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${upcomingItems.length - 5} more upcoming items...</button>`;
+                htmlMain += `</div>`;
+            }
+
+            container.innerHTML = htmlMain || `<div style="text-align: center; padding: 20px; color: var(--muted-gray);">No scheduled entries for today or tomorrow.</div>`;
+        }
+    }
+
+    checkAuthAndInit();
+</script>
+</body>
+</html>
