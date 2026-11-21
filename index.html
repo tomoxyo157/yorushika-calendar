@@ -77,7 +77,7 @@
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 10px; color: var(--muted-gray); margin-bottom: 5px; letter-spacing: 0.5px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .day-cell:hover { border-color: var(--accent-color); background: var(--card-bg); }
-        .day-cell.today { border: 1px solid var(--text-main); background: var(--card-bg); }
+        .day-cell.today { border: 1.5px solid var(--text-main); box-shadow: 0 0 0 1px rgba(227, 222, 216, 0.25); background: var(--card-bg); }
         .day-cell.today .day-number { color: var(--text-main); text-decoration: underline; }
         .day-number { font-weight: 600; color: var(--muted-gray); font-size: 13px; }
         
@@ -128,7 +128,7 @@
         .nav-counter-badge.red-alert { background: #ff4d6d; color: #ffffff; }
         .btn-window-trigger:hover .nav-counter-badge.red-alert { background: #ffffff; color: #ff4d6d; }
 
-        .dumplist-box, .section-category-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px; margin-top: 10px; }
+        .dumplist-box, .section-category-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px; margin-bottom: 9px; margin-top: 0; }
         .section-category-box { margin-bottom: 9px; margin-top: 0; }
         .dumplist-title, .section-category-title { font-size: 12px; color: var(--muted-gray); margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; }
         .section-category-title { color: var(--text-main); padding-bottom: 5px; }
@@ -158,6 +158,12 @@
         .btn-edit:hover { background: #55ff55; color: black; }
         .btn-delete { color: #ff8585; border: 1px solid #ff8585; padding: 2px 4px; }
         .btn-delete:hover { background: #ff5555; color: white; }
+        .btn-pin { background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.28); color: #b5b0a4; border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; padding: 2px 5px; line-height: 1.1; }
+        .btn-pin:hover { border-color: var(--text-main); color: var(--text-main); }
+        .btn-pin.pinned { background: var(--text-main); color: var(--bg-pure); border-color: var(--text-main); }
+        .batch-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 7px; padding: 6px 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .batch-toolbar-left, .batch-toolbar-right { display: flex; align-items: center; gap: 5px; }
+        .batch-select-cb { width: 13px; height: 13px; cursor: pointer; accent-color: var(--text-main); margin: 0 4px 0 0; flex-shrink: 0; }
 
         .btn-overflow-more { display: block; width: 100%; background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px; padding: 6px; font-size: 10px; text-align: center; cursor: pointer; margin-top: 5px; }
         .btn-overflow-more:hover { background: var(--border-color); }
@@ -278,8 +284,8 @@
                 </button>
             </div>
 
-            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
             <div id="dumplistContainer"></div>
+            <div id="agendaContainer" style="font-size: 11px; color: var(--muted-gray);">No entries recorded yet.</div>
         </div>
     </div>
 
@@ -428,6 +434,95 @@
     let selectedFilterDate = null;
     let screenStack = [];
 
+    // Modular Local Storage Helpers (designed for easy future migration to Supabase)
+    const STORAGE_KEYS = {
+        TODAY_PINS: 'yorushika_today_pinned_ids',
+        LABEL_BIN: 'yorushika_label_bin_ids'
+    };
+
+    function getTodayPinnedIds() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_PINS));
+            return Array.isArray(raw) ? raw.map(String) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveTodayPinnedIds(ids) {
+        try { localStorage.setItem(STORAGE_KEYS.TODAY_PINS, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
+    }
+
+    function isTodayPinned(id) {
+        return getTodayPinnedIds().includes(String(id));
+    }
+
+    function toggleTodayPin(id, event) {
+        if (event) event.stopPropagation();
+        const strId = String(id);
+        let pinned = getTodayPinnedIds();
+        if (pinned.includes(strId)) {
+            pinned = pinned.filter(x => x !== strId);
+        } else {
+            pinned.unshift(strId);
+        }
+        saveTodayPinnedIds(pinned);
+        renderCalendar();
+        rerenderTop();
+    }
+
+    function pruneStaleTodayPins(validItems) {
+        const validSet = new Set((validItems || []).map(x => String(x.id)));
+        const current = getTodayPinnedIds();
+        const pruned = current.filter(id => validSet.has(id));
+        if (pruned.length !== current.length) saveTodayPinnedIds(pruned);
+    }
+
+    function getLabelBinIds() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.LABEL_BIN));
+            return Array.isArray(raw) ? raw.map(String) : [];
+        } catch (e) { return []; }
+    }
+
+    function saveLabelBinIds(ids) {
+        try { localStorage.setItem(STORAGE_KEYS.LABEL_BIN, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
+    }
+
+    function isInLabelBin(id) {
+        return getLabelBinIds().includes(String(id));
+    }
+
+    function moveIdsToLabelBin(ids) {
+        const current = getLabelBinIds();
+        saveLabelBinIds([...current, ...ids.map(String)]);
+    }
+
+    function restoreIdFromLabelBin(id) {
+        const strId = String(id);
+        saveLabelBinIds(getLabelBinIds().filter(x => x !== strId));
+    }
+
+    function pruneStaleLabelBin(validItems) {
+        const validSet = new Set((validItems || []).map(x => String(x.id)));
+        const current = getLabelBinIds();
+        const pruned = current.filter(id => validSet.has(id));
+        if (pruned.length !== current.length) saveLabelBinIds(pruned);
+    }
+
+    function sortTodayItemsWithPins(items) {
+        const sorted = sortItems(items);
+        const pinnedIds = getTodayPinnedIds();
+        if (pinnedIds.length === 0) return sorted;
+        const pinnedSet = new Set(pinnedIds);
+        const pinnedList = [];
+        const regularList = [];
+        sorted.forEach(item => {
+            if (pinnedSet.has(String(item.id))) pinnedList.push(item);
+            else regularList.push(item);
+        });
+        pinnedList.sort((a, b) => pinnedIds.indexOf(String(a.id)) - pinnedIds.indexOf(String(b.id)));
+        return [...pinnedList, ...regularList];
+    }
+
     const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
     const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
     
@@ -484,7 +579,7 @@
         if (screenStack.length === 0) return;
         screenStack.pop();
         if (screenStack.length > 0) { renderScreen(screenStack[screenStack.length - 1]); }
-        else { window.labelEditOrderActive = null; ALL_MODALS.forEach(hideModalEl); }
+        else { window.labelEditOrderActive = null; window.labelBatchModeActive = null; window.labelBatchSelectedIds = new Set(); ALL_MODALS.forEach(hideModalEl); }
     });
 
     window.addEventListener('keydown', (e) => {
@@ -633,6 +728,8 @@
             schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
         }
 
+        pruneStaleTodayPins(schedules);
+        pruneStaleLabelBin(schedules);
         updateArchiveCounters();
         renderCalendar();
 
@@ -651,6 +748,7 @@
         let allLabels = new Set();
         schedules.forEach(s => {
             if (s.type === 'Habit' || s.isHabitInstance) return;
+            if (isInLabelBin(s.id)) return;
             parseTodoistTitle(s.title).labelTags.forEach(l => allLabels.add(l));
             if (s.type === 'Deadline') allLabels.add('deadline');
         });
@@ -739,7 +837,14 @@
     }
 
     function changeMonth(direction) { currentDate.setMonth(currentDate.getMonth() + direction); renderCalendar(); }
-    function jumpToCurrentMonth() { currentDate = new Date(); renderCalendar(); }
+    function jumpToCurrentMonth() {
+        currentDate = new Date();
+        const todayStr = getTodayDateString();
+        selectedFilterDate = todayStr;
+        $('m_date').value = todayStr;
+        checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        renderCalendar();
+    }
 
     function handleGridCellClick(dateStr) {
         $('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
@@ -780,7 +885,13 @@
             $('m_timeblock').value = item.timeblock || 'none';
             m_handleTypeChange();
             $('modalFormHeaderTitle').innerText = 'Edit / Reschedule';$('m_submitBtn').innerText = 'Update Entry';
-        } else { m_resetForm(); }
+        } else {
+            m_resetForm();
+            if (selectedFilterDate) {
+                $('m_date').value = selectedFilterDate;
+                checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+            }
+        }
         showModalEl('formModal');
     }
 
@@ -928,6 +1039,84 @@
     window.labelCustomOrders = {};
     try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
     window.labelEditOrderActive = null;
+    window.labelBatchModeActive = null;
+    window.labelBatchSelectedIds = new Set();
+
+    function toggleLabelBatchMode(targetParam) {
+        if (window.labelBatchModeActive === targetParam) {
+            window.labelBatchModeActive = null;
+            window.labelBatchSelectedIds = new Set();
+        } else {
+            window.labelEditOrderActive = null;
+            window.labelBatchModeActive = targetParam;
+            window.labelBatchSelectedIds = new Set();
+        }
+        rerenderTop();
+    }
+
+    function toggleLabelBatchItem(id, event) {
+        if (event) event.stopPropagation();
+        const strId = String(id);
+        if (window.labelBatchSelectedIds.has(strId)) {
+            window.labelBatchSelectedIds.delete(strId);
+        } else {
+            window.labelBatchSelectedIds.add(strId);
+        }
+        rerenderTop();
+    }
+
+    function toggleSelectAllLabelBatch(targetParam) {
+        const matched = getActiveItemsForLabel(targetParam);
+        const allSelected = matched.length > 0 && matched.every(s => window.labelBatchSelectedIds.has(String(s.id)));
+        if (allSelected) {
+            window.labelBatchSelectedIds = new Set();
+        } else {
+            window.labelBatchSelectedIds = new Set(matched.map(s => String(s.id)));
+        }
+        rerenderTop();
+    }
+
+    function getActiveItemsForLabel(targetParam) {
+        return schedules.filter(s => {
+            if (s.type === 'Habit' || s.isHabitInstance) return false;
+            if (isInLabelBin(s.id)) return false;
+            return targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline' ? true : parseTodoistTitle(s.title).labelTags.includes(targetParam);
+        });
+    }
+
+    function executeBatchArchiveLabelItems(targetParam) {
+        const selectedIds = Array.from(window.labelBatchSelectedIds);
+        if (selectedIds.length === 0) return alert('Select at least one item first.');
+        moveIdsToLabelBin(selectedIds);
+        window.labelBatchSelectedIds = new Set();
+        window.labelBatchModeActive = null;
+        updateArchiveCounters();
+        renderAgendaList();
+        const remaining = getActiveItemsForLabel(targetParam);
+        if (remaining.length === 0) {
+            goBack();
+        } else {
+            rerenderTop();
+        }
+    }
+
+    function restoreLabelBinItem(id, event) {
+        if (event) event.stopPropagation();
+        restoreIdFromLabelBin(id);
+        updateArchiveCounters();
+        renderAgendaList();
+        rerenderTop();
+    }
+
+    async function deleteLabelBinItemPermanent(id, event) {
+        if (event) event.stopPropagation();
+        if (!confirm('Delete this archived item permanently?')) return;
+        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
+        if (!error) {
+            restoreIdFromLabelBin(id);
+            await fetchSchedules();
+        }
+    }
 
     function saveLabelOrders() {
         try { localStorage.setItem('yorushika_labelOrders', JSON.stringify(window.labelCustomOrders)); } catch(e) {}
@@ -984,7 +1173,12 @@
         let headerActionsHTML = '';
         if (typeKey === 'collections' && targetParam !== null) {
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
+            headerActionsHTML += `<button class="btn-delete" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelBatchMode('${targetParam}')">${window.labelBatchModeActive === targetParam ? 'Cancel' : 'Select'}</button>`;
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">${window.labelEditOrderActive === targetParam ? 'Done' : 'Edit Order'}</button>`;
+        } else if (typeKey === 'collections' && targetParam === null) {
+            headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections_bin')">🗑️ Bin</button>`;
+        } else if (typeKey === 'collections_bin') {
+            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
         } else if (typeKey === 'habits_list' || typeKey === 'habits_bin') {
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
         } else if (typeKey === 'habits') {
@@ -1053,7 +1247,7 @@
             html = skipped.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>' : skipped.map(s => renderCardHTML(s, getBgStyle(s))).join('');
         } else if (typeKey === 'today_overflow') {
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
-            html = sortItems(schedules.filter(s => isMatchingToday(s, todayStr))).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+            html = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr))).map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
             let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
@@ -1061,12 +1255,56 @@
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
             html = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+        } else if (typeKey === 'collections_bin') {
+            modalTitle.innerText = '🗑️ LABELS BIN';
+            const binnedItems = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && isInLabelBin(s.id));
+            if (binnedItems.length === 0) {
+                html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Labels bin is empty.</div>';
+            } else {
+                const groups = {};
+                binnedItems.forEach(s => {
+                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
+                    if (tags.length === 0) tags.push('unlabeled');
+                    tags.forEach(t => { (groups[t] = groups[t] || []).push(s); });
+                });
+                html = Object.keys(groups).sort().map(tag => {
+                    const cards = groups[tag].map(s => {
+                        const parsed = parseTodoistTitle(s.title);
+                        let pillsHTML = '';
+                        if (parsed.timeTags.length > 0) pillsHTML += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
+                        if (parsed.labelTags.length > 0) pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+                        return `
+                            <div class="agenda-item" style="background: ${getBgStyle(s)}; opacity: 0.75;" onclick="openDetailModal('${s.id}')">
+                                <div class="agenda-content">
+                                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
+                                </div>
+                                <div class="agenda-right-cluster">
+                                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                                    <div class="agenda-actions">
+                                        <button class="btn-assign" onclick="restoreLabelBinItem('${s.id}', event)" title="Restore to active label">Restore</button>
+                                        <button class="btn-delete" onclick="deleteLabelBinItemPermanent('${s.id}', event)" title="Delete permanently">X</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('');
+                    return `
+                        <div class="section-category-box" style="margin-bottom: 12px;">
+                            <div class="section-category-title">
+                                <span>🏷️ #${tag.toUpperCase()}</span>
+                                <span>[${groups[tag].length}]</span>
+                            </div>
+                            ${cards}
+                        </div>`;
+                }).join('');
+            }
         } else if (typeKey === 'collections') {
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
                 let labelMap = {};
                 schedules.forEach(s => {
                     if (s.type === 'Habit' || s.isHabitInstance) return;
+                    if (isInLabelBin(s.id)) return;
                     let tags = [...parseTodoistTitle(s.title).labelTags];
                     if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
                     tags.forEach(l => { (labelMap[l] = labelMap[l] || []).push(s); });
@@ -1088,10 +1326,7 @@
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                let matched = schedules.filter(s => {
-                    if (s.type === 'Habit' || s.isHabitInstance) return false;
-                    return targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline' ? true : parseTodoistTitle(s.title).labelTags.includes(targetParam);
-                });
+                let matched = getActiveItemsForLabel(targetParam);
                 
                 if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
                 let orderArr = window.labelCustomOrders[targetParam];
@@ -1100,12 +1335,36 @@
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
 
-                matched.forEach((s, idx) => {
-                    let isDragMode = (window.labelEditOrderActive === targetParam);
-                    let dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
-                    let handleHTML = isDragMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event, ${idx}, '${targetParam}')">⋮⋮</div>` : '';
-                    html += renderCardHTML(s, getBgStyle(s), false, dragAttr, handleHTML, isDragMode);
-                });
+                const isBatchMode = (window.labelBatchModeActive === targetParam);
+                if (isBatchMode) {
+                    const allSelected = matched.length > 0 && matched.every(s => window.labelBatchSelectedIds.has(String(s.id)));
+                    const selCount = matched.filter(s => window.labelBatchSelectedIds.has(String(s.id))).length;
+                    html += `
+                        <div class="batch-toolbar">
+                            <div class="batch-toolbar-left">
+                                <button class="btn-edit" onclick="toggleSelectAllLabelBatch('${targetParam}')">${allSelected ? 'Unselect All' : 'Select All'}</button>
+                                <span style="font-size: 10px; color: var(--muted-gray);">${selCount} selected</span>
+                            </div>
+                            <div class="batch-toolbar-right">
+                                <button class="btn-delete" onclick="executeBatchArchiveLabelItems('${targetParam}')">Move to Bin (${selCount})</button>
+                            </div>
+                        </div>`;
+                }
+
+                if (matched.length === 0) {
+                    html += '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No active items in this label.</div>';
+                } else {
+                    matched.forEach((s, idx) => {
+                        let isDragMode = (window.labelEditOrderActive === targetParam);
+                        let dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
+                        let handleHTML = isDragMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event, ${idx}, '${targetParam}')">⋮⋮</div>` : '';
+                        if (isBatchMode) {
+                            const checked = window.labelBatchSelectedIds.has(String(s.id)) ? 'checked' : '';
+                            handleHTML = `<input type="checkbox" class="batch-select-cb" ${checked} onclick="toggleLabelBatchItem('${s.id}', event)">`;
+                        }
+                        html += renderCardHTML(s, getBgStyle(s), false, dragAttr, handleHTML, isDragMode || isBatchMode);
+                    });
+                }
             }
         }
 
@@ -1114,7 +1373,7 @@
         showModalEl('directoryModal');
     }
 
-    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false) {
+    function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false, allowPin = false) {
         const isPast = s.date && s.date < getTodayDateString();
         const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
         
@@ -1139,6 +1398,8 @@
 
         let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
+        const pinned = allowPin && isTodayPinned(s.id);
+        const pinBtnHTML = allowPin ? `<button class="btn-pin ${pinned ? 'pinned' : ''}" onclick="toggleTodayPin('${s.id}', event)" title="${pinned ? 'Unpin from top' : 'Pin to top (do now)'}">📌</button>` : '';
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
 
         return `
@@ -1152,6 +1413,7 @@
                 <div class="agenda-right-cluster">
                     ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
                     <div class="agenda-actions">
+                        ${pinBtnHTML}
                         ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
                         <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
                         <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
@@ -1300,10 +1562,18 @@
             $('clearFilterBtn').style.display = 'none';
             let htmlMain = '';
 
-            const todayItems = sortItems(schedules.filter(s => isMatchingToday(s, todayStr)));
+            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
+            if (inboxItems.length > 0) {
+                let htmlDump = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>`;
+                inboxItems.slice(0, 3).forEach(s => htmlDump += renderCardHTML(s, getBgStyle(s)));
+                if (inboxItems.length > 3) htmlDump += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>`;
+                dumplistContainer.innerHTML = htmlDump + `</div>`;
+            } else { dumplistContainer.innerHTML = ''; }
+
+            const todayItems = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr)));
             if (todayItems.length > 0) {
                 htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
-                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
+                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
                 if (todayItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
                 htmlMain += `</div>`;
             }
@@ -1317,14 +1587,6 @@
             }
 
             container.innerHTML = htmlMain || `<div style="text-align: center; padding: 20px; color: var(--muted-gray);">No scheduled entries for today or tomorrow.</div>`;
-
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
-            if (inboxItems.length > 0) {
-                let htmlDump = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>`;
-                inboxItems.slice(0, 3).forEach(s => htmlDump += renderCardHTML(s, getBgStyle(s)));
-                if (inboxItems.length > 3) htmlDump += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>`;
-                dumplistContainer.innerHTML = htmlDump + `</div>`;
-            } else { dumplistContainer.innerHTML = ''; }
         }
     }
 
