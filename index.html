@@ -434,6 +434,226 @@
     let selectedFilterDate = null;
     let screenStack = [];
 
+    const OFFLINE_KEYS = {
+        SYNC_QUEUE: 'yorushika_offline_sync_queue_v1',
+        ID_MAP: 'yorushika_offline_id_map_v1'
+    };
+
+    let isSyncingQueue = false;
+
+    function genTempId() {
+        return 'temp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function isTempId(id) {
+        return String(id || '').startsWith('temp_');
+    }
+
+    function loadSyncQueue() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(OFFLINE_KEYS.SYNC_QUEUE));
+            return Array.isArray(raw) ? raw : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveSyncQueue(queue) {
+        try {
+            localStorage.setItem(OFFLINE_KEYS.SYNC_QUEUE, JSON.stringify(queue));
+        } catch (e) {}
+        updateSyncStatusUI();
+    }
+
+    function loadIdMap() {
+        try {
+            const raw = JSON.parse(localStorage.getItem(OFFLINE_KEYS.ID_MAP));
+            return (raw && typeof raw === 'object') ? raw : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveIdMap(mapObj) {
+        try {
+            localStorage.setItem(OFFLINE_KEYS.ID_MAP, JSON.stringify(mapObj));
+        } catch (e) {}
+    }
+
+    function resolveServerId(id) {
+        const strId = String(id);
+        const mapObj = loadIdMap();
+        let cur = strId;
+        const visited = new Set();
+        while (mapObj[cur] && !visited.has(cur)) {
+            visited.add(cur);
+            cur = String(mapObj[cur]);
+        }
+        return cur;
+    }
+
+    function remapTempIdEverywhere(tempId, realId) {
+        const tStr = String(tempId);
+        const rStr = String(realId);
+        if (!rStr || tStr === rStr) return;
+
+        const mapObj = loadIdMap();
+        mapObj[tStr] = rStr;
+        saveIdMap(mapObj);
+
+        schedules = schedules.map(item => String(item.id) === tStr ? { ...item, id: realId } : item);
+        localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+
+        const pins = getTodayPinnedIds();
+        if (pins.includes(tStr)) {
+            saveTodayPinnedIds(pins.map(x => x === tStr ? rStr : x));
+        }
+        const lbin = getLabelBinIds();
+        if (lbin.includes(tStr)) {
+            saveLabelBinIds(lbin.map(x => x === tStr ? rStr : x));
+        }
+        if (window.labelCustomOrders && typeof window.labelCustomOrders === 'object') {
+            Object.keys(window.labelCustomOrders).forEach(k => {
+                if (Array.isArray(window.labelCustomOrders[k])) {
+                    window.labelCustomOrders[k] = window.labelCustomOrders[k].map(x => String(x) === tStr ? realId : x);
+                }
+            });
+            saveLabelOrders();
+        }
+
+        const q = loadSyncQueue().map(op => {
+            const nextOp = { ...op, payload: op.payload ? { ...op.payload } : op.payload };
+            if (String(nextOp.id) === tStr) nextOp.id = realId;
+            if (nextOp.payload && String(nextOp.payload.id) === tStr) nextOp.payload.id = realId;
+            return nextOp;
+        });
+        saveSyncQueue(q);
+    }
+
+    function enqueueMutation(op) {
+        const queue = loadSyncQueue();
+        const entry = {
+            opId: 'op_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+            createdAt: Date.now(),
+            ...op
+        };
+        queue.push(entry);
+        saveSyncQueue(queue);
+    }
+
+    function updateSyncStatusUI() {
+        const statusEl = $('dbStatus');
+        if (!statusEl) return;
+        const qLen = loadSyncQueue().length;
+        const online = navigator.onLine;
+
+        if (isSyncingQueue) {
+            statusEl.innerText = `🔄 Menyinkronkan ${qLen} perubahan ke Supabase...`;
+            statusEl.style.color = '#ffd166';
+            return;
+        }
+        if (!online) {
+            statusEl.innerText = qLen > 0
+                ? `📴 Mode Offline — ${qLen} perubahan menunggu sync`
+                : '📴 Mode Offline (Data lokal aktif)';
+            statusEl.style.color = '#ff8585';
+            return;
+        }
+        if (qLen > 0) {
+            statusEl.innerText = `⏳ Online — ${qLen} perubahan antre sync (klik untuk sync)`;
+            statusEl.style.color = '#ffd166';
+            statusEl.style.cursor = 'pointer';
+            statusEl.onclick = () => flushSyncQueue(true);
+        } else {
+            statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live & Synced)';
+            statusEl.style.color = '#55ff55';
+            statusEl.style.cursor = 'default';
+            statusEl.onclick = null;
+        }
+    }
+
+    function persistLocalAndRefresh(skipFetch = false) {
+        localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        pruneStaleTodayPins(schedules);
+        pruneStaleLabelBin(schedules);
+        updateArchiveCounters();
+        renderCalendar();
+        if (screenStack.length > 0) {
+            const top = screenStack[screenStack.length - 1];
+            if (top.modal !== 'formModal') renderScreen(top);
+        }
+        updateSyncStatusUI();
+        if (!skipFetch && navigator.onLine && !isSyncingQueue && loadSyncQueue().length === 0) {
+            fetchSchedules(true);
+        }
+    }
+
+    async function applyMutationToSupabase(op) {
+        if (op.type === 'insert') {
+            const insertPayload = { ...op.payload };
+            delete insertPayload.id;
+            const { data, error } = await supabaseClient.from('schedules').insert([insertPayload]).select().single();
+            if (error) throw error;
+            if (data && data.id !== undefined && op.tempId) {
+                remapTempIdEverywhere(op.tempId, data.id);
+            }
+            return;
+        }
+
+        const targetId = resolveServerId(op.id);
+        if (isTempId(targetId)) {
+            throw new Error('Temp ID not yet materialized');
+        }
+
+        if (op.type === 'update') {
+            const { error } = await supabaseClient.from('schedules').update(op.payload).eq('id', targetId);
+            if (error) throw error;
+            return;
+        }
+
+        if (op.type === 'delete') {
+            const { error } = await supabaseClient.from('schedules').delete().eq('id', targetId);
+            if (error) throw error;
+            return;
+        }
+    }
+
+    async function flushSyncQueue(forceRefreshAfter = false) {
+        if (isSyncingQueue) return;
+        let queue = loadSyncQueue();
+        if (queue.length === 0) {
+            updateSyncStatusUI();
+            if (forceRefreshAfter && navigator.onLine) await fetchSchedules(true);
+            return;
+        }
+        if (!navigator.onLine) {
+            updateSyncStatusUI();
+            return;
+        }
+
+        isSyncingQueue = true;
+        updateSyncStatusUI();
+
+        const remaining = [];
+        for (let i = 0; i < queue.length; i++) {
+            const op = queue[i];
+            try {
+                await applyMutationToSupabase(op);
+            } catch (err) {
+                console.warn('Sync op failed, keeping in queue:', op, err);
+                remaining.push(...queue.slice(i));
+                break;
+            }
+        }
+
+        isSyncingQueue = false;
+        saveSyncQueue(remaining);
+
+        if (remaining.length === 0 && navigator.onLine) {
+            await fetchSchedules(true);
+        }
+    }
+
     // Modular Local Storage Helpers (designed for easy future migration to Supabase)
     const STORAGE_KEYS = {
         TODAY_PINS: 'yorushika_today_pinned_ids',
@@ -616,9 +836,29 @@
     }
 
     async function checkAuthAndInit() {
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) { $('authOverlay').style.display = 'flex'; } 
-        else { $('authOverlay').style.display = 'none'; fetchSchedules(); }
+        try {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            if (!session) {
+                const cached = JSON.parse(localStorage.getItem('yorushika_schedules') || 'null');
+                if (!navigator.onLine && Array.isArray(cached) && cached.length > 0) {
+                    $('authOverlay').style.display = 'none';
+                    await fetchSchedules(true);
+                    return;
+                }
+                $('authOverlay').style.display = 'flex';
+            } else {
+                $('authOverlay').style.display = 'none';
+                await fetchSchedules(true);
+            }
+        } catch (err) {
+            const cached = JSON.parse(localStorage.getItem('yorushika_schedules') || 'null');
+            if (Array.isArray(cached)) {
+                $('authOverlay').style.display = 'none';
+                await fetchSchedules(true);
+            } else {
+                $('authOverlay').style.display = 'flex';
+            }
+        }
     }
 
     function getTodayDateString() {
@@ -702,24 +942,80 @@
     function handleTypeChange() { sharedTypeChangeLogic(''); }
     function m_handleTypeChange() { sharedTypeChangeLogic('m_'); }
 
-    async function autoDeleteOldHistory(dataItems) {
+    async function autoDeleteOldHistory(dataItems, canHitNetwork = true) {
         const now = new Date();
         const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
         const oneYearAgoStr = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}-${String(oneYearAgo.getDate()).padStart(2, '0')}`;
 
-        const expiredIds = dataItems.filter(s => s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit').map(s => s.id);
-        if (expiredIds.length > 0) {
-            await supabaseClient.from('schedules').delete().in('id', expiredIds);
+        const expiredIds = dataItems
+            .filter(s => !isTempId(s.id) && s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit')
+            .map(s => s.id);
+        if (expiredIds.length > 0 && canHitNetwork && navigator.onLine) {
+            try {
+                await supabaseClient.from('schedules').delete().in('id', expiredIds);
+            } catch (e) {}
             return dataItems.filter(s => !expiredIds.includes(s.id));
         }
         return dataItems;
     }
 
-    async function fetchSchedules() {
+    function applyPendingQueueOverlay(baseList, queue) {
+        const idMap = loadIdMap();
+        const revMap = {};
+        Object.keys(idMap).forEach(tId => {
+            revMap[String(idMap[tId])] = tId;
+        });
+
+        let list = Array.isArray(baseList) ? baseList.map(x => ({ ...x })) : [];
+        for (const op of queue) {
+            if (op.type === 'insert') {
+                const tempId = op.tempId || (op.payload && op.payload.id) || genTempId();
+                const realId = idMap[String(tempId)];
+                const exists = list.some(x => String(x.id) === String(tempId) || (realId && String(x.id) === String(realId)));
+                if (!exists) {
+                    list.push({
+                        id: realId || tempId,
+                        completed: false,
+                        isHabitInstance: false,
+                        ...op.payload
+                    });
+                }
+            } else if (op.type === 'update') {
+                const targetServer = String(resolveServerId(op.id));
+                const possibleTemp = revMap[targetServer] || String(op.id);
+                list = list.map(item => {
+                    const sId = String(item.id);
+                    if (sId === targetServer || sId === possibleTemp) {
+                        return { ...item, ...op.payload };
+                    }
+                    return item;
+                });
+            } else if (op.type === 'delete') {
+                const targetServer = String(resolveServerId(op.id));
+                const possibleTemp = revMap[targetServer] || String(op.id);
+                list = list.filter(item => {
+                    const sId = String(item.id);
+                    return sId !== targetServer && sId !== possibleTemp;
+                });
+            }
+        }
+        return list;
+    }
+
+    async function fetchSchedules(skipQueueFlush = false) {
         const statusEl = $('dbStatus');
-        statusEl.innerText = 'Menghubungkan ke Supabase Cloud...'; statusEl.style.color = '#e6e6e6';
+        const pendingQueue = loadSyncQueue();
+
+        if (!skipQueueFlush && navigator.onLine && pendingQueue.length > 0 && !isSyncingQueue) {
+            await flushSyncQueue(true);
+            return;
+        }
+
+        statusEl.innerText = navigator.onLine ? 'Menghubungkan ke Supabase Cloud...' : '📴 Mode Offline (Membaca cache lokal)...';
+        statusEl.style.color = '#e6e6e6';
 
         try {
+            if (!navigator.onLine) throw new Error('Offline');
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 6000);
             const { data, error } = await supabaseClient.from('schedules').select('*').order('date', { ascending: true, nullsFirst: false }).abortSignal(controller.signal);
@@ -727,19 +1023,22 @@
 
             if (error) { if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; } throw error; }
 
-            statusEl.innerText = '☁️ Terhubung ke Supabase Cloud (Live)'; statusEl.style.color = '#55ff55';
-            schedules = await autoDeleteOldHistory(data || []);
+            const cleanedServer = await autoDeleteOldHistory(data || [], true);
+            const currentQueue = loadSyncQueue();
+            schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cleanedServer, currentQueue) : cleanedServer;
             localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
         } catch (err) {
-            console.warn('Fetch error:', err);
-            statusEl.innerText = '⚠️ Gagal terhubung ke Cloud (Offline / Cached Mode)'; statusEl.style.color = '#ff5555';
-            schedules = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+            console.warn('Fetch error / offline:', err);
+            const cached = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+            const currentQueue = loadSyncQueue();
+            schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cached, currentQueue) : cached;
         }
 
         pruneStaleTodayPins(schedules);
         pruneStaleLabelBin(schedules);
         updateArchiveCounters();
         renderCalendar();
+        updateSyncStatusUI();
 
         if (screenStack.length > 0) {
             const top = screenStack[screenStack.length - 1];
@@ -926,13 +1225,21 @@
             }
             const payload = { title: finalTitleToSave, description, type, date: (type === 'Habit' ? null : date), priority, timeblock, recurring };
             if (type === 'Habit') payload.isHabitInstance = false;
-            const { error } = await supabaseClient.from('schedules').update(payload).eq('id', id);
-            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); goBack(); }
+            schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, ...payload } : s);
+            enqueueMutation({ type: 'update', id, payload });
+            formResetByPrefix(prefix);
+            goBack();
+            persistLocalAndRefresh();
+            if (navigator.onLine) flushSyncQueue();
         } else {
-            const newEntry = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
-            const { error } = await supabaseClient.from('schedules').insert([newEntry]);
-            if (!error) { await fetchSchedules(); formResetByPrefix(prefix); goBack(); }
-            else alert('Failed to save entry: ' + error.message);
+            const tempId = genTempId();
+            const newEntry = { id: tempId, title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+            schedules = [...schedules, newEntry];
+            enqueueMutation({ type: 'insert', tempId, payload: { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false } });
+            formResetByPrefix(prefix);
+            goBack();
+            persistLocalAndRefresh();
+            if (navigator.onLine) flushSyncQueue();
         }
     }
     function m_saveSchedule() { saveScheduleByPrefix('m_'); }
@@ -968,32 +1275,44 @@
         let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
         let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
-        let result;
         if (activeInst) {
-            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', activeInst.id);
+            const patch = { date: targetDate, timeblock: targetTimeblock };
+            schedules = schedules.map(x => String(x.id) === String(activeInst.id) ? { ...x, ...patch } : x);
+            enqueueMutation({ type: 'update', id: activeInst.id, payload: patch });
         } else if (legacyActive) {
-            result = await supabaseClient.from('schedules').update({ date: targetDate, timeblock: targetTimeblock }).eq('id', masterHabit.id);
+            const patch = { date: targetDate, timeblock: targetTimeblock };
+            schedules = schedules.map(x => String(x.id) === String(masterHabit.id) ? { ...x, ...patch } : x);
+            enqueueMutation({ type: 'update', id: masterHabit.id, payload: patch });
         } else {
-            const newInstance = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
-            result = await supabaseClient.from('schedules').insert([newInstance]);
+            const tempId = genTempId();
+            const instPayload = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
+            schedules = [...schedules, { id: tempId, ...instPayload }];
+            enqueueMutation({ type: 'insert', tempId, payload: instPayload });
         }
-        if (!result.error) { await fetchSchedules(); goBack(); }
+        goBack();
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     async function toggleComplete(id, event) {
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
         if (item) {
-            const { error } = await supabaseClient.from('schedules').update({ completed: !item.completed }).eq('id', id);
-            if (!error) fetchSchedules();
+            const nextCompleted = !item.completed;
+            schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, completed: nextCompleted } : s);
+            enqueueMutation({ type: 'update', id, payload: { completed: nextCompleted } });
+            persistLocalAndRefresh();
+            if (navigator.onLine) flushSyncQueue();
         }
     }
 
     async function deleteSchedule(id, event) {
         event.stopPropagation();
         if (confirm('Delete this entry?')) {
-            const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
-            if (!error) fetchSchedules();
+            schedules = schedules.filter(s => String(s.id) !== String(id));
+            enqueueMutation({ type: 'delete', id });
+            persistLocalAndRefresh();
+            if (navigator.onLine) flushSyncQueue();
         }
     }
 
@@ -1014,8 +1333,10 @@
         const esc = token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const re = isTime ? new RegExp(`\\b${esc}\\b`, 'i') : new RegExp(`\\.${esc}\\b`, 'i');
         const newTitle = item.title.replace(re, '').replace(/\s+/g, ' ').trim();
-        const { error } = await supabaseClient.from('schedules').update({ title: newTitle }).eq('id', id);
-        if (!error) await fetchSchedules();
+        schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, title: newTitle } : s);
+        enqueueMutation({ type: 'update', id, payload: { title: newTitle } });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     function renderDetailModal(id) {
@@ -1119,11 +1440,11 @@
     async function deleteLabelBinItemPermanent(id, event) {
         if (event) event.stopPropagation();
         if (!confirm('Delete this archived item permanently?')) return;
-        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
-        if (!error) {
-            restoreIdFromLabelBin(id);
-            await fetchSchedules();
-        }
+        schedules = schedules.filter(s => String(s.id) !== String(id));
+        restoreIdFromLabelBin(id);
+        enqueueMutation({ type: 'delete', id });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     function saveLabelOrders() {
@@ -1495,21 +1816,27 @@
     async function archiveHabit(id, event) {
         if (event) event.stopPropagation();
         if (!confirm('Move this habit to the Habits Bin?')) return;
-        const { error } = await supabaseClient.from('schedules').update({ completed: true }).eq('id', id);
-        if (!error) await fetchSchedules();
+        schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, completed: true } : s);
+        enqueueMutation({ type: 'update', id, payload: { completed: true } });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     async function restoreHabit(id, event) {
         if (event) event.stopPropagation();
-        const { error } = await supabaseClient.from('schedules').update({ completed: false }).eq('id', id);
-        if (!error) await fetchSchedules();
+        schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, completed: false } : s);
+        enqueueMutation({ type: 'update', id, payload: { completed: false } });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     async function deleteHabitPermanent(id, event) {
         if (event) event.stopPropagation();
         if (!confirm('Delete this habit permanently?')) return;
-        const { error } = await supabaseClient.from('schedules').delete().eq('id', id);
-        if (!error) await fetchSchedules();
+        schedules = schedules.filter(s => String(s.id) !== String(id));
+        enqueueMutation({ type: 'delete', id });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     function buildHabitHeatmapHTML(habitTitle, accentColor) {
@@ -1598,7 +1925,28 @@
         }
     }
 
+    window.addEventListener('online', () => {
+        updateSyncStatusUI();
+        flushSyncQueue(true);
+    });
+    window.addEventListener('offline', () => {
+        updateSyncStatusUI();
+    });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && navigator.onLine) {
+            flushSyncQueue(true);
+        }
+    });
+
     checkAuthAndInit();
+</script>
+
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW register failed:', err));
+        });
+    }
 </script>
 </body>
 </html>
