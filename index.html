@@ -661,6 +661,14 @@
         return { cleanTitle, timeTags, labelTags };
     }
 
+    function isHabitInst(s) {
+        return Boolean(s && (s.isHabitInstance || s.is_habit_instance || s.ishabitinstance));
+    }
+
+    function isMasterHabitItem(s) {
+        return Boolean(s && s.type === 'Habit' && !isHabitInst(s));
+    }
+
     function getFirstHabitLabel(rawTitle) {
         const parsed = parseTodoistTitle(rawTitle);
         return parsed.labelTags.length > 0 ? parsed.labelTags[0] : 'general';
@@ -742,7 +750,7 @@
     function updateArchiveCounters() {
         const todayStr = getTodayDateString();
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
-        const habitCount = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed).length;
+        const habitCount = schedules.filter(s => isMasterHabitItem(s) && !s.completed).length;
         const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
         
         let allLabels = new Set();
@@ -936,7 +944,7 @@
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) { showModalEl('assignModal'); return; }
 
-        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
+        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
         let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
         let curDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
@@ -957,7 +965,7 @@
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) return alert('Habit tidak ditemukan.');
 
-        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === masterHabit.title);
+        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
         let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
         let result;
@@ -1018,7 +1026,7 @@
         let itemDesc = item.description || '-';
         let itemPriority = item.type === 'Birthday' ? 'Birthday' : (item.type === 'Deadline' ? 'N/A' : item.priority);
         let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
-        const isHabitMaster = (item.type === 'Habit' && !item.isHabitInstance);
+        const isHabitMaster = isMasterHabitItem(item);
         let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
         let displayDate = getDisplayDate(item);
 
@@ -1193,7 +1201,7 @@
             html = birthdays.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>' : birthdays.map(s => renderCardHTML(s, 'var(--birthday-strawberry)', true)).join('');
         } else if (typeKey === 'habits') {
             modalTitle.innerText = '🔁 HABITS CATEGORY';
-            let habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed);
+            let habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed);
             let pCounts = { professional: 0, daily: 0, personal: 0 };
             habits.forEach(s => { let p = s.priority || 'personal'; if(pCounts[p]!==undefined) pCounts[p]++; });
 
@@ -1212,7 +1220,7 @@
                 </div>`;
        } else if (typeKey === 'habits_list') {
             modalTitle.innerText = `🔁 HABITS: ${targetParam.toUpperCase()}`;
-            const habits = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && !s.completed && s.priority === targetParam);
+            const habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed && String(s.priority || 'personal').toLowerCase() === String(targetParam).toLowerCase());
 
             if (!habits.length) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>';
@@ -1239,7 +1247,7 @@
             }
         } else if (typeKey === 'habits_bin') {
             modalTitle.innerText = '🗑️ HABITS BIN';
-            let archived = schedules.filter(s => s.type === 'Habit' && !s.isHabitInstance && s.completed).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+            let archived = schedules.filter(s => isMasterHabitItem(s) && Boolean(s.completed)).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
             html = archived.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>' : archived.map(s => renderHabitBinCardHTML(s, priorityColors[s.priority] || '#333')).join('');
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
@@ -1505,7 +1513,7 @@
     }
 
     function buildHabitHeatmapHTML(habitTitle, accentColor) {
-        const completedDates = new Set(schedules.filter(x => x.isHabitInstance && x.completed === true && x.title === habitTitle && x.date).map(x => x.date));
+        const completedDates = new Set(schedules.filter(x => isHabitInst(x) && x.completed === true && (x.title || '').trim() === (habitTitle || '').trim() && x.date).map(x => x.date));
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const endOfWeek = new Date(today); endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
         const startDate = new Date(endOfWeek); startDate.setDate(endOfWeek.getDate() - (53 * 7) + 1);
