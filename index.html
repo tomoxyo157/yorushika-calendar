@@ -496,6 +496,7 @@
         MAX_MULTIDAY_DAYS: 60,
         HISTORY_RETENTION_YEARS: 1,
         FETCH_TIMEOUT_MS: 6000,
+        PAGE_SIZE: 1000,
         STORAGE: {
             SCHEDULES: 'yorushika_schedules',
             SYNC_QUEUE: 'yorushika_offline_sync_queue_v1',
@@ -604,7 +605,9 @@
     }
 
     function isHabitInst(s) {
-        return Boolean(s && (s.isHabitInstance || s.is_habit_instance || s.ishabitinstance));
+        if (!s) return false;
+        const v = s.isHabitInstance ?? s.is_habit_instance ?? s.ishabitinstance;
+        return v === true || v === 1 || v === 'true' || v === '1';
     }
 
     function isMasterHabitItem(s) {
@@ -1189,24 +1192,47 @@
 
         try {
             if (!navigator.onLine) throw new Error('Offline');
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.FETCH_TIMEOUT_MS);
-            const { data, error } = await supabaseClient.from('schedules').select('*').order('date', { ascending: true, nullsFirst: false }).abortSignal(controller.signal);
-            clearTimeout(timeoutId);
+            const pageSize = APP_CONFIG.PAGE_SIZE || 1000;
+            const allRows = [];
+            let from = 0;
+            let hasMore = true;
 
-            if (error) {
-                if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; }
-                throw error;
+            while (hasMore) {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.FETCH_TIMEOUT_MS);
+                const { data, error } = await supabaseClient
+                    .from('schedules')
+                    .select('*')
+                    .order('date', { ascending: true, nullsFirst: false })
+                    .order('id', { ascending: true })
+                    .range(from, from + pageSize - 1)
+                    .abortSignal(controller.signal);
+                clearTimeout(timeoutId);
+
+                if (error) {
+                    if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; }
+                    throw error;
+                }
+
+                const batch = Array.isArray(data) ? data : [];
+                allRows.push(...batch);
+
+                if (batch.length < pageSize) {
+                    hasMore = false;
+                } else {
+                    from += pageSize;
+                }
             }
 
-            const cleanedServer = await autoDeleteOldHistory(data || [], true);
+            const cleanedServer = await autoDeleteOldHistory(allRows, true);
             const currentQueue = loadSyncQueue();
             schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cleanedServer, currentQueue) : cleanedServer;
             writeJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, schedules);
         } catch (err) {
             const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, []);
             const currentQueue = loadSyncQueue();
-            schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cached, currentQueue) : cached;
+            const baseList = (Array.isArray(cached) && cached.length > 0) ? cached : schedules;
+            schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(baseList, currentQueue) : baseList;
         }
 
         scheduleUiRender();
