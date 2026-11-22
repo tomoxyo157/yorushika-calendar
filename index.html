@@ -161,6 +161,16 @@
         .btn-pin { background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.28); color: #b5b0a4; border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; padding: 2px 5px; line-height: 1.1; }
         .btn-pin:hover { border-color: var(--text-main); color: var(--text-main); }
         .btn-pin.pinned { background: var(--text-main); color: var(--bg-pure); border-color: var(--text-main); }
+        .agenda-item.today-pinned-item { border: 1.5px solid var(--text-main); box-shadow: 0 0 0 1px rgba(227, 222, 216, 0.25); }
+        .multiday-box { background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; }
+        .multiday-toggle-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-main); cursor: pointer; }
+        .multiday-toggle-row input[type="checkbox"] { width: 13px; height: 13px; margin: 0; accent-color: var(--text-main); cursor: pointer; }
+        .multiday-fields { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
+        .multiday-fields.is-dimmed { opacity: 0.4; pointer-events: none; }
+        .multiday-fields input[type="number"] { width: 84px; padding: 6px 8px; font-size: 12px; }
+        .detail-tags-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .btn-duplicate-inline { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; padding: 3px 7px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; line-height: 1; }
+        .btn-duplicate-inline:hover { background: var(--border-color); border-color: var(--accent-color); }
         .batch-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 7px; padding: 6px 8px; margin-bottom: 8px; flex-wrap: wrap; }
         .batch-toolbar-left, .batch-toolbar-right { display: flex; align-items: center; gap: 5px; }
         .batch-select-cb { width: 13px; height: 13px; cursor: pointer; accent-color: var(--text-main); margin: 0 4px 0 0; flex-shrink: 0; }
@@ -332,6 +342,19 @@
                         </span>
                     </div>
                 </div>
+                <div class="form-group" id="m_multidayGroup" style="display: none;">
+                    <div class="multiday-box">
+                        <label class="multiday-toggle-row" style="margin: 0;">
+                            <input type="checkbox" id="m_multidayEnabled" onchange="m_toggleMultiday()">
+                            <span>Multi-day event (duplicate across consecutive days)</span>
+                        </label>
+                        <div class="multiday-fields is-dimmed" id="m_multidayFields">
+                            <label for="m_multidayCount" style="margin: 0; white-space: nowrap;">Total days:</label>
+                            <input type="number" id="m_multidayCount" min="2" max="60" value="2" disabled>
+                            <span style="font-size: 10px; color: var(--muted-gray);">days starting from date</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="form-group" id="m_priorityGroup">
                     <label>Priority Tagging</label>
                     <select id="m_priority">
@@ -388,6 +411,45 @@
                 <div class="form-buttons">
                     <button class="btn-reset" onclick="closeAssignModal()">Cancel</button>
                     <button class="btn-submit" onclick="executeAssignHabit()">Confirm Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="duplicateEventModal" onclick="closeModal(event, 'duplicateEventModal')">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <div class="modal-header">
+            <span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Duplicate Event
+            </span>
+            <button class="modal-close" onclick="closeDuplicateEventModal()">×</button>
+        </div>
+        <div class="modal-scroll-body">
+            <div style="padding: 2px;">
+                <input type="hidden" id="dupEventSourceId">
+                <div class="form-group">
+                    <label>Target Date</label>
+                    <div class="date-input-wrapper">
+                        <input type="date" id="dupEventDate" oninput="checkDateInputState('dupEventDate', 'dupEventDateTodayBtnContainer')">
+                        <span id="dupEventDateTodayBtnContainer">
+                            <button type="button" class="btn-today-input" onclick="setTodayDate('dupEventDate', 'dupEventDateTodayBtnContainer')">Today</button>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Timeblock Tagging</label>
+                    <select id="dupEventTimeblock">
+                        <option value="none">None (Slate Grey - Default)</option>
+                        <option value="morning">3am - 9am (Golden Dawn)</option>
+                        <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
+                        <option value="night">5pm - 10pm (Japanese Indigo)</option>
+                    </select>
+                </div>
+                <div class="form-buttons">
+                    <button class="btn-reset" onclick="closeDuplicateEventModal()">Cancel</button>
+                    <button class="btn-submit" onclick="executeDuplicateEvent()">Confirm Duplicate</button>
                 </div>
             </div>
         </div>
@@ -572,20 +634,33 @@
         }
     }
 
-    function persistLocalAndRefresh(skipFetch = false) {
-        localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+    let renderRafId = null;
+
+    function flushScheduledRender() {
+        renderRafId = null;
         pruneStaleTodayPins(schedules);
         pruneStaleLabelBin(schedules);
         updateArchiveCounters();
         renderCalendar();
         if (screenStack.length > 0) {
             const top = screenStack[screenStack.length - 1];
-            if (top.modal !== 'formModal') renderScreen(top);
+            if (top.modal !== 'formModal' && top.modal !== 'detailModal') {
+                renderScreen(top);
+            }
         }
         updateSyncStatusUI();
-        if (!skipFetch && navigator.onLine && !isSyncingQueue && loadSyncQueue().length === 0) {
-            fetchSchedules(true);
-        }
+    }
+
+    function scheduleUiRender() {
+        if (renderRafId !== null) return;
+        renderRafId = requestAnimationFrame(flushScheduledRender);
+    }
+
+    function persistLocalAndRefresh(skipFetch = false) {
+        try {
+            localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        } catch (e) {}
+        scheduleUiRender();
     }
 
     async function applyMutationToSupabase(op) {
@@ -766,7 +841,7 @@
         return formatDateDDMM(s.date);
     }
 
-    const ALL_MODALS = ['formModal', 'assignModal', 'detailModal', 'directoryModal'];
+    const ALL_MODALS = ['formModal', 'assignModal', 'duplicateEventModal', 'detailModal', 'directoryModal'];
 
     function showModalEl(id) {
         ALL_MODALS.forEach(m => { if (m !== id) hideModalEl(m); });
@@ -784,6 +859,7 @@
         if (screen.modal === 'directoryModal') renderDirectoryModal(screen.key, screen.param);
         else if (screen.modal === 'formModal') renderFormModal(screen.editId);
         else if (screen.modal === 'assignModal') renderAssignModal(screen.id);
+        else if (screen.modal === 'duplicateEventModal') renderDuplicateEventModal(screen.id);
         else if (screen.modal === 'detailModal') renderDetailModal(screen.id);
     }
 
@@ -892,12 +968,33 @@
 
     function parseTodoistTitle(rawTitle) {
         if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
-        const timeRegex = /\b(\d{1,2}(?:am|pm)|\d{1,2}:\d{2})\b/gi;
+        const timeDotRegex = /(?:^|(?<=\s))(\d{1,2}\.\d{2}(?:\s?(?:am|pm))?)(?=\s|$|[.,!?;:])/gi;
+        const timeAmPmRegex = /\b(\d{1,2}(?:am|pm))\b/gi;
         const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
         let timeTags = [], labelTags = [], match;
-        while ((match = timeRegex.exec(rawTitle)) !== null) timeTags.push(match[1].toLowerCase());
-        while ((match = labelRegex.exec(rawTitle)) !== null) labelTags.push(match[1].substring(1));
-        let cleanTitle = rawTitle.replace(timeRegex, '').replace(labelRegex, '').replace(/\s+/g, ' ').trim();
+
+        const protectedText = rawTitle.replace(timeDotRegex, (m, p1) => {
+            timeTags.push(p1.toLowerCase().replace(/\s+/g, ''));
+            return ' __TIMETOK__ ';
+        });
+
+        while ((match = timeAmPmRegex.exec(protectedText)) !== null) {
+            timeTags.push(match[1].toLowerCase());
+        }
+
+        const strippedForLabels = protectedText.replace(timeAmPmRegex, '');
+        while ((match = labelRegex.exec(strippedForLabels)) !== null) {
+            const candidate = match[1].substring(1);
+            if (!/^\d+$/.test(candidate)) {
+                labelTags.push(candidate);
+            }
+        }
+
+        let cleanTitle = strippedForLabels
+            .replace(/__TIMETOK__/g, '')
+            .replace(labelRegex, '')
+            .replace(/\s+/g, ' ')
+            .trim();
         return { cleanTitle, timeTags, labelTags };
     }
 
@@ -924,6 +1021,27 @@
         return dateStr;
     }
 
+    function m_toggleMultiday() {
+        const cb = $('m_multidayEnabled');
+        const fields = $('m_multidayFields');
+        const input = $('m_multidayCount');
+        if (!cb || !fields || !input) return;
+        const enabled = Boolean(cb.checked);
+        input.disabled = !enabled;
+        fields.classList.toggle('is-dimmed', !enabled);
+    }
+
+    function m_resetMultiday() {
+        const cb = $('m_multidayEnabled');
+        const input = $('m_multidayCount');
+        if (cb) cb.checked = false;
+        if (input) {
+            input.value = '2';
+            input.disabled = true;
+        }
+        m_toggleMultiday();
+    }
+
     function sharedTypeChangeLogic(prefix = '') {
         const typeVal = $(prefix + 'type').value;
         const priorityGrp = $(prefix + 'priorityGroup');
@@ -931,8 +1049,15 @@
         const dateGrp = $(prefix + 'dateGroup');
         const dateLbl = $(prefix + 'dateLabel');
         const dateInput = $(prefix + 'date');
+        const multidayGrp = (prefix === 'm_') ? $('m_multidayGroup') : null;
+        const editIdVal = $('m_editEntryId') ? $('m_editEntryId').value : '';
 
         dateInput.type = 'date';
+        if (multidayGrp) {
+            const showMultiday = (typeVal === 'Event' && !editIdVal);
+            multidayGrp.style.display = showMultiday ? 'block' : 'none';
+            if (!showMultiday) m_resetMultiday();
+        }
         if (typeVal === 'Birthday') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Birthday Date (DD/MM)'; } 
         else if (typeVal === 'Habit') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'none'; } 
         else if (typeVal === 'Deadline') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; } 
@@ -1034,16 +1159,7 @@
             schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cached, currentQueue) : cached;
         }
 
-        pruneStaleTodayPins(schedules);
-        pruneStaleLabelBin(schedules);
-        updateArchiveCounters();
-        renderCalendar();
-        updateSyncStatusUI();
-
-        if (screenStack.length > 0) {
-            const top = screenStack[screenStack.length - 1];
-            if (top.modal !== 'formModal') renderScreen(top);
-        }
+        scheduleUiRender();
     }
 
     function updateArchiveCounters() {
@@ -1162,6 +1278,7 @@
 
     function formResetByPrefix(prefix = 'm_') {
         $('m_editEntryId').value = '';
+        if (prefix === 'm_') m_resetMultiday();
         $(prefix + 'title').value = ''; $(prefix + 'description').value = '';
         $(prefix + 'type').value = 'Task'; $(prefix + 'date').value = '';
         resetDateButtonState(prefix + 'date', prefix + 'dateTodayBtnContainer');
@@ -1232,10 +1349,30 @@
             persistLocalAndRefresh();
             if (navigator.onLine) flushSyncQueue();
         } else {
-            const tempId = genTempId();
-            const newEntry = { id: tempId, title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
-            schedules = [...schedules, newEntry];
-            enqueueMutation({ type: 'insert', tempId, payload: { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false } });
+            const multidayEnabled = (prefix === 'm_' && type === 'Event' && $('m_multidayEnabled') && $('m_multidayEnabled').checked);
+            const rawDays = multidayEnabled ? parseInt($('m_multidayCount').value, 10) : 1;
+            const dayCount = (multidayEnabled && date && !isNaN(rawDays) && rawDays >= 2) ? Math.min(rawDays, 60) : 1;
+
+            if (dayCount > 1 && date) {
+                const [y, m, d] = date.split('-').map(Number);
+                const baseDt = new Date(y, m - 1, d);
+                const createdEntries = [];
+                for (let i = 0; i < dayCount; i++) {
+                    const curDt = new Date(baseDt);
+                    curDt.setDate(baseDt.getDate() + i);
+                    const dayDateStr = `${curDt.getFullYear()}-${String(curDt.getMonth() + 1).padStart(2, '0')}-${String(curDt.getDate()).padStart(2, '0')}`;
+                    const tempId = genTempId() + '_' + i;
+                    const entryPayload = { title: finalTitleToSave, description, type, date: dayDateStr, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+                    createdEntries.push({ id: tempId, ...entryPayload });
+                    enqueueMutation({ type: 'insert', tempId, payload: entryPayload });
+                }
+                schedules = [...schedules, ...createdEntries];
+            } else {
+                const tempId = genTempId();
+                const entryPayload = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+                schedules = [...schedules, { id: tempId, ...entryPayload }];
+                enqueueMutation({ type: 'insert', tempId, payload: entryPayload });
+            }
             formResetByPrefix(prefix);
             goBack();
             persistLocalAndRefresh();
@@ -1339,6 +1476,50 @@
         if (navigator.onLine) flushSyncQueue();
     }
 
+    function closeDuplicateEventModal() { goBack(); }
+
+    function openDuplicateEventModal(id, event) {
+        if (event) event.stopPropagation();
+        navPush({ modal: 'duplicateEventModal', id });
+    }
+
+    function renderDuplicateEventModal(id) {
+        $('dupEventSourceId').value = id;
+        const srcItem = schedules.find(s => String(s.id) === String(id));
+        if (!srcItem) { showModalEl('duplicateEventModal'); return; }
+        $('dupEventDate').value = srcItem.date || getTodayDateString();
+        checkDateInputState('dupEventDate', 'dupEventDateTodayBtnContainer');
+        $('dupEventTimeblock').value = srcItem.timeblock || 'none';
+        showModalEl('duplicateEventModal');
+    }
+
+    async function executeDuplicateEvent() {
+        const srcId = $('dupEventSourceId').value;
+        const targetDate = $('dupEventDate').value;
+        const targetTimeblock = $('dupEventTimeblock').value;
+        if (!targetDate) return alert('Please select a target date!');
+        const srcItem = schedules.find(s => String(s.id) === String(srcId));
+        if (!srcItem) return alert('Event not found.');
+
+        const tempId = genTempId();
+        const dupPayload = {
+            title: srcItem.title,
+            description: srcItem.description || '',
+            type: 'Event',
+            date: targetDate,
+            priority: srcItem.priority || 'personal',
+            timeblock: targetTimeblock,
+            recurring: 'none',
+            completed: false,
+            isHabitInstance: false
+        };
+        schedules = [...schedules, { id: tempId, ...dupPayload }];
+        enqueueMutation({ type: 'insert', tempId, payload: dupPayload });
+        goBack();
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
+    }
+
     function renderDetailModal(id) {
         const item = schedules.find(s => String(s.id) === String(id));
         if (!item) { goBack(); return; }
@@ -1350,6 +1531,12 @@
         const isHabitMaster = isMasterHabitItem(item);
         let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
         let displayDate = getDisplayDate(item);
+        const isEventItem = (item.type === 'Event');
+        const dupBtnHTML = isEventItem ? `
+            <button type="button" class="btn-duplicate-inline" onclick="openDuplicateEventModal('${item.id}', event)" title="Duplicate event">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Duplicate</span>
+            </button>` : '';
 
         $('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
         $('modalBodyContent').innerHTML = `
@@ -1359,7 +1546,10 @@
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
             <p><strong>Status</strong> ${itemStatus}</p>
             ${isHabitMaster ? buildHabitHeatmapHTML(item.title, priorityColors[item.priority] || '#7a9c72') : ''}
-            <p><strong>Tags & Labels</strong></p>
+            <div class="detail-tags-header">
+                <strong style="margin: 0;">Tags & Labels</strong>
+                ${dupBtnHTML}
+            </div>
             <div class="editable-pill-container">${buildEditablePills(item, parsed)}</div>
         `;
         showModalEl('detailModal');
@@ -1704,7 +1894,10 @@
 
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false, allowPin = false) {
         const isPast = s.date && s.date < getTodayDateString();
-        const itemClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'agenda-item completed-item' : 'agenda-item';
+        const pinned = allowPin && isTodayPinned(s.id);
+        const itemClass = 'agenda-item'
+            + ((s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? ' completed-item' : '')
+            + (pinned ? ' today-pinned-item' : '');
         
         const parsed = parseTodoistTitle(s.title);
         
@@ -1727,7 +1920,6 @@
 
         let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
         let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
-        const pinned = allowPin && isTodayPinned(s.id);
         const pinBtnHTML = allowPin ? `<button class="btn-pin ${pinned ? 'pinned' : ''}" onclick="toggleTodayPin('${s.id}', event)" title="${pinned ? 'Unpin from top' : 'Pin to top (do now)'}">📌</button>` : '';
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
 
