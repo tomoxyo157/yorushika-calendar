@@ -28,6 +28,8 @@
             --deadline-crimson: #ff2a2a;
             --discord-badge-bg: #1e1f22;
             --discord-badge-border: #35363c;
+            --focus-highlight: 1.5px solid var(--text-main);
+            --focus-glow: 0 0 0 1px rgba(227, 222, 216, 0.25);
         }
 
         *, *::before, *::after { box-sizing: border-box; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease; }
@@ -39,10 +41,8 @@
         .mobile-create-trigger { display: block; width: 100%; background: var(--text-main); color: var(--bg-pure); border: none; padding: 11px; text-align: center; font-weight: 600; font-size: 13px; letter-spacing: 0.5px; cursor: pointer; border-radius: 7px; margin-top: 4px; margin-bottom: 6px; }
         .mobile-create-trigger:hover { opacity: 0.82; }
 
-        /* Tampilan Mobile Asli */
         .day-cell { height: 68px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 3px 4px; font-size: 9px; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
 
-        /* Responsive Desktop Layout (2 Kolom) */
         @media (min-width: 1100px) {
             body { padding: 8px; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; }
             .container { zoom: 0.60; -moz-transform: scale(0.60); -moz-transform-origin: top center; max-width: 1680px; width: 100%; display: grid; grid-template-columns: 380px 1fr; grid-template-rows: auto auto auto; gap: 16px; align-items: stretch; padding: 14px; margin: 20px auto; }
@@ -62,7 +62,7 @@
         .sub-tag { font-size: 10px; color: var(--muted-gray); letter-spacing: 1.5px; font-style: italic; }
 
         .header-actions-right { position: absolute; top: 0; right: 0; display: flex; gap: 5px; }
-        .btn-logout { background: transparent; border: 1px solid var(--border-color); padding: 4px 9px; font-size: 10px; cursor: pointer; border-radius: 5px; color: #ff8585; border-color: rgba(255,85,85,0.35); }
+        .btn-logout { background: transparent; border: 1px solid rgba(255,85,85,0.35); padding: 4px 9px; font-size: 10px; cursor: pointer; border-radius: 5px; color: #ff8585; }
         .btn-logout:hover { background: rgba(255,85,85,0.15); border-color: #ff5555; }
 
         h2 { text-align: center; color: var(--text-main); font-size: 22px; font-weight: 500; letter-spacing: 1px; margin: 0 0 12px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
@@ -77,7 +77,8 @@
         .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 10px; color: var(--muted-gray); margin-bottom: 5px; letter-spacing: 0.5px; }
         .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
         .day-cell:hover { border-color: var(--accent-color); background: var(--card-bg); }
-        .day-cell.today { border: 1.5px solid var(--text-main); box-shadow: 0 0 0 1px rgba(227, 222, 216, 0.25); background: var(--card-bg); }
+        .day-cell.today, .agenda-item.today-pinned-item { border: var(--focus-highlight); box-shadow: var(--focus-glow); }
+        .day-cell.today { background: var(--card-bg); }
         .day-cell.today .day-number { color: var(--text-main); text-decoration: underline; }
         .day-number { font-weight: 600; color: var(--muted-gray); font-size: 13px; }
         
@@ -129,7 +130,6 @@
         .btn-window-trigger:hover .nav-counter-badge.red-alert { background: #ffffff; color: #ff4d6d; }
 
         .dumplist-box, .section-category-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 9px; margin-bottom: 9px; margin-top: 0; }
-        .section-category-box { margin-bottom: 9px; margin-top: 0; }
         .dumplist-title, .section-category-title { font-size: 12px; color: var(--muted-gray); margin-bottom: 7px; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; display: flex; justify-content: space-between; }
         .section-category-title { color: var(--text-main); padding-bottom: 5px; }
         
@@ -161,16 +161,19 @@
         .btn-pin { background: rgba(0, 0, 0, 0.45); border: 1px solid rgba(255, 255, 255, 0.28); color: #b5b0a4; border-radius: 4px; cursor: pointer; font-size: 8px; font-weight: 600; padding: 2px 5px; line-height: 1.1; }
         .btn-pin:hover { border-color: var(--text-main); color: var(--text-main); }
         .btn-pin.pinned { background: var(--text-main); color: var(--bg-pure); border-color: var(--text-main); }
-        .agenda-item.today-pinned-item { border: 1.5px solid var(--text-main); box-shadow: 0 0 0 1px rgba(227, 222, 216, 0.25); }
+
         .multiday-box { background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px 10px; }
-        .multiday-toggle-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-main); cursor: pointer; }
+        .multiday-toggle-row { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-main); cursor: pointer; margin: 0; }
         .multiday-toggle-row input[type="checkbox"] { width: 13px; height: 13px; margin: 0; accent-color: var(--text-main); cursor: pointer; }
         .multiday-fields { margin-top: 8px; display: flex; align-items: center; gap: 8px; }
-        .multiday-fields.is-dimmed { opacity: 0.4; pointer-events: none; }
+        .is-dimmed { opacity: 0.4; pointer-events: none; }
         .multiday-fields input[type="number"] { width: 84px; padding: 6px 8px; font-size: 12px; }
-        .detail-tags-header { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-        .btn-duplicate-inline { background: var(--card-bg); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 5px; padding: 3px 7px; font-size: 10px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; line-height: 1; }
-        .btn-duplicate-inline:hover { background: var(--border-color); border-color: var(--accent-color); }
+
+        .detail-tags-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; }
+        .btn-duplicate-icon { background: transparent; border: 1px solid var(--border-color); color: var(--text-main); border-radius: 5px; width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .btn-duplicate-icon:hover { background: var(--border-color); border-color: var(--accent-color); }
+        .dup-multiday-note { font-size: 10px; color: var(--muted-gray); opacity: 0.65; margin-top: 6px; line-height: 1.4; }
+
         .batch-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: var(--bg-pure); border: 1px solid var(--border-color); border-radius: 7px; padding: 6px 8px; margin-bottom: 8px; flex-wrap: wrap; }
         .batch-toolbar-left, .batch-toolbar-right { display: flex; align-items: center; gap: 5px; }
         .batch-select-cb { width: 13px; height: 13px; cursor: pointer; accent-color: var(--text-main); margin: 0 4px 0 0; flex-shrink: 0; }
@@ -185,12 +188,12 @@
 
         .modal-header { font-size: 15px; font-weight: 500; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
         .modal-scroll-body { overflow-y: auto; max-height: calc(80vh - 60px); padding-right: 4px; }
-        .modal-close { background: none; border: none; color: var(--muted-gray); font-size: 19px; cursor: pointer; line-height: 1; }
+        .modal-close { background: none; border: none; color: var(--muted-gray); font-size: 19px; cursor: pointer; line-height: 1; padding: 0; }
         .modal-close:hover { color: #ff8585; }
         .modal-body p { margin: 7px 0; font-size: 12px; white-space: pre-wrap; }
         .modal-body strong { color: var(--muted-gray); font-size: 10px; display: block; }
 
-        .editable-pill-container { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+        .editable-pill-container { display: flex; flex-wrap: wrap; gap: 4px; flex: 1 1 auto; }
         .editable-pill { background: #2b2d31; border: 1px solid #383a40; color: #f2f3f5; font-size: 9px; padding: 2px 7px; border-radius: 10px; display: inline-flex; align-items: center; gap: 5px; }
         .editable-pill .remove-pill { cursor: pointer; color: #ed4245; font-weight: bold; font-size: 10px; }
         .editable-pill .remove-pill:hover { color: #ff6b6b; }
@@ -214,6 +217,10 @@
         <path d="M 100 18 Q 112 50 100 82 Q 88 50 100 18 Z" fill="#ffffff"/>
         <path d="M 20 50 Q 60 20 90 32 L 90 68 Q 60 80 20 50 Z" fill="#ffffff"/>
         <path d="M 180 50 Q 140 20 110 32 L 110 68 Q 140 80 180 50 Z" fill="#ffffff"/>
+    </symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </symbol>
 </svg>
 
@@ -244,7 +251,6 @@
         <span class="sub-tag">Music & Schedule Archive</span>
     </div>
 
-    <!-- Kalender (Di Mobile Tampil Paling Atas) -->
     <div class="desktop-calendar-column">
         <h2>Calendar</h2>
         <div class="calendar-nav">
@@ -262,7 +268,6 @@
         <div class="days-grid" id="daysGrid"></div>
     </div>
 
-    <!-- Tombol Create Entry + Agenda Column (Di Mobile Tampil Di Bawah Kalender) -->
     <div class="desktop-agenda-column">
         <button class="mobile-create-trigger" onclick="openFormModal()">+ Create Entry</button>
         
@@ -316,8 +321,8 @@
             <div style="padding: 2px;">
                 <input type="hidden" id="m_editEntryId">
                 <div class="form-group">
-                    <label>Title (Tip: Use '10am', '.projectA' inside title)</label>
-                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 10am .blender">
+                    <label>Title (Tip: Use '10am', '2.30pm', '.projectA' inside title)</label>
+                    <input type="text" id="m_title" placeholder="e.g., Spring Thief jam 2.30pm .blender">
                 </div>
                 <div class="form-group">
                     <label>Description / Note (Optional)</label>
@@ -344,9 +349,9 @@
                 </div>
                 <div class="form-group" id="m_multidayGroup" style="display: none;">
                     <div class="multiday-box">
-                        <label class="multiday-toggle-row" style="margin: 0;">
+                        <label class="multiday-toggle-row">
                             <input type="checkbox" id="m_multidayEnabled" onchange="m_toggleMultiday()">
-                            <span>Multi-day event (duplicate across consecutive days)</span>
+                            <span>Multi-day event (across consecutive days)</span>
                         </label>
                         <div class="multiday-fields is-dimmed" id="m_multidayFields">
                             <label for="m_multidayCount" style="margin: 0; white-space: nowrap;">Total days:</label>
@@ -421,7 +426,7 @@
     <div class="modal-card" onclick="event.stopPropagation()">
         <div class="modal-header">
             <span>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -1px; margin-right: 4px;"><use href="#icon-copy"/></svg>
                 Duplicate Event
             </span>
             <button class="modal-close" onclick="closeDuplicateEventModal()">×</button>
@@ -446,6 +451,9 @@
                         <option value="work">9am - 5pm (Summer Canopy / Olive)</option>
                         <option value="night">5pm - 10pm (Japanese Indigo)</option>
                     </select>
+                    <div id="dupMultidayDisclaimer" class="dup-multiday-note" style="display: none;">
+                        *duplicating multi-day events would only duplicate one day which needs you to re-edit to create multi-day events.
+                    </div>
                 </div>
                 <div class="form-buttons">
                     <button class="btn-reset" onclick="closeDuplicateEventModal()">Cancel</button>
@@ -481,12 +489,35 @@
 </div>
 
 <script>
+    // --- Centralized Config & Parameters ---
+    const APP_CONFIG = {
+        SUPABASE_URL: 'https://movcjscdntwckaslnumn.supabase.co',
+        SUPABASE_KEY: 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8',
+        MAX_MULTIDAY_DAYS: 60,
+        HISTORY_RETENTION_YEARS: 1,
+        FETCH_TIMEOUT_MS: 6000,
+        STORAGE: {
+            SCHEDULES: 'yorushika_schedules',
+            SYNC_QUEUE: 'yorushika_offline_sync_queue_v1',
+            ID_MAP: 'yorushika_offline_id_map_v1',
+            TODAY_PINS: 'yorushika_today_pinned_ids',
+            LABEL_BIN: 'yorushika_label_bin_ids',
+            LABEL_ORDERS: 'yorushika_labelOrders'
+        },
+        PRIORITY_COLORS: { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' },
+        TIMEBLOCK_COLORS: { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' },
+        SORT_ORDER: {
+            timeblock: { morning: 0, work: 1, night: 2, none: 3 },
+            priority: { professional: 1, daily: 2, personal: 3 },
+            type: { Deadline: 1, Task: 2, Event: 3, Habit: 4, Birthday: 5 }
+        },
+        MONTHS: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    };
+
+    const MULTIDAY_TAG = '[mde]';
     const $ = id => document.getElementById(id);
 
-    const SUPABASE_URL = 'https://movcjscdntwckaslnumn.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_u01IYdkiCB_VnoKYvcBzww_U3-cTiM8';
-    
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+    const supabaseClient = supabase.createClient(APP_CONFIG.SUPABASE_URL, APP_CONFIG.SUPABASE_KEY, {
         auth: { persistSession: true, autoRefreshToken: true },
         db: { schema: 'public' },
         global: { headers: { 'x-client-info': 'yorushika-calendar' } }
@@ -495,13 +526,36 @@
     let schedules = [];
     let selectedFilterDate = null;
     let screenStack = [];
-
-    const OFFLINE_KEYS = {
-        SYNC_QUEUE: 'yorushika_offline_sync_queue_v1',
-        ID_MAP: 'yorushika_offline_id_map_v1'
-    };
-
     let isSyncingQueue = false;
+    let renderRafId = null;
+    let currentDate = new Date();
+    let dragState = null;
+
+    window.labelCustomOrders = readJsonStorage(APP_CONFIG.STORAGE.LABEL_ORDERS, {});
+    window.labelEditOrderActive = null;
+    window.labelBatchModeActive = null;
+    window.labelBatchSelectedIds = new Set();
+
+    // --- Compact Storage & Date Helpers ---
+    function readJsonStorage(key, fallback) {
+        try {
+            const raw = JSON.parse(localStorage.getItem(key));
+            return raw !== null && raw !== undefined ? raw : fallback;
+        } catch (e) { return fallback; }
+    }
+
+    function writeJsonStorage(key, val) {
+        try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {}
+    }
+
+    function readIdList(key) {
+        const raw = readJsonStorage(key, []);
+        return Array.isArray(raw) ? raw.map(String) : [];
+    }
+
+    function writeIdList(key, ids) {
+        writeJsonStorage(key, Array.from(new Set(ids.map(String))));
+    }
 
     function genTempId() {
         return 'temp_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -511,41 +565,153 @@
         return String(id || '').startsWith('temp_');
     }
 
-    function loadSyncQueue() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(OFFLINE_KEYS.SYNC_QUEUE));
-            return Array.isArray(raw) ? raw : [];
-        } catch (e) {
-            return [];
+    function formatLocalDate(dt) {
+        return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+    }
+
+    function getTodayDateString() {
+        return formatLocalDate(new Date());
+    }
+
+    function shiftDateStr(dateStr, offsetDays) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        const dt = new Date(y, m - 1, d + offsetDays);
+        return formatLocalDate(dt);
+    }
+
+    function formatDateDDMM(dateStr) {
+        if (!dateStr) return '';
+        if (dateStr.includes('-')) {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
         }
+        return dateStr;
+    }
+
+    function getDisplayDate(s) {
+        if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
+            const parts = s.date.split('-');
+            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
+        }
+        return formatDateDDMM(s.date);
+    }
+
+    function getBgStyle(s) {
+        if (s.type === 'Deadline') return 'var(--deadline-crimson)';
+        if (s.type === 'Birthday') return 'var(--birthday-strawberry)';
+        return `linear-gradient(135deg, ${APP_CONFIG.PRIORITY_COLORS[s.priority] || '#333'}, ${APP_CONFIG.TIMEBLOCK_COLORS[s.timeblock || 'none'] || '#2a2a2a'})`;
+    }
+
+    function isHabitInst(s) {
+        return Boolean(s && (s.isHabitInstance || s.is_habit_instance || s.ishabitinstance));
+    }
+
+    function isMasterHabitItem(s) {
+        return Boolean(s && s.type === 'Habit' && !isHabitInst(s));
+    }
+
+    function isCompletedDisplayItem(s, todayStr = getTodayDateString()) {
+        if (!s || !s.completed) return false;
+        const isPast = Boolean(s.date && s.date < todayStr);
+        return isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || isHabitInst(s);
+    }
+
+    // --- Multi-day Event Metadata Helpers (Bound to Day 1 without altering DB schema) ---
+    function parseMultidayDesc(desc) {
+        const raw = desc || '';
+        const match = raw.match(/\[mde:parent=([^\]|]+)\|idx=(\d+)\|total=(\d+)\]\n?/);
+        if (!match) return { isBoundChild: false, parentId: null, idx: 0, total: 1, cleanDesc: raw };
+        return {
+            isBoundChild: true,
+            parentId: match[1],
+            idx: parseInt(match[2], 10) || 0,
+            total: parseInt(match[3], 10) || 1,
+            cleanDesc: raw.replace(match[0], '')
+        };
+    }
+
+    function attachMultidayMeta(cleanDesc, parentId, idx, total) {
+        const prefix = `[mde:parent=${parentId}|idx=${idx}|total=${total}]`;
+        return cleanDesc ? `${prefix}\n${cleanDesc}` : prefix;
+    }
+
+    function isMultidayChildItem(item) {
+        const meta = parseMultidayDesc(item && item.description);
+        return meta.isBoundChild && meta.idx > 0;
+    }
+
+    function isPartOfMultiday(item) {
+        if (!item || item.type !== 'Event') return false;
+        const meta = parseMultidayDesc(item.description);
+        if (meta.isBoundChild || meta.total > 1) return true;
+        const baseTitle = parseTodoistTitle(item.title).cleanTitle.toLowerCase();
+        if (!item.date || !baseTitle) return false;
+        const prevDate = shiftDateStr(item.date, -1);
+        const nextDate = shiftDateStr(item.date, 1);
+        return schedules.some(other =>
+            other.type === 'Event' &&
+            String(other.id) !== String(item.id) &&
+            parseTodoistTitle(other.title).cleanTitle.toLowerCase() === baseTitle &&
+            (other.date === prevDate || other.date === nextDate)
+        );
+    }
+
+    // --- Title & Tag Parser (hh.mm dot format, no hh:mm, prevents .30 label leak) ---
+    function parseTodoistTitle(rawTitle) {
+        if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
+        const timeDotRegex = /(?:^|(?<=\s))(\d{1,2}\.\d{2}(?:\s?(?:am|pm))?)(?=\s|$|[.,!?;:])/gi;
+        const timeAmPmRegex = /\b(\d{1,2}(?:am|pm))\b/gi;
+        const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
+        let timeTags = [], labelTags = [], match;
+
+        const protectedText = rawTitle.replace(timeDotRegex, (_, p1) => {
+            timeTags.push(p1.toLowerCase().replace(/\s+/g, ''));
+            return ' __TIMETOK__ ';
+        });
+
+        while ((match = timeAmPmRegex.exec(protectedText)) !== null) {
+            timeTags.push(match[1].toLowerCase());
+        }
+
+        const strippedForLabels = protectedText.replace(timeAmPmRegex, '');
+        while ((match = labelRegex.exec(strippedForLabels)) !== null) {
+            const candidate = match[1].substring(1);
+            if (!/^\d+$/.test(candidate)) labelTags.push(candidate);
+        }
+
+        const cleanTitle = strippedForLabels
+            .replace(/__TIMETOK__/g, '')
+            .replace(labelRegex, '')
+            .replace(/\s+/g, ' ')
+            .trim();
+        return { cleanTitle, timeTags, labelTags };
+    }
+
+    function getFirstHabitLabel(rawTitle) {
+        const parsed = parseTodoistTitle(rawTitle);
+        return parsed.labelTags.length > 0 ? parsed.labelTags[0] : 'general';
+    }
+
+    // --- Offline Queue & Sync Engine ---
+    function loadSyncQueue() {
+        const q = readJsonStorage(APP_CONFIG.STORAGE.SYNC_QUEUE, []);
+        return Array.isArray(q) ? q : [];
     }
 
     function saveSyncQueue(queue) {
-        try {
-            localStorage.setItem(OFFLINE_KEYS.SYNC_QUEUE, JSON.stringify(queue));
-        } catch (e) {}
+        writeJsonStorage(APP_CONFIG.STORAGE.SYNC_QUEUE, queue);
         updateSyncStatusUI();
     }
 
     function loadIdMap() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(OFFLINE_KEYS.ID_MAP));
-            return (raw && typeof raw === 'object') ? raw : {};
-        } catch (e) {
-            return {};
-        }
-    }
-
-    function saveIdMap(mapObj) {
-        try {
-            localStorage.setItem(OFFLINE_KEYS.ID_MAP, JSON.stringify(mapObj));
-        } catch (e) {}
+        const m = readJsonStorage(APP_CONFIG.STORAGE.ID_MAP, {});
+        return (m && typeof m === 'object') ? m : {};
     }
 
     function resolveServerId(id) {
-        const strId = String(id);
         const mapObj = loadIdMap();
-        let cur = strId;
+        let cur = String(id);
         const visited = new Set();
         while (mapObj[cur] && !visited.has(cur)) {
             visited.add(cur);
@@ -561,32 +727,38 @@
 
         const mapObj = loadIdMap();
         mapObj[tStr] = rStr;
-        saveIdMap(mapObj);
+        writeJsonStorage(APP_CONFIG.STORAGE.ID_MAP, mapObj);
 
-        schedules = schedules.map(item => String(item.id) === tStr ? { ...item, id: realId } : item);
-        localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+        schedules = schedules.map(item => {
+            const updatedDesc = item.description ? item.description.replace(`[mde:parent=${tStr}|`, `[mde:parent=${rStr}|`) : item.description;
+            return String(item.id) === tStr ? { ...item, id: realId, description: updatedDesc } : { ...item, description: updatedDesc };
+        });
+        writeJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, schedules);
 
-        const pins = getTodayPinnedIds();
-        if (pins.includes(tStr)) {
-            saveTodayPinnedIds(pins.map(x => x === tStr ? rStr : x));
-        }
-        const lbin = getLabelBinIds();
-        if (lbin.includes(tStr)) {
-            saveLabelBinIds(lbin.map(x => x === tStr ? rStr : x));
-        }
+        const pins = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
+        if (pins.includes(tStr)) writeIdList(APP_CONFIG.STORAGE.TODAY_PINS, pins.map(x => x === tStr ? rStr : x));
+
+        const lbin = readIdList(APP_CONFIG.STORAGE.LABEL_BIN);
+        if (lbin.includes(tStr)) writeIdList(APP_CONFIG.STORAGE.LABEL_BIN, lbin.map(x => x === tStr ? rStr : x));
+
         if (window.labelCustomOrders && typeof window.labelCustomOrders === 'object') {
             Object.keys(window.labelCustomOrders).forEach(k => {
                 if (Array.isArray(window.labelCustomOrders[k])) {
                     window.labelCustomOrders[k] = window.labelCustomOrders[k].map(x => String(x) === tStr ? realId : x);
                 }
             });
-            saveLabelOrders();
+            writeJsonStorage(APP_CONFIG.STORAGE.LABEL_ORDERS, window.labelCustomOrders);
         }
 
         const q = loadSyncQueue().map(op => {
             const nextOp = { ...op, payload: op.payload ? { ...op.payload } : op.payload };
             if (String(nextOp.id) === tStr) nextOp.id = realId;
-            if (nextOp.payload && String(nextOp.payload.id) === tStr) nextOp.payload.id = realId;
+            if (nextOp.payload) {
+                if (String(nextOp.payload.id) === tStr) nextOp.payload.id = realId;
+                if (nextOp.payload.description) {
+                    nextOp.payload.description = nextOp.payload.description.replace(`[mde:parent=${tStr}|`, `[mde:parent=${rStr}|`);
+                }
+            }
             return nextOp;
         });
         saveSyncQueue(q);
@@ -594,12 +766,11 @@
 
     function enqueueMutation(op) {
         const queue = loadSyncQueue();
-        const entry = {
+        queue.push({
             opId: 'op_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
             createdAt: Date.now(),
             ...op
-        };
-        queue.push(entry);
+        });
         saveSyncQueue(queue);
     }
 
@@ -634,12 +805,17 @@
         }
     }
 
-    let renderRafId = null;
-
     function flushScheduledRender() {
         renderRafId = null;
-        pruneStaleTodayPins(schedules);
-        pruneStaleLabelBin(schedules);
+        const validSet = new Set((schedules || []).map(x => String(x.id)));
+        const curPins = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
+        const prunedPins = curPins.filter(id => validSet.has(id));
+        if (prunedPins.length !== curPins.length) writeIdList(APP_CONFIG.STORAGE.TODAY_PINS, prunedPins);
+
+        const curBin = readIdList(APP_CONFIG.STORAGE.LABEL_BIN);
+        const prunedBin = curBin.filter(id => validSet.has(id));
+        if (prunedBin.length !== curBin.length) writeIdList(APP_CONFIG.STORAGE.LABEL_BIN, prunedBin);
+
         updateArchiveCounters();
         renderCalendar();
         if (screenStack.length > 0) {
@@ -656,10 +832,8 @@
         renderRafId = requestAnimationFrame(flushScheduledRender);
     }
 
-    function persistLocalAndRefresh(skipFetch = false) {
-        try {
-            localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
-        } catch (e) {}
+    function persistLocalAndRefresh() {
+        writeJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, schedules);
         scheduleUiRender();
     }
 
@@ -676,26 +850,20 @@
         }
 
         const targetId = resolveServerId(op.id);
-        if (isTempId(targetId)) {
-            throw new Error('Temp ID not yet materialized');
-        }
+        if (isTempId(targetId)) throw new Error('Temp ID not yet materialized');
 
         if (op.type === 'update') {
             const { error } = await supabaseClient.from('schedules').update(op.payload).eq('id', targetId);
             if (error) throw error;
-            return;
-        }
-
-        if (op.type === 'delete') {
+        } else if (op.type === 'delete') {
             const { error } = await supabaseClient.from('schedules').delete().eq('id', targetId);
             if (error) throw error;
-            return;
         }
     }
 
     async function flushSyncQueue(forceRefreshAfter = false) {
         if (isSyncingQueue) return;
-        let queue = loadSyncQueue();
+        const queue = loadSyncQueue();
         if (queue.length === 0) {
             updateSyncStatusUI();
             if (forceRefreshAfter && navigator.onLine) await fetchSchedules(true);
@@ -715,7 +883,6 @@
             try {
                 await applyMutationToSupabase(op);
             } catch (err) {
-                console.warn('Sync op failed, keeping in queue:', op, err);
                 remaining.push(...queue.slice(i));
                 break;
             }
@@ -729,118 +896,44 @@
         }
     }
 
-    // Modular Local Storage Helpers (designed for easy future migration to Supabase)
-    const STORAGE_KEYS = {
-        TODAY_PINS: 'yorushika_today_pinned_ids',
-        LABEL_BIN: 'yorushika_label_bin_ids'
-    };
-
-    function getTodayPinnedIds() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODAY_PINS));
-            return Array.isArray(raw) ? raw.map(String) : [];
-        } catch (e) { return []; }
-    }
-
-    function saveTodayPinnedIds(ids) {
-        try { localStorage.setItem(STORAGE_KEYS.TODAY_PINS, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
-    }
-
+    // --- Pin & Label Bin Helpers ---
     function isTodayPinned(id) {
-        return getTodayPinnedIds().includes(String(id));
+        return readIdList(APP_CONFIG.STORAGE.TODAY_PINS).includes(String(id));
     }
 
     function toggleTodayPin(id, event) {
         if (event) event.stopPropagation();
         const strId = String(id);
-        let pinned = getTodayPinnedIds();
-        if (pinned.includes(strId)) {
-            pinned = pinned.filter(x => x !== strId);
-        } else {
-            pinned.unshift(strId);
-        }
-        saveTodayPinnedIds(pinned);
-        renderCalendar();
-        rerenderTop();
-    }
-
-    function pruneStaleTodayPins(validItems) {
-        const validSet = new Set((validItems || []).map(x => String(x.id)));
-        const current = getTodayPinnedIds();
-        const pruned = current.filter(id => validSet.has(id));
-        if (pruned.length !== current.length) saveTodayPinnedIds(pruned);
-    }
-
-    function getLabelBinIds() {
-        try {
-            const raw = JSON.parse(localStorage.getItem(STORAGE_KEYS.LABEL_BIN));
-            return Array.isArray(raw) ? raw.map(String) : [];
-        } catch (e) { return []; }
-    }
-
-    function saveLabelBinIds(ids) {
-        try { localStorage.setItem(STORAGE_KEYS.LABEL_BIN, JSON.stringify(Array.from(new Set(ids.map(String))))); } catch (e) {}
+        let pinned = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
+        pinned = pinned.includes(strId) ? pinned.filter(x => x !== strId) : [strId, ...pinned];
+        writeIdList(APP_CONFIG.STORAGE.TODAY_PINS, pinned);
+        scheduleUiRender();
     }
 
     function isInLabelBin(id) {
-        return getLabelBinIds().includes(String(id));
+        return readIdList(APP_CONFIG.STORAGE.LABEL_BIN).includes(String(id));
     }
 
     function moveIdsToLabelBin(ids) {
-        const current = getLabelBinIds();
-        saveLabelBinIds([...current, ...ids.map(String)]);
+        writeIdList(APP_CONFIG.STORAGE.LABEL_BIN, [...readIdList(APP_CONFIG.STORAGE.LABEL_BIN), ...ids.map(String)]);
     }
 
     function restoreIdFromLabelBin(id) {
-        const strId = String(id);
-        saveLabelBinIds(getLabelBinIds().filter(x => x !== strId));
-    }
-
-    function pruneStaleLabelBin(validItems) {
-        const validSet = new Set((validItems || []).map(x => String(x.id)));
-        const current = getLabelBinIds();
-        const pruned = current.filter(id => validSet.has(id));
-        if (pruned.length !== current.length) saveLabelBinIds(pruned);
+        writeIdList(APP_CONFIG.STORAGE.LABEL_BIN, readIdList(APP_CONFIG.STORAGE.LABEL_BIN).filter(x => x !== String(id)));
     }
 
     function sortTodayItemsWithPins(items) {
         const sorted = sortItems(items);
-        const pinnedIds = getTodayPinnedIds();
+        const pinnedIds = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
         if (pinnedIds.length === 0) return sorted;
         const pinnedSet = new Set(pinnedIds);
-        const pinnedList = [];
-        const regularList = [];
-        sorted.forEach(item => {
-            if (pinnedSet.has(String(item.id))) pinnedList.push(item);
-            else regularList.push(item);
-        });
+        const pinnedList = sorted.filter(item => pinnedSet.has(String(item.id)));
+        const regularList = sorted.filter(item => !pinnedSet.has(String(item.id)));
         pinnedList.sort((a, b) => pinnedIds.indexOf(String(a.id)) - pinnedIds.indexOf(String(b.id)));
         return [...pinnedList, ...regularList];
     }
 
-    const priorityColors = { personal: '#7a9c72', professional: '#800020', daily: '#3b3b3b' };
-    const timeblockColors = { none: '#2a2a2a', morning: '#8c6d36', work: '#4f5d2f', night: '#1b263b' };
-    
-    const timeblockOrder = { morning: 0, work: 1, night: 2, none: 3 };
-    const priorityOrder = { professional: 1, daily: 2, personal: 3 };
-    const typeOrder = { Deadline: 1, Task: 2, Event: 3, Habit: 4, Birthday: 5 };
-
-    let currentDate = new Date();
-
-    function getBgStyle(s) {
-        if (s.type === 'Deadline') return 'var(--deadline-crimson)';
-        if (s.type === 'Birthday') return 'var(--birthday-strawberry)';
-        return `linear-gradient(135deg, ${priorityColors[s.priority] || '#333'}, ${timeblockColors[s.timeblock || 'none'] || '#2a2a2a'})`;
-    }
-
-    function getDisplayDate(s) {
-        if (s.type === 'Birthday' && s.date && s.date.includes('-')) {
-            const parts = s.date.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
-        }
-        return formatDateDDMM(s.date);
-    }
-
+    // --- Modal & Navigation ---
     const ALL_MODALS = ['formModal', 'assignModal', 'duplicateEventModal', 'detailModal', 'directoryModal'];
 
     function showModalEl(id) {
@@ -849,9 +942,13 @@
         modal.style.display = 'flex';
         requestAnimationFrame(() => modal.classList.add('active'));
     }
+
     function hideModalEl(id) {
         const modal = $(id);
-        if (modal && modal.classList.contains('active')) { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 300); }
+        if (modal && modal.classList.contains('active')) {
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
     }
 
     function renderScreen(screen) {
@@ -874,34 +971,40 @@
     window.addEventListener('popstate', () => {
         if (screenStack.length === 0) return;
         screenStack.pop();
-        if (screenStack.length > 0) { renderScreen(screenStack[screenStack.length - 1]); }
-        else { window.labelEditOrderActive = null; window.labelBatchModeActive = null; window.labelBatchSelectedIds = new Set(); ALL_MODALS.forEach(hideModalEl); }
+        if (screenStack.length > 0) {
+            renderScreen(screenStack[screenStack.length - 1]);
+        } else {
+            window.labelEditOrderActive = null;
+            window.labelBatchModeActive = null;
+            window.labelBatchSelectedIds = new Set();
+            ALL_MODALS.forEach(hideModalEl);
+        }
     });
 
     window.addEventListener('keydown', (e) => {
         if (screenStack.length === 0) return;
         const t = (e.target.tagName || '').toLowerCase();
         const isEditing = t === 'input' || t === 'textarea' || t === 'select' || e.target.isContentEditable;
-        if (e.key === 'Escape') { goBack(); }
+        if (e.key === 'Escape') goBack();
         else if (e.key === 'Backspace' && !isEditing) { e.preventDefault(); goBack(); }
     });
 
     function closeModal(event, modalId) { if (event.target.id === modalId) goBack(); }
     function closeFormModal() { goBack(); }
     function closeAssignModal() { goBack(); }
+    function closeDuplicateEventModal() { goBack(); }
     function closeDetailModal() { goBack(); }
     function closeDirectoryModal() { goBack(); }
 
+    // --- Auth & Cloud Fetch ---
     async function handleLogin() {
         const email = $('authEmail').value;
         const password = $('authPassword').value;
         const errorEl = $('authErrorMsg');
-
         if (!email || !password) return errorEl.innerText = 'Email and password required!';
-
         errorEl.innerText = 'Authenticating...';
         const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) { errorEl.innerText = error.message; } 
+        if (error) errorEl.innerText = error.message;
         else { errorEl.innerText = ''; $('authOverlay').style.display = 'none'; fetchSchedules(); }
     }
 
@@ -914,8 +1017,8 @@
     async function checkAuthAndInit() {
         try {
             const { data: { session } } = await supabaseClient.auth.getSession();
+            const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, null);
             if (!session) {
-                const cached = JSON.parse(localStorage.getItem('yorushika_schedules') || 'null');
                 if (!navigator.onLine && Array.isArray(cached) && cached.length > 0) {
                     $('authOverlay').style.display = 'none';
                     await fetchSchedules(true);
@@ -927,7 +1030,7 @@
                 await fetchSchedules(true);
             }
         } catch (err) {
-            const cached = JSON.parse(localStorage.getItem('yorushika_schedules') || 'null');
+            const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, null);
             if (Array.isArray(cached)) {
                 $('authOverlay').style.display = 'none';
                 await fetchSchedules(true);
@@ -935,11 +1038,6 @@
                 $('authOverlay').style.display = 'flex';
             }
         }
-    }
-
-    function getTodayDateString() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     function setTodayDate(inputId, containerId) {
@@ -956,71 +1054,17 @@
         const inputEl = $(inputId);
         const containerEl = $(containerId);
         if (!inputEl || !containerEl) return;
-        containerEl.innerHTML = inputEl.value 
+        containerEl.innerHTML = inputEl.value
             ? `<button type="button" class="btn-delete-input" onclick="clearDateInput('${inputId}', '${containerId}')">×</button>`
             : `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`;
     }
 
     function resetDateButtonState(inputId, containerId) {
         const containerEl = $(containerId);
-        if (containerEl) { containerEl.innerHTML = `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`; }
+        if (containerEl) containerEl.innerHTML = `<button type="button" class="btn-today-input" onclick="setTodayDate('${inputId}', '${containerId}')">Today</button>`;
     }
 
-    function parseTodoistTitle(rawTitle) {
-        if (!rawTitle) return { cleanTitle: '', timeTags: [], labelTags: [] };
-        const timeDotRegex = /(?:^|(?<=\s))(\d{1,2}\.\d{2}(?:\s?(?:am|pm))?)(?=\s|$|[.,!?;:])/gi;
-        const timeAmPmRegex = /\b(\d{1,2}(?:am|pm))\b/gi;
-        const labelRegex = /\B(\.[a-zA-Z0-9_-]+)/g;
-        let timeTags = [], labelTags = [], match;
-
-        const protectedText = rawTitle.replace(timeDotRegex, (m, p1) => {
-            timeTags.push(p1.toLowerCase().replace(/\s+/g, ''));
-            return ' __TIMETOK__ ';
-        });
-
-        while ((match = timeAmPmRegex.exec(protectedText)) !== null) {
-            timeTags.push(match[1].toLowerCase());
-        }
-
-        const strippedForLabels = protectedText.replace(timeAmPmRegex, '');
-        while ((match = labelRegex.exec(strippedForLabels)) !== null) {
-            const candidate = match[1].substring(1);
-            if (!/^\d+$/.test(candidate)) {
-                labelTags.push(candidate);
-            }
-        }
-
-        let cleanTitle = strippedForLabels
-            .replace(/__TIMETOK__/g, '')
-            .replace(labelRegex, '')
-            .replace(/\s+/g, ' ')
-            .trim();
-        return { cleanTitle, timeTags, labelTags };
-    }
-
-    function isHabitInst(s) {
-        return Boolean(s && (s.isHabitInstance || s.is_habit_instance || s.ishabitinstance));
-    }
-
-    function isMasterHabitItem(s) {
-        return Boolean(s && s.type === 'Habit' && !isHabitInst(s));
-    }
-
-    function getFirstHabitLabel(rawTitle) {
-        const parsed = parseTodoistTitle(rawTitle);
-        return parsed.labelTags.length > 0 ? parsed.labelTags[0] : 'general';
-    }
-
-    function formatDateDDMM(dateStr) {
-        if (!dateStr) return '';
-        if (dateStr.includes('-')) {
-            const parts = dateStr.split('-');
-            if (parts.length === 3) return `${parts[2]}/${parts[1]}`;
-            if (parts.length === 2) return `${parts[1]}/${parts[0]}`;
-        }
-        return dateStr;
-    }
-
+    // --- Form & Multi-day Logic (Available in both Create and Edit for Event) ---
     function m_toggleMultiday() {
         const cb = $('m_multidayEnabled');
         const fields = $('m_multidayFields');
@@ -1029,17 +1073,16 @@
         const enabled = Boolean(cb.checked);
         input.disabled = !enabled;
         fields.classList.toggle('is-dimmed', !enabled);
+        sharedTypeChangeLogic('m_');
     }
 
     function m_resetMultiday() {
         const cb = $('m_multidayEnabled');
         const input = $('m_multidayCount');
         if (cb) cb.checked = false;
-        if (input) {
-            input.value = '2';
-            input.disabled = true;
-        }
-        m_toggleMultiday();
+        if (input) { input.value = '2'; input.disabled = true; }
+        const fields = $('m_multidayFields');
+        if (fields) fields.classList.add('is-dimmed');
     }
 
     function sharedTypeChangeLogic(prefix = '') {
@@ -1050,18 +1093,35 @@
         const dateLbl = $(prefix + 'dateLabel');
         const dateInput = $(prefix + 'date');
         const multidayGrp = (prefix === 'm_') ? $('m_multidayGroup') : null;
-        const editIdVal = $('m_editEntryId') ? $('m_editEntryId').value : '';
+        const multidayActive = Boolean(prefix === 'm_' && typeVal === 'Event' && $('m_multidayEnabled') && $('m_multidayEnabled').checked);
 
         dateInput.type = 'date';
         if (multidayGrp) {
-            const showMultiday = (typeVal === 'Event' && !editIdVal);
+            const showMultiday = (typeVal === 'Event');
             multidayGrp.style.display = showMultiday ? 'block' : 'none';
             if (!showMultiday) m_resetMultiday();
         }
-        if (typeVal === 'Birthday') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Birthday Date (DD/MM)'; } 
-        else if (typeVal === 'Habit') { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'none'; dateGrp.style.display = 'none'; } 
-        else if (typeVal === 'Deadline') { priorityGrp.style.display = 'none'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)'; } 
-        else { priorityGrp.style.display = 'block'; timeblockGrp.style.display = 'block'; dateGrp.style.display = 'block'; dateLbl.innerText = 'Date (Leave blank for Inbox)'; }
+
+        if (typeVal === 'Birthday') {
+            priorityGrp.style.display = 'none';
+            timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'block';
+            dateLbl.innerText = 'Birthday Date (DD/MM)';
+        } else if (typeVal === 'Habit') {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = 'none';
+            dateGrp.style.display = 'none';
+        } else if (typeVal === 'Deadline') {
+            priorityGrp.style.display = 'none';
+            timeblockGrp.style.display = 'block';
+            dateGrp.style.display = 'block';
+            dateLbl.innerText = 'Deadline Date (Crimson Red #ff2a2a)';
+        } else {
+            priorityGrp.style.display = 'block';
+            timeblockGrp.style.display = multidayActive ? 'none' : 'block';
+            dateGrp.style.display = 'block';
+            dateLbl.innerText = 'Date (Leave blank for Inbox)';
+        }
     }
 
     function handleTypeChange() { sharedTypeChangeLogic(''); }
@@ -1069,16 +1129,14 @@
 
     async function autoDeleteOldHistory(dataItems, canHitNetwork = true) {
         const now = new Date();
-        const oneYearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        const oneYearAgoStr = `${oneYearAgo.getFullYear()}-${String(oneYearAgo.getMonth() + 1).padStart(2, '0')}-${String(oneYearAgo.getDate()).padStart(2, '0')}`;
+        const cutoff = new Date(now.getFullYear() - APP_CONFIG.HISTORY_RETENTION_YEARS, now.getMonth(), now.getDate());
+        const cutoffStr = formatLocalDate(cutoff);
 
         const expiredIds = dataItems
-            .filter(s => !isTempId(s.id) && s.date && s.date < oneYearAgoStr && s.type !== 'Birthday' && s.type !== 'Habit')
+            .filter(s => !isTempId(s.id) && s.date && s.date < cutoffStr && s.type !== 'Birthday' && s.type !== 'Habit')
             .map(s => s.id);
         if (expiredIds.length > 0 && canHitNetwork && navigator.onLine) {
-            try {
-                await supabaseClient.from('schedules').delete().in('id', expiredIds);
-            } catch (e) {}
+            try { await supabaseClient.from('schedules').delete().in('id', expiredIds); } catch (e) {}
             return dataItems.filter(s => !expiredIds.includes(s.id));
         }
         return dataItems;
@@ -1087,9 +1145,7 @@
     function applyPendingQueueOverlay(baseList, queue) {
         const idMap = loadIdMap();
         const revMap = {};
-        Object.keys(idMap).forEach(tId => {
-            revMap[String(idMap[tId])] = tId;
-        });
+        Object.keys(idMap).forEach(tId => { revMap[String(idMap[tId])] = tId; });
 
         let list = Array.isArray(baseList) ? baseList.map(x => ({ ...x })) : [];
         for (const op of queue) {
@@ -1098,22 +1154,14 @@
                 const realId = idMap[String(tempId)];
                 const exists = list.some(x => String(x.id) === String(tempId) || (realId && String(x.id) === String(realId)));
                 if (!exists) {
-                    list.push({
-                        id: realId || tempId,
-                        completed: false,
-                        isHabitInstance: false,
-                        ...op.payload
-                    });
+                    list.push({ id: realId || tempId, completed: false, isHabitInstance: false, ...op.payload });
                 }
             } else if (op.type === 'update') {
                 const targetServer = String(resolveServerId(op.id));
                 const possibleTemp = revMap[targetServer] || String(op.id);
                 list = list.map(item => {
                     const sId = String(item.id);
-                    if (sId === targetServer || sId === possibleTemp) {
-                        return { ...item, ...op.payload };
-                    }
-                    return item;
+                    return (sId === targetServer || sId === possibleTemp) ? { ...item, ...op.payload } : item;
                 });
             } else if (op.type === 'delete') {
                 const targetServer = String(resolveServerId(op.id));
@@ -1142,19 +1190,21 @@
         try {
             if (!navigator.onLine) throw new Error('Offline');
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 6000);
+            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.FETCH_TIMEOUT_MS);
             const { data, error } = await supabaseClient.from('schedules').select('*').order('date', { ascending: true, nullsFirst: false }).abortSignal(controller.signal);
             clearTimeout(timeoutId);
 
-            if (error) { if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; } throw error; }
+            if (error) {
+                if (error.code === 'PGRST301' || error.message.includes('JWT')) { handleLogout(); return; }
+                throw error;
+            }
 
             const cleanedServer = await autoDeleteOldHistory(data || [], true);
             const currentQueue = loadSyncQueue();
             schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cleanedServer, currentQueue) : cleanedServer;
-            localStorage.setItem('yorushika_schedules', JSON.stringify(schedules));
+            writeJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, schedules);
         } catch (err) {
-            console.warn('Fetch error / offline:', err);
-            const cached = JSON.parse(localStorage.getItem('yorushika_schedules')) || [];
+            const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, []);
             const currentQueue = loadSyncQueue();
             schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(cached, currentQueue) : cached;
         }
@@ -1162,23 +1212,22 @@
         scheduleUiRender();
     }
 
+    // --- Counters, Sorting & Calendar ---
     function updateArchiveCounters() {
         const todayStr = getTodayDateString();
         const birthdayCount = schedules.filter(s => s.type === 'Birthday').length;
         const habitCount = schedules.filter(s => isMasterHabitItem(s) && !s.completed).length;
-        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && s.date && s.date < todayStr && !s.completed).length;
+        const skippedCount = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || isHabitInst(s)) && s.date && s.date < todayStr && !s.completed).length;
         
-        let allLabels = new Set();
+        const allLabels = new Set();
         schedules.forEach(s => {
-            if (s.type === 'Habit' || s.isHabitInstance) return;
-            if (isInLabelBin(s.id)) return;
+            if (s.type === 'Habit' || isHabitInst(s) || isInLabelBin(s.id)) return;
             parseTodoistTitle(s.title).labelTags.forEach(l => allLabels.add(l));
             if (s.type === 'Deadline') allLabels.add('deadline');
         });
 
         $('birthdayBadgeCount').innerText = birthdayCount;
         $('habitBadgeCount').innerText = habitCount;
-        
         const skippedBadge = $('skippedBadgeCount');
         skippedBadge.innerText = skippedCount;
         skippedBadge.classList.toggle('red-alert', skippedCount > 0);
@@ -1187,52 +1236,46 @@
 
     function sortItems(items) {
         const sortBy = $('sortBySelect').value;
+        const tbMap = APP_CONFIG.SORT_ORDER.timeblock;
+        const pMap = APP_CONFIG.SORT_ORDER.priority;
+        const tMap = APP_CONFIG.SORT_ORDER.type;
         const titleDiff = (a, b) => parseTodoistTitle(a.title).cleanTitle.toLowerCase().localeCompare(parseTodoistTitle(b.title).cleanTitle.toLowerCase());
+
         return [...items].sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
-            
-            let tbA = a.timeblock || 'none', tbB = b.timeblock || 'none';
+            const tbA = a.timeblock || 'none', tbB = b.timeblock || 'none';
+            const pA = pMap[a.priority] || 2, pB = pMap[b.priority] || 2;
+            const tA = tMap[a.type] || 3, tB = tMap[b.type] || 3;
+
             if (sortBy === 'priority') {
-                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
-                if (pDiff !== 0) return pDiff;
-                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
-                if (tbDiff !== 0) return tbDiff;
-            } else if (sortBy === 'type') {
-                let tDiff = (typeOrder[a.type] || 3) - (typeOrder[b.type] || 3);
-                if (tDiff !== 0) return tDiff;
-                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
-                if (tbDiff !== 0) return tbDiff;
-                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
-                if (pDiff !== 0) return pDiff;
-            } else {
-                let tbDiff = (timeblockOrder[tbA] ?? 2) - (timeblockOrder[tbB] ?? 2);
-                if (tbDiff !== 0) return tbDiff;
-                let pDiff = (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2);
-                if (pDiff !== 0) return pDiff;
+                return (pA - pB) || ((tbMap[tbA] ?? 2) - (tbMap[tbB] ?? 2)) || titleDiff(a, b);
             }
-            return titleDiff(a, b);
+            if (sortBy === 'type') {
+                return (tA - tB) || ((tbMap[tbA] ?? 2) - (tbMap[tbB] ?? 2)) || (pA - pB) || titleDiff(a, b);
+            }
+            return ((tbMap[tbA] ?? 2) - (tbMap[tbB] ?? 2)) || (pA - pB) || titleDiff(a, b);
         });
     }
 
     function renderCalendar() {
         const year = currentDate.getFullYear(), month = currentDate.getMonth();
-        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-        $('monthYearDisplay').innerText = `${monthNames[month]} ${year}`;
+        $('monthYearDisplay').innerText = `${APP_CONFIG.MONTHS[month]} ${year}`;
 
         const firstDayIndex = new Date(year, month, 1).getDay();
         const totalDays = new Date(year, month + 1, 0).getDate();
+        const todayStr = getTodayDateString();
+        const formattedMonth = String(month + 1).padStart(2, '0');
 
         let gridHTML = '';
-        for (let i = 0; i < firstDayIndex; i++) gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
-
-        const todayStr = getTodayDateString();
+        for (let i = 0; i < firstDayIndex; i++) {
+            gridHTML += `<div class="day-cell" style="background: transparent; border-color: transparent; cursor: default;"></div>`;
+        }
 
         for (let day = 1; day <= totalDays; day++) {
-            const formattedMonth = String(month + 1).padStart(2, '0');
             const formattedDay = String(day).padStart(2, '0');
             const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
 
-            let daySchedules = sortItems(schedules.filter(s => {
+            const daySchedules = sortItems(schedules.filter(s => {
                 if (!s.date) return false;
                 if (s.date === dateStr) return true;
                 if (s.type === 'Birthday' || s.recurring === 'yearly') {
@@ -1241,13 +1284,10 @@
                 return false;
             }));
 
-            let badgesHTML = '';
-            daySchedules.forEach(s => {
-                const isPast = s.date && s.date < todayStr;
-                const completedClass = (s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? 'completed-badge' : '';
-                const parsed = parseTodoistTitle(s.title);
-                badgesHTML += `<div class="mini-badge ${completedClass}" style="background: ${getBgStyle(s)};">${parsed.cleanTitle}</div>`;
-            });
+            const badgesHTML = daySchedules.map(s => {
+                const completedClass = isCompletedDisplayItem(s, todayStr) ? 'completed-badge' : '';
+                return `<div class="mini-badge ${completedClass}" style="background: ${getBgStyle(s)};">${parseTodoistTitle(s.title).cleanTitle}</div>`;
+            }).join('');
 
             gridHTML += `
                 <div class="day-cell ${dateStr === todayStr ? 'today' : ''}" onclick="handleGridCellClick('${dateStr}')">
@@ -1260,6 +1300,7 @@
     }
 
     function changeMonth(direction) { currentDate.setMonth(currentDate.getMonth() + direction); renderCalendar(); }
+
     function jumpToCurrentMonth() {
         currentDate = new Date();
         const todayStr = getTodayDateString();
@@ -1270,24 +1311,31 @@
     }
 
     function handleGridCellClick(dateStr) {
-        $('m_date').value = dateStr; checkDateInputState('m_date', 'm_dateTodayBtnContainer');
-        selectedFilterDate = dateStr; renderAgendaList();
+        $('m_date').value = dateStr;
+        checkDateInputState('m_date', 'm_dateTodayBtnContainer');
+        selectedFilterDate = dateStr;
+        renderAgendaList();
     }
 
     function clearDateFilter() { selectedFilterDate = null; renderAgendaList(); }
 
+    // --- Form Create & Edit (with Multi-Day Support) ---
     function formResetByPrefix(prefix = 'm_') {
         $('m_editEntryId').value = '';
         if (prefix === 'm_') m_resetMultiday();
-        $(prefix + 'title').value = ''; $(prefix + 'description').value = '';
-        $(prefix + 'type').value = 'Task'; $(prefix + 'date').value = '';
+        $(prefix + 'title').value = '';
+        $(prefix + 'description').value = '';
+        $(prefix + 'type').value = 'Task';
+        $(prefix + 'date').value = '';
         resetDateButtonState(prefix + 'date', prefix + 'dateTodayBtnContainer');
-        $(prefix + 'priority').value = 'personal'; $(prefix + 'timeblock').value = 'none';
+        $(prefix + 'priority').value = 'personal';
+        $(prefix + 'timeblock').value = 'none';
         sharedTypeChangeLogic(prefix);
-        $('modalFormHeaderTitle').innerText = 'Create Entry'; $('m_submitBtn').innerText = 'Save Entry';
+        $('modalFormHeaderTitle').innerText = 'Create Entry';
+        $('m_submitBtn').innerText = 'Save Entry';
     }
-    function m_resetForm() { formResetByPrefix('m_'); }
 
+    function m_resetForm() { formResetByPrefix('m_'); }
     function openFormModal() { navPush({ modal: 'formModal', editId: null }); }
     function editSchedule(id) { navPush({ modal: 'formModal', editId: id }); }
 
@@ -1296,19 +1344,24 @@
             const item = schedules.find(s => String(s.id) === String(editId));
             if (!item) { m_resetForm(); showModalEl('formModal'); return; }
             const parsed = parseTodoistTitle(item.title);
+            const descMeta = parseMultidayDesc(item.description);
             $('m_editEntryId').value = item.id;
             $('m_title').value = parsed.cleanTitle;
-            $('m_description').value = item.description || '';
+            $('m_description').value = descMeta.cleanDesc;
             $('m_type').value = item.type;
             if (item.type === 'Birthday' && item.date && item.date.includes('-')) {
                 const parts = item.date.split('-');
                 $('m_date').value = parts.length === 3 ? `2000-${parts[1]}-${parts[2]}` : item.date;
-            } else { $('m_date').value = item.date || ''; }
+            } else {
+                $('m_date').value = item.date || '';
+            }
             checkDateInputState('m_date', 'm_dateTodayBtnContainer');
-            $('m_priority').value = item.priority;
+            $('m_priority').value = item.priority || 'personal';
             $('m_timeblock').value = item.timeblock || 'none';
+            m_resetMultiday();
             m_handleTypeChange();
-            $('modalFormHeaderTitle').innerText = 'Edit / Reschedule';$('m_submitBtn').innerText = 'Update Entry';
+            $('modalFormHeaderTitle').innerText = 'Edit / Reschedule';
+            $('m_submitBtn').innerText = 'Update Entry';
         } else {
             m_resetForm();
             if (selectedFilterDate) {
@@ -1321,16 +1374,29 @@
 
     async function saveScheduleByPrefix(prefix = 'm_') {
         const id = $('m_editEntryId').value;
-        const rawInputTitle = $(prefix + 'title').value, description = $(prefix + 'description').value, type =$(prefix + 'type').value;
-        let dateInputVal = $(prefix + 'date').value, date = null;
-        if (type !== 'Habit' && dateInputVal) date = type === 'Birthday' ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}` : dateInputVal;
+        const rawInputTitle = $(prefix + 'title').value.trim();
+        const rawDescription = $(prefix + 'description').value;
+        const type = $(prefix + 'type').value;
 
-        let priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : $(prefix + 'priority').value);
-        let timeblock = (type === 'Habit' || type === 'Birthday') ? 'none' : $(prefix + 'timeblock').value;
-        let recurring = type === 'Birthday' ? 'yearly' : 'none';
+        let dateInputVal = $(prefix + 'date').value;
+        let date = null;
+        if (type !== 'Habit' && dateInputVal) {
+            date = type === 'Birthday'
+                ? `2000-${dateInputVal.includes('-') ? dateInputVal.split('-').slice(-2).join('-') : dateInputVal}`
+                : dateInputVal;
+        }
+
+        const multidayEnabled = Boolean(prefix === 'm_' && type === 'Event' && $('m_multidayEnabled') && $('m_multidayEnabled').checked);
+        const rawDays = multidayEnabled ? parseInt($('m_multidayCount').value, 10) : 1;
+        const dayCount = (multidayEnabled && date && !isNaN(rawDays) && rawDays >= 2) ? Math.min(rawDays, APP_CONFIG.MAX_MULTIDAY_DAYS) : 1;
+
+        const priority = type === 'Birthday' ? 'personal' : (type === 'Deadline' ? null : $(prefix + 'priority').value);
+        const timeblock = (type === 'Habit' || type === 'Birthday' || multidayActiveOrTrue(multidayEnabled)) ? 'none' : $(prefix + 'timeblock').value;
+        const recurring = type === 'Birthday' ? 'yearly' : 'none';
+
         if (!rawInputTitle) return alert('Title is required!');
-        let finalTitleToSave = rawInputTitle;
 
+        let finalTitleToSave = rawInputTitle;
         if (id) {
             const existingItem = schedules.find(s => String(s.id) === String(id));
             if (existingItem) {
@@ -1338,38 +1404,87 @@
                 const newParsed = parseTodoistTitle(rawInputTitle);
                 const combinedLabels = Array.from(new Set([...oldParsed.labelTags, ...newParsed.labelTags]));
                 const combinedTimes = newParsed.timeTags.length > 0 ? newParsed.timeTags : oldParsed.timeTags;
-                finalTitleToSave = [newParsed.cleanTitle, ...combinedTimes, ...combinedLabels.map(l => '.' + l)].join(' ');
+                finalTitleToSave = [newParsed.cleanTitle, ...combinedTimes, ...combinedLabels.map(l => '.' + l)].join(' ').trim();
             }
-            const payload = { title: finalTitleToSave, description, type, date: (type === 'Habit' ? null : date), priority, timeblock, recurring };
-            if (type === 'Habit') payload.isHabitInstance = false;
+
+            const existingMeta = parseMultidayDesc(existingItem ? existingItem.description : '');
+            const parentIdStr = String(id);
+            const finalDesc = (type === 'Event' && dayCount > 1)
+                ? attachMultidayMeta(rawDescription, parentIdStr, 0, dayCount)
+                : (existingMeta.isBoundChild ? attachMultidayMeta(rawDescription, existingMeta.parentId, existingMeta.idx, existingMeta.total) : rawDescription);
+
+            const payload = {
+                title: finalTitleToSave,
+                description: finalDesc,
+                type,
+                date: (type === 'Habit' ? null : date),
+                priority,
+                timeblock,
+                recurring,
+                ...(type === 'Habit' ? { isHabitInstance: false } : {})
+            };
+
             schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, ...payload } : s);
             enqueueMutation({ type: 'update', id, payload });
+
+            if (type === 'Event' && dayCount > 1 && date) {
+                // Remove any prior child days tied to this parent before recreating bound child days
+                const oldChildren = schedules.filter(s => {
+                    const m = parseMultidayDesc(s.description);
+                    return m.isBoundChild && String(m.parentId) === parentIdStr && m.idx > 0;
+                });
+                oldChildren.forEach(ch => enqueueMutation({ type: 'delete', id: ch.id }));
+                const oldChildIds = new Set(oldChildren.map(ch => String(ch.id)));
+                schedules = schedules.filter(s => !oldChildIds.has(String(s.id)));
+
+                const newChildren = [];
+                for (let i = 1; i < dayCount; i++) {
+                    const childTempId = genTempId() + '_' + i;
+                    const childPayload = {
+                        title: finalTitleToSave,
+                        description: attachMultidayMeta(rawDescription, parentIdStr, i, dayCount),
+                        type: 'Event',
+                        date: shiftDateStr(date, i),
+                        priority,
+                        timeblock: 'none',
+                        recurring: 'none',
+                        completed: false,
+                        isHabitInstance: false
+                    };
+                    newChildren.push({ id: childTempId, ...childPayload });
+                    enqueueMutation({ type: 'insert', tempId: childTempId, payload: childPayload });
+                }
+                schedules = [...schedules, ...newChildren];
+            }
+
             formResetByPrefix(prefix);
             goBack();
             persistLocalAndRefresh();
             if (navigator.onLine) flushSyncQueue();
         } else {
-            const multidayEnabled = (prefix === 'm_' && type === 'Event' && $('m_multidayEnabled') && $('m_multidayEnabled').checked);
-            const rawDays = multidayEnabled ? parseInt($('m_multidayCount').value, 10) : 1;
-            const dayCount = (multidayEnabled && date && !isNaN(rawDays) && rawDays >= 2) ? Math.min(rawDays, 60) : 1;
-
             if (dayCount > 1 && date) {
-                const [y, m, d] = date.split('-').map(Number);
-                const baseDt = new Date(y, m - 1, d);
+                const parentTempId = genTempId();
                 const createdEntries = [];
                 for (let i = 0; i < dayCount; i++) {
-                    const curDt = new Date(baseDt);
-                    curDt.setDate(baseDt.getDate() + i);
-                    const dayDateStr = `${curDt.getFullYear()}-${String(curDt.getMonth() + 1).padStart(2, '0')}-${String(curDt.getDate()).padStart(2, '0')}`;
-                    const tempId = genTempId() + '_' + i;
-                    const entryPayload = { title: finalTitleToSave, description, type, date: dayDateStr, priority, timeblock, recurring, completed: false, isHabitInstance: false };
-                    createdEntries.push({ id: tempId, ...entryPayload });
-                    enqueueMutation({ type: 'insert', tempId, payload: entryPayload });
+                    const entryTempId = i === 0 ? parentTempId : `${parentTempId}_${i}`;
+                    const entryPayload = {
+                        title: finalTitleToSave,
+                        description: attachMultidayMeta(rawDescription, parentTempId, i, dayCount),
+                        type,
+                        date: shiftDateStr(date, i),
+                        priority,
+                        timeblock: 'none',
+                        recurring,
+                        completed: false,
+                        isHabitInstance: false
+                    };
+                    createdEntries.push({ id: entryTempId, ...entryPayload });
+                    enqueueMutation({ type: 'insert', tempId: entryTempId, payload: entryPayload });
                 }
                 schedules = [...schedules, ...createdEntries];
             } else {
                 const tempId = genTempId();
-                const entryPayload = { title: finalTitleToSave, description, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
+                const entryPayload = { title: finalTitleToSave, description: rawDescription, type, date, priority, timeblock, recurring, completed: false, isHabitInstance: false };
                 schedules = [...schedules, { id: tempId, ...entryPayload }];
                 enqueueMutation({ type: 'insert', tempId, payload: entryPayload });
             }
@@ -1379,8 +1494,11 @@
             if (navigator.onLine) flushSyncQueue();
         }
     }
+
+    function multidayActiveOrTrue(flag) { return Boolean(flag); }
     function m_saveSchedule() { saveScheduleByPrefix('m_'); }
 
+    // --- Habit Assign, Toggle, Delete, Duplicate & Detail ---
     function openAssignModal(id, event) { if (event) event.stopPropagation(); navPush({ modal: 'assignModal', id }); }
 
     function renderAssignModal(id) {
@@ -1388,15 +1506,12 @@
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) { showModalEl('assignModal'); return; }
 
-        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
-        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
+        const activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
+        const legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
 
-        let curDate = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
-        let curTimeblock = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
-
-        $('assignDate').value = curDate;
+        $('assignDate').value = activeInst ? activeInst.date : (legacyActive ? masterHabit.date : getTodayDateString());
         checkDateInputState('assignDate', 'assignDateTodayBtnContainer');
-        $('assignTimeblock').value = curTimeblock;
+        $('assignTimeblock').value = activeInst ? (activeInst.timeblock || 'none') : (legacyActive ? (masterHabit.timeblock || 'none') : 'none');
         showModalEl('assignModal');
     }
 
@@ -1404,28 +1519,34 @@
         const id = $('assignEntryId').value;
         const targetDate = $('assignDate').value;
         const targetTimeblock = $('assignTimeblock').value;
-
         if (!targetDate) return alert('Please select a target date!');
+
         const masterHabit = schedules.find(s => String(s.id) === String(id));
         if (!masterHabit) return alert('Habit tidak ditemukan.');
 
-        let activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
-        let legacyActive = !activeInst && masterHabit.date !== null && !masterHabit.completed;
-
+        // Always create/update a dedicated Habit Instance without turning Master Habit into a dated/completable item
+        const activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (masterHabit.title || '').trim());
         if (activeInst) {
             const patch = { date: targetDate, timeblock: targetTimeblock };
             schedules = schedules.map(x => String(x.id) === String(activeInst.id) ? { ...x, ...patch } : x);
             enqueueMutation({ type: 'update', id: activeInst.id, payload: patch });
-        } else if (legacyActive) {
-            const patch = { date: targetDate, timeblock: targetTimeblock };
-            schedules = schedules.map(x => String(x.id) === String(masterHabit.id) ? { ...x, ...patch } : x);
-            enqueueMutation({ type: 'update', id: masterHabit.id, payload: patch });
         } else {
             const tempId = genTempId();
-            const instPayload = { title: masterHabit.title, description: masterHabit.description, type: 'Task', date: targetDate, priority: masterHabit.priority, timeblock: targetTimeblock, recurring: 'none', completed: false, isHabitInstance: true };
+            const instPayload = {
+                title: masterHabit.title,
+                description: masterHabit.description,
+                type: 'Task',
+                date: targetDate,
+                priority: masterHabit.priority || 'personal',
+                timeblock: targetTimeblock,
+                recurring: 'none',
+                completed: false,
+                isHabitInstance: true
+            };
             schedules = [...schedules, { id: tempId, ...instPayload }];
             enqueueMutation({ type: 'insert', tempId, payload: instPayload });
         }
+
         goBack();
         persistLocalAndRefresh();
         if (navigator.onLine) flushSyncQueue();
@@ -1434,32 +1555,38 @@
     async function toggleComplete(id, event) {
         event.stopPropagation();
         const item = schedules.find(s => String(s.id) === String(id));
-        if (item) {
-            const nextCompleted = !item.completed;
-            schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, completed: nextCompleted } : s);
-            enqueueMutation({ type: 'update', id, payload: { completed: nextCompleted } });
-            persistLocalAndRefresh();
-            if (navigator.onLine) flushSyncQueue();
-        }
+        if (!item) return;
+        const nextCompleted = !item.completed;
+        schedules = schedules.map(s => String(s.id) === String(id) ? { ...s, completed: nextCompleted } : s);
+        enqueueMutation({ type: 'update', id, payload: { completed: nextCompleted } });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     async function deleteSchedule(id, event) {
         event.stopPropagation();
-        if (confirm('Delete this entry?')) {
-            schedules = schedules.filter(s => String(s.id) !== String(id));
-            enqueueMutation({ type: 'delete', id });
-            persistLocalAndRefresh();
-            if (navigator.onLine) flushSyncQueue();
-        }
+        if (!confirm('Delete this entry?')) return;
+        schedules = schedules.filter(s => String(s.id) !== String(id));
+        enqueueMutation({ type: 'delete', id });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
     }
 
     function openDetailModal(id) { navPush({ modal: 'detailModal', id }); }
 
     function buildEditablePills(item, parsed) {
         let html = '';
-        parsed.timeTags.forEach(t => { html += `<span class="editable-pill time-pill">⏱️ ${t}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${t}',true,event)">×</span></span>`; });
-        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) { html += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`; }
-        parsed.labelTags.forEach(l => { if (l.toLowerCase() !== 'deadline') html += `<span class="editable-pill label-pill">🏷️ ${l}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${l}',false,event)">×</span></span>`; });
+        parsed.timeTags.forEach(t => {
+            html += `<span class="editable-pill time-pill">⏱️ ${t}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${t}',true,event)">×</span></span>`;
+        });
+        if (item.type === 'Deadline' || parsed.labelTags.includes('deadline')) {
+            html += `<span class="editable-pill label-pill" style="background:var(--deadline-crimson); border-color:#ff5555; color:#ffffff;">📌 .deadline</span>`;
+        }
+        parsed.labelTags.forEach(l => {
+            if (l.toLowerCase() !== 'deadline') {
+                html += `<span class="editable-pill label-pill">🏷️ ${l}<span class="remove-pill" onclick="removeTagFromItem('${item.id}','${l}',false,event)">×</span></span>`;
+            }
+        });
         return html || '<span style="color:var(--muted-gray); font-size:9px;">No tags / labels</span>';
     }
 
@@ -1476,8 +1603,6 @@
         if (navigator.onLine) flushSyncQueue();
     }
 
-    function closeDuplicateEventModal() { goBack(); }
-
     function openDuplicateEventModal(id, event) {
         if (event) event.stopPropagation();
         navPush({ modal: 'duplicateEventModal', id });
@@ -1490,6 +1615,8 @@
         $('dupEventDate').value = srcItem.date || getTodayDateString();
         checkDateInputState('dupEventDate', 'dupEventDateTodayBtnContainer');
         $('dupEventTimeblock').value = srcItem.timeblock || 'none';
+        const noteEl = $('dupMultidayDisclaimer');
+        if (noteEl) noteEl.style.display = isPartOfMultiday(srcItem) ? 'block' : 'none';
         showModalEl('duplicateEventModal');
     }
 
@@ -1501,10 +1628,11 @@
         const srcItem = schedules.find(s => String(s.id) === String(srcId));
         if (!srcItem) return alert('Event not found.');
 
+        const cleanDesc = parseMultidayDesc(srcItem.description).cleanDesc;
         const tempId = genTempId();
         const dupPayload = {
             title: srcItem.title,
-            description: srcItem.description || '',
+            description: cleanDesc,
             type: 'Event',
             date: targetDate,
             priority: srcItem.priority || 'personal',
@@ -1525,41 +1653,41 @@
         if (!item) { goBack(); return; }
 
         const parsed = parseTodoistTitle(item.title);
-        let itemDesc = item.description || '-';
-        let itemPriority = item.type === 'Birthday' ? 'Birthday' : (item.type === 'Deadline' ? 'N/A' : item.priority);
-        let itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
+        const descMeta = parseMultidayDesc(item.description);
+        const itemDesc = descMeta.cleanDesc || '-';
+        const itemPriority = item.type === 'Birthday' ? 'Birthday' : (item.type === 'Deadline' ? 'N/A' : (item.priority || 'personal'));
+        const itemTimeblock = (item.type === 'Birthday' || (item.type === 'Habit' && !item.date)) ? 'N/A' : (item.timeblock || 'none');
         const isHabitMaster = isMasterHabitItem(item);
-        let itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
-        let displayDate = getDisplayDate(item);
-        const isEventItem = (item.type === 'Event');
-        const dupBtnHTML = isEventItem ? `
-            <button type="button" class="btn-duplicate-inline" onclick="openDuplicateEventModal('${item.id}', event)" title="Duplicate event">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                <span>Duplicate</span>
-            </button>` : '';
+        const itemStatus = isHabitMaster ? (item.completed ? 'Archived (Habits Bin)' : 'Active') : (item.completed ? 'Completed' : 'Pending');
+        const displayDate = getDisplayDate(item);
+        const dupIconBtn = item.type === 'Event'
+            ? `<button type="button" class="btn-duplicate-icon" onclick="openDuplicateEventModal('${item.id}', event)" title="Duplicate event"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><use href="#icon-copy"/></svg></button>`
+            : '';
 
-        $('modalTitleText').innerText = `[${item.isHabitInstance ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
+        $('modalTitleText').innerText = `[${isHabitInst(item) ? 'Habit Instance' : item.type}] ${parsed.cleanTitle}`;
         $('modalBodyContent').innerHTML = `
             <p><strong>Date</strong> ${displayDate || 'Habit (Idle / Master Pool)'}</p>
             <p><strong>Description / Note</strong> ${itemDesc}</p>
             <p><strong>Priority Tag</strong> ${itemPriority}</p>
             <p><strong>Timeblock</strong> ${itemTimeblock}</p>
             <p><strong>Status</strong> ${itemStatus}</p>
-            ${isHabitMaster ? buildHabitHeatmapHTML(item.title, priorityColors[item.priority] || '#7a9c72') : ''}
-            <div class="detail-tags-header">
-                <strong style="margin: 0;">Tags & Labels</strong>
-                ${dupBtnHTML}
+            ${isHabitMaster ? buildHabitHeatmapHTML(item, APP_CONFIG.PRIORITY_COLORS[item.priority] || '#7a9c72') : ''}
+            <p style="margin-bottom: 2px;"><strong>Tags & Labels</strong></p>
+            <div class="detail-tags-row">
+                <div class="editable-pill-container">${buildEditablePills(item, parsed)}</div>
+                ${dupIconBtn}
             </div>
-            <div class="editable-pill-container">${buildEditablePills(item, parsed)}</div>
         `;
         showModalEl('detailModal');
     }
 
-    window.labelCustomOrders = {};
-    try { window.labelCustomOrders = JSON.parse(localStorage.getItem('yorushika_labelOrders')) || {}; } catch(e) { window.labelCustomOrders = {}; }
-    window.labelEditOrderActive = null;
-    window.labelBatchModeActive = null;
-    window.labelBatchSelectedIds = new Set();
+    // --- Label Ordering, Batch & Directory ---
+    function rerenderTop() { if (screenStack.length > 0) renderScreen(screenStack[screenStack.length - 1]); }
+
+    function toggleLabelEditOrder(targetParam) {
+        window.labelEditOrderActive = (window.labelEditOrderActive === targetParam) ? null : targetParam;
+        rerenderTop();
+    }
 
     function toggleLabelBatchMode(targetParam) {
         if (window.labelBatchModeActive === targetParam) {
@@ -1576,29 +1704,21 @@
     function toggleLabelBatchItem(id, event) {
         if (event) event.stopPropagation();
         const strId = String(id);
-        if (window.labelBatchSelectedIds.has(strId)) {
-            window.labelBatchSelectedIds.delete(strId);
-        } else {
-            window.labelBatchSelectedIds.add(strId);
-        }
+        if (window.labelBatchSelectedIds.has(strId)) window.labelBatchSelectedIds.delete(strId);
+        else window.labelBatchSelectedIds.add(strId);
         rerenderTop();
     }
 
     function toggleSelectAllLabelBatch(targetParam) {
         const matched = getActiveItemsForLabel(targetParam);
         const allSelected = matched.length > 0 && matched.every(s => window.labelBatchSelectedIds.has(String(s.id)));
-        if (allSelected) {
-            window.labelBatchSelectedIds = new Set();
-        } else {
-            window.labelBatchSelectedIds = new Set(matched.map(s => String(s.id)));
-        }
+        window.labelBatchSelectedIds = allSelected ? new Set() : new Set(matched.map(s => String(s.id)));
         rerenderTop();
     }
 
     function getActiveItemsForLabel(targetParam) {
         return schedules.filter(s => {
-            if (s.type === 'Habit' || s.isHabitInstance) return false;
-            if (isInLabelBin(s.id)) return false;
+            if (s.type === 'Habit' || isHabitInst(s) || isInLabelBin(s.id)) return false;
             return targetParam.toLowerCase() === 'deadline' && s.type === 'Deadline' ? true : parseTodoistTitle(s.title).labelTags.includes(targetParam);
         });
     }
@@ -1609,21 +1729,15 @@
         moveIdsToLabelBin(selectedIds);
         window.labelBatchSelectedIds = new Set();
         window.labelBatchModeActive = null;
-        updateArchiveCounters();
-        renderAgendaList();
-        const remaining = getActiveItemsForLabel(targetParam);
-        if (remaining.length === 0) {
-            goBack();
-        } else {
-            rerenderTop();
-        }
+        scheduleUiRender();
+        if (getActiveItemsForLabel(targetParam).length === 0) goBack();
+        else rerenderTop();
     }
 
     function restoreLabelBinItem(id, event) {
         if (event) event.stopPropagation();
         restoreIdFromLabelBin(id);
-        updateArchiveCounters();
-        renderAgendaList();
+        scheduleUiRender();
         rerenderTop();
     }
 
@@ -1637,18 +1751,6 @@
         if (navigator.onLine) flushSyncQueue();
     }
 
-    function saveLabelOrders() {
-        try { localStorage.setItem('yorushika_labelOrders', JSON.stringify(window.labelCustomOrders)); } catch(e) {}
-    }
-
-    function rerenderTop() { if (screenStack.length > 0) renderScreen(screenStack[screenStack.length - 1]); }
-
-    function toggleLabelEditOrder(targetParam) {
-        window.labelEditOrderActive = (window.labelEditOrderActive === targetParam) ? null : targetParam;
-        rerenderTop();
-    }
-
-    let dragState = null;
     function onHandlePointerDown(e, idx, param) {
         e.preventDefault();
         dragState = { param, currentIdx: idx };
@@ -1658,6 +1760,7 @@
         document.addEventListener('pointerup', onHandlePointerUp);
         document.addEventListener('pointercancel', onHandlePointerUp);
     }
+
     function onHandlePointerMove(e) {
         if (!dragState) return;
         e.preventDefault();
@@ -1666,17 +1769,18 @@
         if (!overItem) return;
         const targetIdx = parseInt(overItem.getAttribute('data-drag-idx'), 10);
         if (isNaN(targetIdx) || targetIdx === dragState.currentIdx) return;
-        let orderArr = window.labelCustomOrders[dragState.param];
+        const orderArr = window.labelCustomOrders[dragState.param];
         if (!orderArr) return;
         orderArr.splice(targetIdx, 0, orderArr.splice(dragState.currentIdx, 1)[0]);
         dragState.currentIdx = targetIdx;
         rerenderTop();
     }
+
     function onHandlePointerUp() {
         document.removeEventListener('pointermove', onHandlePointerMove);
         document.removeEventListener('pointerup', onHandlePointerUp);
         document.removeEventListener('pointercancel', onHandlePointerUp);
-        if (dragState) saveLabelOrders();
+        if (dragState) writeJsonStorage(APP_CONFIG.STORAGE.LABEL_ORDERS, window.labelCustomOrders);
         dragState = null;
         rerenderTop();
     }
@@ -1696,9 +1800,7 @@
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="toggleLabelEditOrder('${targetParam}')">${window.labelEditOrderActive === targetParam ? 'Done' : 'Edit Order'}</button>`;
         } else if (typeKey === 'collections' && targetParam === null) {
             headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('collections_bin')">🗑️ Bin</button>`;
-        } else if (typeKey === 'collections_bin') {
-            headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
-        } else if (typeKey === 'habits_list' || typeKey === 'habits_bin') {
+        } else if (['collections_bin', 'habits_list', 'habits_bin'].includes(typeKey)) {
             headerActionsHTML += `<button class="btn-edit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="goBack()">← Back</button>`;
         } else if (typeKey === 'habits') {
             headerActionsHTML += `<button class="btn-archive-habit" style="margin-right: 6px; padding: 2px 6px; font-size: 10px;" onclick="openDirectoryModal('habits_bin')">🗑️ Bin</button>`;
@@ -1708,31 +1810,30 @@
         let html = '';
         if (typeKey === 'birthdays') {
             modalTitle.innerText = '🎂 BIRTHDAYS DIRECTORY';
-            let birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => (a.date || '12-31').localeCompare(b.date || '12-31'));
+            const birthdays = schedules.filter(s => s.type === 'Birthday').sort((a, b) => (a.date || '12-31').localeCompare(b.date || '12-31'));
             html = birthdays.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No birthdays recorded.</div>' : birthdays.map(s => renderCardHTML(s, 'var(--birthday-strawberry)', true)).join('');
         } else if (typeKey === 'habits') {
             modalTitle.innerText = '🔁 HABITS CATEGORY';
-            let habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed);
-            let pCounts = { professional: 0, daily: 0, personal: 0 };
-            habits.forEach(s => { let p = s.priority || 'personal'; if(pCounts[p]!==undefined) pCounts[p]++; });
-
-            html += `
-                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'professional')">
-                    <div class="agenda-content"><h4>💼 Professional</h4></div>
-                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.professional} items</span><span style="font-size:10px; color:#fff;">→</span></div>
-                </div>
-                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'daily')">
-                    <div class="agenda-content"><h4>☕ Daily</h4></div>
-                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.daily} items</span><span style="font-size:10px; color:#fff;">→</span></div>
-                </div>
-                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', 'personal')">
-                    <div class="agenda-content"><h4>🌱 Personal</h4></div>
-                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${pCounts.personal} items</span><span style="font-size:10px; color:#fff;">→</span></div>
-                </div>`;
-       } else if (typeKey === 'habits_list') {
+            const habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed);
+            const pCounts = { professional: 0, daily: 0, personal: 0 };
+            habits.forEach(s => {
+                const p = String(s.priority || 'personal').toLowerCase();
+                if (pCounts[p] !== undefined) pCounts[p]++;
+                else pCounts.personal++;
+            });
+            const cats = [
+                ['professional', '💼 Professional', pCounts.professional],
+                ['daily', '☕ Daily', pCounts.daily],
+                ['personal', '🌱 Personal', pCounts.personal]
+            ];
+            html = cats.map(([key, label, count]) => `
+                <div class="agenda-item" style="background: #232320; margin-bottom: 6px;" onclick="openDirectoryModal('habits_list', '${key}')">
+                    <div class="agenda-content"><h4>${label}</h4></div>
+                    <div class="agenda-right-cluster"><span style="font-size:10px; color:var(--muted-gray);">${count} items</span><span style="font-size:10px; color:#fff;">→</span></div>
+                </div>`).join('');
+        } else if (typeKey === 'habits_list') {
             modalTitle.innerText = `🔁 HABITS: ${targetParam.toUpperCase()}`;
             const habits = schedules.filter(s => isMasterHabitItem(s) && !s.completed && String(s.priority || 'personal').toLowerCase() === String(targetParam).toLowerCase());
-
             if (!habits.length) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No habits recorded in this category.</div>';
             } else {
@@ -1741,48 +1842,39 @@
                     (acc[tag] = acc[tag] || []).push(s);
                     return acc;
                 }, {});
-
                 html = Object.keys(groups).sort().map(tag => {
                     const items = groups[tag].sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
-                    const cards = items.map(s => renderHabitCardHTML(s, priorityColors[s.priority] || '#333')).join('');
-                    
-                    return `
-                        <div class="section-category-box" style="margin-bottom: 12px;">
-                            <div class="section-category-title">
-                                <span>🏷️ TAG: #${tag.toUpperCase()}</span>
-                                <span>[${items.length}]</span>
-                            </div>
-                            ${cards}
-                        </div>`;
+                    const cards = items.map(s => renderHabitCardHTML(s, APP_CONFIG.PRIORITY_COLORS[s.priority] || '#333')).join('');
+                    return `<div class="section-category-box" style="margin-bottom: 12px;"><div class="section-category-title"><span>🏷️ TAG: #${tag.toUpperCase()}</span><span>[${items.length}]</span></div>${cards}</div>`;
                 }).join('');
             }
         } else if (typeKey === 'habits_bin') {
             modalTitle.innerText = '🗑️ HABITS BIN';
-            let archived = schedules.filter(s => isMasterHabitItem(s) && Boolean(s.completed)).sort((a,b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
-            html = archived.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>' : archived.map(s => renderHabitBinCardHTML(s, priorityColors[s.priority] || '#333')).join('');
+            const archived = schedules.filter(s => isMasterHabitItem(s) && Boolean(s.completed)).sort((a, b) => parseTodoistTitle(a.title).cleanTitle.localeCompare(parseTodoistTitle(b.title).cleanTitle));
+            html = archived.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Habits bin is empty.</div>' : archived.map(s => renderHabitBinCardHTML(s, APP_CONFIG.PRIORITY_COLORS[s.priority] || '#333')).join('');
         } else if (typeKey === 'skipped') {
             modalTitle.innerText = '🕰️ SKIPPED TASKS';
-            const skipped = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance) && !s.completed && s.date && s.date < todayStr);
+            const skipped = schedules.filter(s => (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || isHabitInst(s)) && !s.completed && s.date && s.date < todayStr);
             html = skipped.length === 0 ? '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No skipped past items. Clean slate!</div>' : skipped.map(s => renderCardHTML(s, getBgStyle(s))).join('');
         } else if (typeKey === 'today_overflow') {
             modalTitle.innerText = '📌 TODAY (FULL LIST)';
             html = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr))).map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('');
         } else if (typeKey === 'upcoming_overflow') {
             modalTitle.innerText = '🚀 UPCOMING (FULL LIST)';
-            let tomStr = new Date(new Date().setDate(new Date().getDate() + 1)).toISOString().split('T')[0];
+            const tomStr = shiftDateStr(todayStr, 1);
             html = sortItems(schedules.filter(s => isMatchingToday(s, tomStr))).map(s => renderCardHTML(s, getBgStyle(s))).join('');
         } else if (typeKey === 'inbox_overflow') {
             modalTitle.innerText = '📥 INBOX / DUMPLIST (FULL LIST)';
-            html = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
+            html = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !isHabitInst(s) && parseTodoistTitle(s.title).labelTags.length === 0)).map(s => renderCardHTML(s, getBgStyle(s))).join('');
         } else if (typeKey === 'collections_bin') {
             modalTitle.innerText = '🗑️ LABELS BIN';
-            const binnedItems = schedules.filter(s => s.type !== 'Habit' && !s.isHabitInstance && isInLabelBin(s.id));
+            const binnedItems = schedules.filter(s => s.type !== 'Habit' && !isHabitInst(s) && isInLabelBin(s.id));
             if (binnedItems.length === 0) {
                 html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">Labels bin is empty.</div>';
             } else {
                 const groups = {};
                 binnedItems.forEach(s => {
-                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    const tags = [...parseTodoistTitle(s.title).labelTags];
                     if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
                     if (tags.length === 0) tags.push('unlabeled');
                     tags.forEach(t => { (groups[t] = groups[t] || []).push(s); });
@@ -1790,16 +1882,12 @@
                 html = Object.keys(groups).sort().map(tag => {
                     const cards = groups[tag].map(s => {
                         const parsed = parseTodoistTitle(s.title);
-                        let pillsHTML = '';
-                        if (parsed.timeTags.length > 0) pillsHTML += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
-                        if (parsed.labelTags.length > 0) pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+                        const pillsHTML = buildPillsHTML(parsed, true);
                         return `
                             <div class="agenda-item" style="background: ${getBgStyle(s)}; opacity: 0.75;" onclick="openDetailModal('${s.id}')">
-                                <div class="agenda-content">
-                                    <h4>[${s.type}] ${parsed.cleanTitle}</h4>
-                                </div>
+                                <div class="agenda-content"><h4>[${s.type}] ${parsed.cleanTitle}</h4></div>
                                 <div class="agenda-right-cluster">
-                                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                                    ${pillsHTML}
                                     <div class="agenda-actions">
                                         <button class="btn-assign" onclick="restoreLabelBinItem('${s.id}', event)" title="Restore to active label">Restore</button>
                                         <button class="btn-delete" onclick="deleteLabelBinItemPermanent('${s.id}', event)" title="Delete permanently">X</button>
@@ -1807,50 +1895,41 @@
                                 </div>
                             </div>`;
                     }).join('');
-                    return `
-                        <div class="section-category-box" style="margin-bottom: 12px;">
-                            <div class="section-category-title">
-                                <span>🏷️ #${tag.toUpperCase()}</span>
-                                <span>[${groups[tag].length}]</span>
-                            </div>
-                            ${cards}
-                        </div>`;
+                    return `<div class="section-category-box" style="margin-bottom: 12px;"><div class="section-category-title"><span>🏷️ #${tag.toUpperCase()}</span><span>[${groups[tag].length}]</span></div>${cards}</div>`;
                 }).join('');
             }
         } else if (typeKey === 'collections') {
             if (!targetParam) {
                 modalTitle.innerText = '🏷️ LABELS & COLLECTIONS';
-                let labelMap = {};
+                const labelMap = {};
                 schedules.forEach(s => {
-                    if (s.type === 'Habit' || s.isHabitInstance) return;
-                    if (isInLabelBin(s.id)) return;
-                    let tags = [...parseTodoistTitle(s.title).labelTags];
+                    if (s.type === 'Habit' || isHabitInst(s) || isInLabelBin(s.id)) return;
+                    const tags = [...parseTodoistTitle(s.title).labelTags];
                     if (s.type === 'Deadline' && !tags.includes('deadline')) tags.push('deadline');
                     tags.forEach(l => { (labelMap[l] = labelMap[l] || []).push(s); });
                 });
-                let keys = Object.keys(labelMap).sort((a, b) => a.toLowerCase() === 'deadline' ? -1 : (b.toLowerCase() === 'deadline' ? 1 : a.localeCompare(b)));
-                
-                if (keys.length === 0) { html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found.</div>'; } 
-                else {
-                    keys.forEach(l => {
+                const keys = Object.keys(labelMap).sort((a, b) => a.toLowerCase() === 'deadline' ? -1 : (b.toLowerCase() === 'deadline' ? 1 : a.localeCompare(b)));
+                if (keys.length === 0) {
+                    html = '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No labels found.</div>';
+                } else {
+                    html = keys.map(l => {
                         const isDeadline = (l.toLowerCase() === 'deadline');
                         const cardBg = isDeadline ? 'background: var(--deadline-crimson); border-color: #ff5555;' : 'background: #232320;';
                         const pinnedBadge = isDeadline ? '<span style="font-size: 8px; background: var(--bg-pure); color: #ffffff; padding: 1px 5px; border-radius: 3px; margin-left: 4px;">📌 pinned</span>' : '';
-                        html += `
+                        return `
                             <div class="agenda-item" style="${cardBg} margin-bottom: 6px;" onclick="openDirectoryModal('collections', '${l}')">
                                 <div class="agenda-content"><h4>🏷️ ${l} ${pinnedBadge}</h4></div>
                                 <div class="agenda-right-cluster"><span style="font-size:10px; color:#fff;">${labelMap[l].length} items →</span></div>
                             </div>`;
-                    });
+                    }).join('');
                 }
             } else {
                 modalTitle.innerText = `🏷️ LABEL: ${targetParam}`;
-                let matched = getActiveItemsForLabel(targetParam);
-                
+                const matched = getActiveItemsForLabel(targetParam);
                 if (!window.labelCustomOrders[targetParam]) window.labelCustomOrders[targetParam] = matched.map(s => s.id);
-                let orderArr = window.labelCustomOrders[targetParam];
+                const orderArr = window.labelCustomOrders[targetParam];
                 matched.sort((a, b) => {
-                    let idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
+                    const idxA = orderArr.indexOf(a.id), idxB = orderArr.indexOf(b.id);
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
 
@@ -1874,8 +1953,8 @@
                     html += '<div style="text-align: center; padding: 15px; color: var(--muted-gray);">No active items in this label.</div>';
                 } else {
                     matched.forEach((s, idx) => {
-                        let isDragMode = (window.labelEditOrderActive === targetParam);
-                        let dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
+                        const isDragMode = (window.labelEditOrderActive === targetParam);
+                        const dragAttr = isDragMode ? `data-drag-idx="${idx}"` : '';
                         let handleHTML = isDragMode ? `<div class="drag-handle" onpointerdown="onHandlePointerDown(event, ${idx}, '${targetParam}')">⋮⋮</div>` : '';
                         if (isBatchMode) {
                             const checked = window.labelBatchSelectedIds.has(String(s.id)) ? 'checked' : '';
@@ -1892,34 +1971,38 @@
         showModalEl('directoryModal');
     }
 
+    // --- Shared Card Builders ---
+    function buildPillsHTML(parsed, includeTime = true) {
+        let pills = '';
+        if (includeTime && parsed.timeTags.length > 0) pills += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
+        if (parsed.labelTags.length > 0) {
+            pills += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
+            if (parsed.labelTags.length > 1) pills += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
+        }
+        return pills ? `<div class="pill-badges-wrap">${pills}</div>` : '';
+    }
+
+    function buildNoteHTML(s) {
+        const cleanDesc = parseMultidayDesc(s.description).cleanDesc;
+        return cleanDesc && cleanDesc.trim() !== ''
+            ? `<span class="note-indicator" title="${cleanDesc.replace(/"/g, '&quot;')}">💬</span>`
+            : '';
+    }
+
     function renderCardHTML(s, bgStyle, isBirthdayDirectory = false, wrapperAttrs = '', injectLeftHTML = '', isDragMode = false, allowPin = false) {
-        const isPast = s.date && s.date < getTodayDateString();
+        const todayStr = getTodayDateString();
         const pinned = allowPin && isTodayPinned(s.id);
         const itemClass = 'agenda-item'
-            + ((s.completed && (isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance)) ? ' completed-item' : '')
+            + (isCompletedDisplayItem(s, todayStr) ? ' completed-item' : '')
             + (pinned ? ' today-pinned-item' : '');
-        
+
         const parsed = parseTodoistTitle(s.title);
-        
-        let pillsHTML = '';
-        if (parsed.timeTags.length > 0) {
-            pillsHTML += `<span class="discord-pill time-pill">⏱️ ${parsed.timeTags[0]}</span>`;
-        }
-        if (parsed.labelTags.length > 0) {
-            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
-            if (parsed.labelTags.length > 1) {
-                pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
-            }
-        }
-
-        let hasNote = (s.description && s.description.trim() !== '');
-        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
-        
-        let showDateTag = (isBirthdayDirectory || s.type === 'Birthday');
-        let bdayTagHTML = showDateTag ? `<span class="birthday-date-tag">🎂 ${getDisplayDate(s)}</span>` : '';
-
-        let typePrefix = s.isHabitInstance || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
-        let showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || s.isHabitInstance);
+        const pillsHTML = buildPillsHTML(parsed, true);
+        const noteHTML = buildNoteHTML(s);
+        const bdayTagHTML = (isBirthdayDirectory || s.type === 'Birthday') ? `<span class="birthday-date-tag">🎂 ${getDisplayDate(s)}</span>` : '';
+        const typePrefix = isHabitInst(s) || s.type === 'Habit' ? '[HABIT]' : `[${s.type}]`;
+        const showCheckbox = (s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || isHabitInst(s));
+        const showEditBtn = !isMultidayChildItem(s);
         const pinBtnHTML = allowPin ? `<button class="btn-pin ${pinned ? 'pinned' : ''}" onclick="toggleTodayPin('${s.id}', event)" title="${pinned ? 'Unpin from top' : 'Pin to top (do now)'}">📌</button>` : '';
         const clickAction = isDragMode ? '' : `onclick="openDetailModal('${s.id}')"`;
 
@@ -1932,11 +2015,11 @@
                     ${noteHTML}
                 </div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${pillsHTML}
                     <div class="agenda-actions">
                         ${pinBtnHTML}
                         ${showCheckbox ? `<input type="checkbox" ${s.completed ? 'checked' : ''} onclick="toggleComplete('${s.id}', event)">` : ''}
-                        <button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>
+                        ${showEditBtn ? `<button class="btn-edit" onclick="editSchedule('${s.id}'); event.stopPropagation();">Edit</button>` : ''}
                         <button class="btn-delete" onclick="deleteSchedule('${s.id}', event)">X</button>
                     </div>
                 </div>
@@ -1945,30 +2028,17 @@
 
     function renderHabitCardHTML(s, solidBg) {
         const parsed = parseTodoistTitle(s.title);
-        let pillsHTML = '';
-        if (parsed.labelTags.length > 0) {
-            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
-            if (parsed.labelTags.length > 1) pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
-        }
-        
-        let hasNote = (s.description && s.description.trim() !== '');
-        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
-
-        let activeInst = schedules.find(x => x.isHabitInstance && !x.completed && x.title === s.title);
-        let legacyActive = !activeInst && s.date !== null && !s.completed;
-        let displayDate = activeInst ? activeInst.date : (legacyActive ? s.date : null);
-        
-        let assignBtnText = displayDate ? 'Re-assign' : 'Assign';
-        let assignBtnClass = displayDate ? 'btn-reassign' : 'btn-assign';
+        const pillsHTML = buildPillsHTML(parsed, false);
+        const noteHTML = buildNoteHTML(s);
+        const activeInst = schedules.find(x => isHabitInst(x) && !x.completed && (x.title || '').trim() === (s.title || '').trim());
+        const assignBtnText = activeInst ? 'Re-assign' : 'Assign';
+        const assignBtnClass = activeInst ? 'btn-reassign' : 'btn-assign';
 
         return `
             <div class="agenda-item" style="background: ${solidBg};" onclick="openDetailModal('${s.id}')">
-                <div class="agenda-content">
-                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
-                    ${noteHTML}
-                </div>
+                <div class="agenda-content"><h4>[HABIT] ${parsed.cleanTitle}</h4>${noteHTML}</div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${pillsHTML}
                     <div class="agenda-actions">
                         <button class="btn-archive-habit" onclick="archiveHabit('${s.id}', event)" title="Move to Habits Bin">✓</button>
                         <button class="${assignBtnClass}" onclick="openAssignModal('${s.id}', event)">${assignBtnText}</button>
@@ -1981,22 +2051,11 @@
 
     function renderHabitBinCardHTML(s, solidBg) {
         const parsed = parseTodoistTitle(s.title);
-        let pillsHTML = '';
-        if (parsed.labelTags.length > 0) {
-            pillsHTML += `<span class="discord-pill label-pill">🏷️ ${parsed.labelTags[0]}</span>`;
-            if (parsed.labelTags.length > 1) pillsHTML += `<span class="discord-pill more-pill">+${parsed.labelTags.length - 1}</span>`;
-        }
-        let hasNote = (s.description && s.description.trim() !== '');
-        let noteHTML = hasNote ? `<span class="note-indicator" title="${s.description.replace(/"/g, '&quot;')}">💬</span>` : '';
-
         return `
             <div class="agenda-item" style="background: ${solidBg}; opacity: 0.7;" onclick="openDetailModal('${s.id}')">
-                <div class="agenda-content">
-                    <h4>[HABIT] ${parsed.cleanTitle}</h4>
-                    ${noteHTML}
-                </div>
+                <div class="agenda-content"><h4>[HABIT] ${parsed.cleanTitle}</h4>${buildNoteHTML(s)}</div>
                 <div class="agenda-right-cluster">
-                    ${pillsHTML ? `<div class="pill-badges-wrap">${pillsHTML}</div>` : ''}
+                    ${buildPillsHTML(parsed, false)}
                     <div class="agenda-actions">
                         <button class="btn-assign" onclick="restoreHabit('${s.id}', event)" title="Restore to active Habits">Restore</button>
                         <button class="btn-delete" onclick="deleteHabitPermanent('${s.id}', event)" title="Delete permanently">X</button>
@@ -2031,8 +2090,20 @@
         if (navigator.onLine) flushSyncQueue();
     }
 
-    function buildHabitHeatmapHTML(habitTitle, accentColor) {
-        const completedDates = new Set(schedules.filter(x => isHabitInst(x) && x.completed === true && (x.title || '').trim() === (habitTitle || '').trim() && x.date).map(x => x.date));
+    // --- Habit Heatmap (Matches exact title or cleaned habit title so history stays connected) ---
+    function buildHabitHeatmapHTML(habitItem, accentColor) {
+        const habitTitle = (habitItem.title || '').trim();
+        const habitClean = parseTodoistTitle(habitTitle).cleanTitle.toLowerCase();
+        const completedDates = new Set(
+            schedules
+                .filter(x => {
+                    if (!isHabitInst(x) || x.completed !== true || !x.date) return false;
+                    const instTitle = (x.title || '').trim();
+                    return instTitle === habitTitle || (habitClean && parseTodoistTitle(instTitle).cleanTitle.toLowerCase() === habitClean);
+                })
+                .map(x => x.date)
+        );
+
         const today = new Date(); today.setHours(0, 0, 0, 0);
         const endOfWeek = new Date(today); endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
         const startDate = new Date(endOfWeek); startDate.setDate(endOfWeek.getDate() - (53 * 7) + 1);
@@ -2040,9 +2111,10 @@
         let dotsHTML = '', doneCount = 0;
         for (let col = 0; col < 53; col++) {
             for (let row = 0; row < 7; row++) {
-                const cellDate = new Date(startDate); cellDate.setDate(startDate.getDate() + col * 7 + row);
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + col * 7 + row);
                 if (cellDate > today) continue;
-                const dateStr = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+                const dateStr = formatLocalDate(cellDate);
                 const isFilled = completedDates.has(dateStr);
                 if (isFilled) doneCount++;
                 dotsHTML += `<circle cx="${col * 10 + 5}" cy="${row * 10 + 5}" r="3.3" fill="${isFilled ? accentColor : 'var(--border-color)'}"><title>${dateStr}${isFilled ? ' — done' : ''}</title></circle>`;
@@ -2070,65 +2142,48 @@
         const container = $('agendaContainer');
         const dumplistContainer = $('dumplistContainer');
         const todayStr = getTodayDateString();
-        let tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+        const tomStr = shiftDateStr(todayStr, 1);
 
-        if (schedules.length === 0) { container.innerHTML = 'No entries recorded yet.'; dumplistContainer.innerHTML = ''; return; }
+        if (schedules.length === 0) {
+            container.innerHTML = 'No entries recorded yet.';
+            dumplistContainer.innerHTML = '';
+            return;
+        }
 
         if (selectedFilterDate) {
             $('clearFilterBtn').style.display = 'inline-block';
-            let filtered = sortItems(schedules.filter(s => isMatchingToday(s, selectedFilterDate)));
-            if (filtered.length === 0) { container.innerHTML = `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`; } 
-            else {
-                let html = `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filtered.length}]</span></div>`;
-                filtered.forEach(s => html += renderCardHTML(s, getBgStyle(s)));
-                container.innerHTML = html + `</div>`;
-            }
+            const filtered = sortItems(schedules.filter(s => isMatchingToday(s, selectedFilterDate)));
+            container.innerHTML = filtered.length === 0
+                ? `<div style="text-align: center; padding: 10px;">No entries for ${formatDateDDMM(selectedFilterDate)}.</div>`
+                : `<div class="section-category-box"><div class="section-category-title"><span>📅 Filtered Date: ${formatDateDDMM(selectedFilterDate)}</span><span>[${filtered.length}]</span></div>${filtered.map(s => renderCardHTML(s, getBgStyle(s))).join('')}</div>`;
             dumplistContainer.innerHTML = '';
-        } else {
-            $('clearFilterBtn').style.display = 'none';
-            let htmlMain = '';
-
-            const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !s.isHabitInstance && parseTodoistTitle(s.title).labelTags.length === 0));
-            if (inboxItems.length > 0) {
-                let htmlDump = `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>`;
-                inboxItems.slice(0, 3).forEach(s => htmlDump += renderCardHTML(s, getBgStyle(s)));
-                if (inboxItems.length > 3) htmlDump += `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>`;
-                dumplistContainer.innerHTML = htmlDump + `</div>`;
-            } else { dumplistContainer.innerHTML = ''; }
-
-            const todayItems = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr)));
-            if (todayItems.length > 0) {
-                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>`;
-                todayItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s), false, '', '', false, true));
-                if (todayItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>`;
-                htmlMain += `</div>`;
-            }
-
-            const upcomingItems = sortItems(schedules.filter(s => isMatchingToday(s, tomStr)));
-            if (upcomingItems.length > 0) {
-                htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>`;
-                upcomingItems.slice(0, 5).forEach(s => htmlMain += renderCardHTML(s, getBgStyle(s)));
-                if (upcomingItems.length > 5) htmlMain += `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${upcomingItems.length - 5} more upcoming items...</button>`;
-                htmlMain += `</div>`;
-            }
-
-            container.innerHTML = htmlMain || `<div style="text-align: center; padding: 20px; color: var(--muted-gray);">No scheduled entries for today or tomorrow.</div>`;
+            return;
         }
+
+        $('clearFilterBtn').style.display = 'none';
+
+        const inboxItems = sortItems(schedules.filter(s => !s.date && s.type !== 'Habit' && !isHabitInst(s) && parseTodoistTitle(s.title).labelTags.length === 0));
+        dumplistContainer.innerHTML = inboxItems.length > 0
+            ? `<div class="dumplist-box"><div class="dumplist-title"><span>📥 DUMP / INBOX</span><span>[${inboxItems.length}]</span></div>${inboxItems.slice(0, 3).map(s => renderCardHTML(s, getBgStyle(s))).join('')}${inboxItems.length > 3 ? `<button class="btn-overflow-more" onclick="openDirectoryModal('inbox_overflow')">+ ${inboxItems.length - 3} more unassigned items...</button>` : ''}</div>`
+            : '';
+
+        let htmlMain = '';
+        const todayItems = sortTodayItemsWithPins(schedules.filter(s => isMatchingToday(s, todayStr)));
+        if (todayItems.length > 0) {
+            htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>📌 TODAY (${formatDateDDMM(todayStr)})</span><span>[${todayItems.length}]</span></div>${todayItems.slice(0, 5).map(s => renderCardHTML(s, getBgStyle(s), false, '', '', false, true)).join('')}${todayItems.length > 5 ? `<button class="btn-overflow-more" onclick="openDirectoryModal('today_overflow')">+ ${todayItems.length - 5} more items in Today...</button>` : ''}</div>`;
+        }
+
+        const upcomingItems = sortItems(schedules.filter(s => isMatchingToday(s, tomStr)));
+        if (upcomingItems.length > 0) {
+            htmlMain += `<div class="section-category-box"><div class="section-category-title"><span>🚀 UPCOMING (${formatDateDDMM(tomStr)})</span><span>[${upcomingItems.length}]</span></div>${upcomingItems.slice(0, 5).map(s => renderCardHTML(s, getBgStyle(s))).join('')}${upcomingItems.length > 5 ? `<button class="btn-overflow-more" onclick="openDirectoryModal('upcoming_overflow')">+ ${upcomingItems.length - 5} more upcoming items...</button>` : ''}</div>`;
+        }
+
+        container.innerHTML = htmlMain || `<div style="text-align: center; padding: 20px; color: var(--muted-gray);">No scheduled entries for today or tomorrow.</div>`;
     }
 
-    window.addEventListener('online', () => {
-        updateSyncStatusUI();
-        flushSyncQueue(true);
-    });
-    window.addEventListener('offline', () => {
-        updateSyncStatusUI();
-    });
-    document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible' && navigator.onLine) {
-            flushSyncQueue(true);
-        }
-    });
+    window.addEventListener('online', () => { updateSyncStatusUI(); flushSyncQueue(true); });
+    window.addEventListener('offline', () => { updateSyncStatusUI(); });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && navigator.onLine) flushSyncQueue(true); });
 
     checkAuthAndInit();
 </script>
