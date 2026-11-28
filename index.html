@@ -621,23 +621,63 @@
         return isPast || s.type === 'Task' || s.type === 'Deadline' || s.type === 'Habit' || isHabitInst(s);
     }
 
-    // --- Multi-day Event Metadata Helpers (Bound to Day 1 without altering DB schema) ---
+    // --- Multi-day Event & Hidden Pin Metadata Helpers (Bound without altering DB schema) ---
+    function parsePinMeta(desc) {
+        const raw = desc || '';
+        const todayMatch = raw.match(/\[pin:today=(\d+)\]\n?/);
+        const inboxMatch = raw.match(/\[pin:inbox=(\d+)\]\n?/);
+        const legacyToday = !todayMatch && /\[pin:today\]\n?/.test(raw);
+        const legacyInbox = !inboxMatch && /\[pin:inbox\]\n?/.test(raw);
+        return {
+            todayPinTs: todayMatch ? (parseInt(todayMatch[1], 10) || 1) : (legacyToday ? 1 : null),
+            inboxPinTs: inboxMatch ? (parseInt(inboxMatch[1], 10) || 1) : (legacyInbox ? 1 : null)
+        };
+    }
+
+    function stripAllHiddenMeta(desc) {
+        return (desc || '')
+            .replace(/\[mde:parent=[^\]|]+\|idx=\d+\|total=\d+\]\n?/g, '')
+            .replace(/\[pin:(?:today|inbox)(?:=\d+)?\]\n?/g, '');
+    }
+
+    function composeDescriptionWithMeta(cleanDesc, { mde = null, todayPinTs = null, inboxPinTs = null } = {}) {
+        const tags = [];
+        if (mde && mde.isBoundChild) {
+            tags.push(`[mde:parent=${mde.parentId}|idx=${mde.idx}|total=${mde.total}]`);
+        }
+        if (todayPinTs !== null && todayPinTs !== undefined) {
+            tags.push(`[pin:today=${todayPinTs}]`);
+        }
+        if (inboxPinTs !== null && inboxPinTs !== undefined) {
+            tags.push(`[pin:inbox=${inboxPinTs}]`);
+        }
+        const cleaned = stripAllHiddenMeta(cleanDesc);
+        if (tags.length === 0) return cleaned;
+        const prefix = tags.join('');
+        return cleaned ? `${prefix}\n${cleaned}` : prefix;
+    }
+
     function parseMultidayDesc(desc) {
         const raw = desc || '';
         const match = raw.match(/\[mde:parent=([^\]|]+)\|idx=(\d+)\|total=(\d+)\]\n?/);
-        if (!match) return { isBoundChild: false, parentId: null, idx: 0, total: 1, cleanDesc: raw };
+        const cleanDesc = stripAllHiddenMeta(raw);
+        if (!match) return { isBoundChild: false, parentId: null, idx: 0, total: 1, cleanDesc };
         return {
             isBoundChild: true,
             parentId: match[1],
             idx: parseInt(match[2], 10) || 0,
             total: parseInt(match[3], 10) || 1,
-            cleanDesc: raw.replace(match[0], '')
+            cleanDesc
         };
     }
 
-    function attachMultidayMeta(cleanDesc, parentId, idx, total) {
-        const prefix = `[mde:parent=${parentId}|idx=${idx}|total=${total}]`;
-        return cleanDesc ? `${prefix}\n${cleanDesc}` : prefix;
+    function attachMultidayMeta(cleanDesc, parentId, idx, total, existingDesc = '') {
+        const pinMeta = parsePinMeta(existingDesc);
+        return composeDescriptionWithMeta(cleanDesc, {
+            mde: { isBoundChild: true, parentId, idx, total },
+            todayPinTs: pinMeta.todayPinTs,
+            inboxPinTs: pinMeta.inboxPinTs
+        });
     }
 
     function isMultidayChildItem(item) {
@@ -911,31 +951,76 @@
         }
     }
 
-    // --- Pin & Label Bin Helpers ---
-    function isTodayPinned(id) {
-        return readIdList(APP_CONFIG.STORAGE.TODAY_PINS).includes(String(id));
+    // --- Pin & Label Bin Helpers (Synced across devices via hidden metadata in description) ---
+    function getItemPinTs(id, scope) {
+        const item = schedules.find(s => String(s.id) === String(id));
+        if (!item) return null;
+        const meta = parsePinMeta(item.description);
+        if (scope === 'today') {
+            if (meta.todayPinTs !== null) return meta.todayPinTs;
+            const legacy = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
+            const idx = legacy.indexOf(String(id));
+            return idx !== -1 ? (legacy.length - idx) : null;
+        }
+        if (scope === 'inbox') {
+            if (meta.inboxPinTs !== null) return meta.inboxPinTs;
+            const legacy = readIdList(APP_CONFIG.STORAGE.INBOX_PINS);
+            const idx = legacy.indexOf(String(id));
+            return idx !== -1 ? (legacy.length - idx) : null;
+        }
+        return null;
     }
 
-    function toggleTodayPin(id, event) {
-        if (event) event.stopPropagation();
-        const strId = String(id);
-        let pinned = readIdList(APP_CONFIG.STORAGE.TODAY_PINS);
-        pinned = pinned.includes(strId) ? pinned.filter(x => x !== strId) : [strId, ...pinned];
-        writeIdList(APP_CONFIG.STORAGE.TODAY_PINS, pinned);
-        scheduleUiRender();
+    function isTodayPinned(id) {
+        return getItemPinTs(id, 'today') !== null;
     }
 
     function isInboxPinned(id) {
-        return readIdList(APP_CONFIG.STORAGE.INBOX_PINS).includes(String(id));
+        return getItemPinTs(id, 'inbox') !== null;
+    }
+
+    function toggleScopedPin(id, scope, event) {
+        if (event) event.stopPropagation();
+        const strId = String(id);
+        const item = schedules.find(s => String(s.id) === strId);
+        if (!item) return;
+
+        const mdeMeta = parseMultidayDesc(item.description);
+        const pinMeta = parsePinMeta(item.description);
+        const currentlyPinned = scope === 'today' ? isTodayPinned(strId) : isInboxPinned(strId);
+
+        const nextTodayTs = scope === 'today'
+            ? (currentlyPinned ? null : Date.now())
+            : pinMeta.todayPinTs;
+        const nextInboxTs = scope === 'inbox'
+            ? (currentlyPinned ? null : Date.now())
+            : pinMeta.inboxPinTs;
+
+        const newDescription = composeDescriptionWithMeta(mdeMeta.cleanDesc, {
+            mde: mdeMeta.isBoundChild ? mdeMeta : null,
+            todayPinTs: nextTodayTs,
+            inboxPinTs: nextInboxTs
+        });
+
+        // Clean up any legacy local-only pin entry for this item
+        const storageKey = scope === 'today' ? APP_CONFIG.STORAGE.TODAY_PINS : APP_CONFIG.STORAGE.INBOX_PINS;
+        const legacy = readIdList(storageKey);
+        if (legacy.includes(strId)) {
+            writeIdList(storageKey, legacy.filter(x => x !== strId));
+        }
+
+        schedules = schedules.map(s => String(s.id) === strId ? { ...s, description: newDescription } : s);
+        enqueueMutation({ type: 'update', id: item.id, payload: { description: newDescription } });
+        persistLocalAndRefresh();
+        if (navigator.onLine) flushSyncQueue();
+    }
+
+    function toggleTodayPin(id, event) {
+        toggleScopedPin(id, 'today', event);
     }
 
     function toggleInboxPin(id, event) {
-        if (event) event.stopPropagation();
-        const strId = String(id);
-        let pinned = readIdList(APP_CONFIG.STORAGE.INBOX_PINS);
-        pinned = pinned.includes(strId) ? pinned.filter(x => x !== strId) : [strId, ...pinned];
-        writeIdList(APP_CONFIG.STORAGE.INBOX_PINS, pinned);
-        scheduleUiRender();
+        toggleScopedPin(id, 'inbox', event);
     }
 
     function isInLabelBin(id) {
@@ -950,23 +1035,26 @@
         writeIdList(APP_CONFIG.STORAGE.LABEL_BIN, readIdList(APP_CONFIG.STORAGE.LABEL_BIN).filter(x => x !== String(id)));
     }
 
-    function sortItemsWithPinStorage(items, storageKey) {
+    function sortItemsWithPinScope(items, scope) {
         const sorted = sortItems(items);
-        const pinnedIds = readIdList(storageKey);
-        if (pinnedIds.length === 0) return sorted;
-        const pinnedSet = new Set(pinnedIds);
-        const pinnedList = sorted.filter(item => pinnedSet.has(String(item.id)));
-        const regularList = sorted.filter(item => !pinnedSet.has(String(item.id)));
-        pinnedList.sort((a, b) => pinnedIds.indexOf(String(a.id)) - pinnedIds.indexOf(String(b.id)));
-        return [...pinnedList, ...regularList];
+        const pinnedList = [];
+        const regularList = [];
+        for (const item of sorted) {
+            const ts = getItemPinTs(item.id, scope);
+            if (ts !== null) pinnedList.push({ item, ts });
+            else regularList.push(item);
+        }
+        if (pinnedList.length === 0) return sorted;
+        pinnedList.sort((a, b) => b.ts - a.ts);
+        return [...pinnedList.map(x => x.item), ...regularList];
     }
 
     function sortTodayItemsWithPins(items) {
-        return sortItemsWithPinStorage(items, APP_CONFIG.STORAGE.TODAY_PINS);
+        return sortItemsWithPinScope(items, 'today');
     }
 
     function sortInboxItemsWithPins(items) {
-        return sortItemsWithPinStorage(items, APP_CONFIG.STORAGE.INBOX_PINS);
+        return sortItemsWithPinScope(items, 'inbox');
     }
 
     // --- Modal & Navigation ---
@@ -1496,10 +1584,15 @@
             }
 
             const existingMeta = parseMultidayDesc(existingItem ? existingItem.description : '');
+            const existingPinMeta = parsePinMeta(existingItem ? existingItem.description : '');
             const parentIdStr = String(id);
             const finalDesc = (type === 'Event' && dayCount > 1)
-                ? attachMultidayMeta(rawDescription, parentIdStr, 0, dayCount)
-                : (existingMeta.isBoundChild ? attachMultidayMeta(rawDescription, existingMeta.parentId, existingMeta.idx, existingMeta.total) : rawDescription);
+                ? attachMultidayMeta(rawDescription, parentIdStr, 0, dayCount, existingItem ? existingItem.description : '')
+                : composeDescriptionWithMeta(rawDescription, {
+                    mde: existingMeta.isBoundChild ? existingMeta : null,
+                    todayPinTs: existingPinMeta.todayPinTs,
+                    inboxPinTs: existingPinMeta.inboxPinTs
+                });
 
             const payload = {
                 title: finalTitleToSave,
