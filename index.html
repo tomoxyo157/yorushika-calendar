@@ -1050,6 +1050,23 @@
         $('authOverlay').style.display = 'flex';
     }
 
+    function readLocalHydratedSchedules() {
+        const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, []);
+        const baseList = Array.isArray(cached) ? cached : [];
+        const queue = loadSyncQueue();
+        return queue.length > 0 ? applyPendingQueueOverlay(baseList, queue) : baseList;
+    }
+
+    function hydrateFromLocalImmediately() {
+        const localData = readLocalHydratedSchedules();
+        if (localData.length > 0) {
+            schedules = localData;
+            scheduleUiRender();
+            return true;
+        }
+        return false;
+    }
+
     function hasLocalOfflineState() {
         const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, null);
         const queue = loadSyncQueue();
@@ -1057,10 +1074,16 @@
     }
 
     async function checkAuthAndInit() {
+        const hadLocal = hydrateFromLocalImmediately();
         try {
-            const { data: { session } } = await supabaseClient.auth.getSession();
+            const sessionPromise = supabaseClient.auth.getSession();
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Session check timeout')), APP_CONFIG.FETCH_TIMEOUT_MS)
+            );
+            const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+
             if (!session) {
-                if (!navigator.onLine && hasLocalOfflineState()) {
+                if (!navigator.onLine || hadLocal || hasLocalOfflineState()) {
                     $('authOverlay').style.display = 'none';
                     await fetchSchedules(true);
                     return;
@@ -1071,7 +1094,7 @@
                 await fetchSchedules(true);
             }
         } catch (err) {
-            if (hasLocalOfflineState() || !navigator.onLine) {
+            if (hadLocal || hasLocalOfflineState() || !navigator.onLine) {
                 $('authOverlay').style.display = 'none';
                 await fetchSchedules(true);
             } else {
@@ -1268,7 +1291,9 @@
         } catch (err) {
             const cached = readJsonStorage(APP_CONFIG.STORAGE.SCHEDULES, []);
             const currentQueue = loadSyncQueue();
-            const baseList = (Array.isArray(cached) && cached.length > 0) ? cached : schedules;
+            const baseList = (Array.isArray(cached) && cached.length > 0)
+                ? cached
+                : (Array.isArray(schedules) && schedules.length > 0 ? schedules : []);
             schedules = currentQueue.length > 0 ? applyPendingQueueOverlay(baseList, currentQueue) : baseList;
         }
 
